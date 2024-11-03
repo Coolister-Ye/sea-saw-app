@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "sea-saw-app",
-    "slug": "sea-saw-app",
+    "slug": "sea-saw-react-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8dafff7c-f949-404d-be2f-191ea3ab824f"
+      }
+    },
+    "owner": "coolister"
   }
 }
