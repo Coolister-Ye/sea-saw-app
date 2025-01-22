@@ -1,45 +1,74 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import React from "react";
+import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Platform } from "react-native";
+import { useDevice } from "@/hooks/useDevice";
+import { DrawerHeader } from "@/components/navigation/Header";
+import { useLocale } from "@/context/Locale";
+import { useAuth } from "@/context/Auth";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { i18n } = useLocale();
+  const { isLargeScreen } = useDevice();
+  const { isGroupX, isStaff } = useAuth();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {Platform.OS === "web" && <DrawerHeader title="Sea saw" />}
+      <Drawer
+        screenOptions={{
+          headerShown: Platform.OS !== "web",
+          drawerType: isLargeScreen ? "permanent" : "front",
+          drawerStyle: { width: 280 },
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Drawer.Screen name="index" options={{ drawerLabel: i18n.t("Home") }} />
+        <Drawer.Screen
+          name="contract"
+          options={{
+            drawerLabel: i18n.t("contract"),
+            drawerItemStyle: {
+              display: isStaff() || isGroupX("Sale") ? "flex" : "none",
+            },
+          }}
+        />
+        <Drawer.Screen
+          name="production"
+          options={{
+            drawerLabel: i18n.t("production"),
+            drawerItemStyle: {
+              display: isStaff() || isGroupX("Production") ? "flex" : "none",
+            },
+          }}
+        />
+        <Drawer.Screen
+          name="contact"
+          options={{
+            drawerLabel: i18n.t("customer"),
+            drawerItemStyle: {
+              display: isStaff() || isGroupX("Sale") ? "flex" : "none",
+            },
+          }}
+        />
+        <Drawer.Screen
+          name="company"
+          options={{
+            drawerLabel: i18n.t("company"),
+            drawerItemStyle: {
+              display: isStaff() || isGroupX("Sale") ? "flex" : "none",
+            },
+          }}
+        />
+        <Drawer.Screen
+          name="playground"
+          options={{
+            drawerLabel: i18n.t("playground"),
+            drawerItemStyle: {
+              display: isStaff() ? "flex" : "none",
+            },
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }

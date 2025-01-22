@@ -1,13 +1,17 @@
 {
   "expo": {
     "name": "sea-saw-app",
-    "slug": "sea-saw-app",
+    "slug": "sea-saw-react-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -24,18 +28,30 @@
     },
     "plugins": [
       "expo-router",
+      "expo-secure-store",
+      "expo-localization",
+      "expo-splash-screen",
       [
-        "expo-splash-screen",
+        "expo-font",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "fonts": [
+            "./assets/fonts/AntDesign.ttf",
+            "./assets/fonts/FontAwesome.ttf",
+            "./assets/fonts/MaterialCommunityIcons.ttf",
+            "./assets/fonts/MaterialIcons-Regular.ttf",
+            "./assets/fonts/SpaceMono-Regular.ttf"
+          ]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8dafff7c-f949-404d-be2f-191ea3ab824f"
+      }
+    },
+    "owner": "coolister"
   }
 }

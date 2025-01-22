@@ -1,39 +1,78 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Stack } from "expo-router";
+import "../global.css";
+import "antd/dist/reset.css";
+import "ag-grid-enterprise";
+import { LicenseManager } from "ag-grid-enterprise";
+import { constants } from "@/constants/Constants";
+import { LocaleProvider } from "@/context/Locale";
+import { AuthProvider } from "@/context/Auth";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+import { WebSplashScreen } from "@/components/navigation/WebSplashScreen";
+import { Asset } from "expo-asset";
+import { ToastProvider } from "@/context/Toast";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [appIsReady, setAppIsReady] = useState(false);
 
+  // Set AG Grid license key
+  LicenseManager.setLicenseKey(constants.agGridLicense);
+
+  // Pre-load resources (e.g., splash image)
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const prepare = async () => {
+      try {
+        // Preload the splash image (add more assets if needed)
+        await Asset.loadAsync(require("@/assets/images/splash.png"));
+      } catch (e) {
+        console.warn("Error loading assets:", e);
+      } finally {
+        // Once assets are loaded, mark the app as ready
+        setAppIsReady(true);
+        // Hide the splash screen after assets are ready
+        SplashScreen.hideAsync();
+      }
+    };
 
-  if (!loaded) {
-    return null;
+    prepare();
+  }, []);
+
+  // Wait until app is ready before rendering the app layout
+  if (!appIsReady) {
+    if (Platform.OS === "web") {
+      return <WebSplashScreen />;
+    }
+    return null; // Optionally, you can return a loading spinner or empty view
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <LocaleProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="user"
+              options={{
+                presentation: "transparentModal",
+                animation: "fade",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </AuthProvider>
+      </ToastProvider>
+    </LocaleProvider>
   );
 }

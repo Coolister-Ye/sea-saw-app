@@ -1,0 +1,10 @@
+.ag-theme-quartz {
+    --ag-cell-horizontal-border: var(--ag-row-border-width) var(--ag-row-border-style) var(--ag-row-border-color);
+}
+
+.cell-span {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    border-bottom: var(--ag-row-border-width) var(--ag-row-border-style) var(--ag-row-border-color);
+}
