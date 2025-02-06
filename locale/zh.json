@@ -53,6 +53,8 @@
     "Etd Plan": "发货计划",
     "order": "生产单",
     "stage": "状态",
-    "owner": "所有者"
+    "owner": "所有者",
+    "download": "下载",
+    "not_completed": "处理中"
 }
   

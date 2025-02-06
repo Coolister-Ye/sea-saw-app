@@ -53,6 +53,8 @@
      "Etd Plan": "Etd Plan",
      "order": "Order",
      "stage": "Stage",
-     "owner": "Owner"
+     "owner": "Owner",
+     "download": "Download",
+     "not_completed": "Not completed"
   }
   

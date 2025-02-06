@@ -60,6 +60,12 @@ export default function TabLayout() {
           }}
         />
         <Drawer.Screen
+          name="download"
+          options={{
+            drawerLabel: i18n.t("download"),
+          }}
+        />
+        <Drawer.Screen
           name="playground"
           options={{
             drawerLabel: i18n.t("playground"),

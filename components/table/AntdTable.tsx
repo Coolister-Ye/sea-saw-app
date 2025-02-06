@@ -10,6 +10,7 @@ import {
   PlusCircleIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
+  ArrowDownTrayIcon,
 } from "react-native-heroicons/mini";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { ColumnsToolBar } from "./ColumnToolBar";
@@ -17,7 +18,6 @@ import { Pressable } from "react-native";
 import { SearchToolBar } from "./SearchToolBar";
 import Toast from "../themed/Toast";
 import i18n from "@/locale/i18n";
-import { useRect } from "@dnd-kit/core/dist/hooks/utilities";
 
 type TableProps = {
   table: string;
@@ -63,6 +63,7 @@ export function Table({
     handleColsRerange,
     paginationModel,
     error,
+    handleDownload,
   } = useTable({
     table,
     tableRef,
@@ -104,6 +105,7 @@ export function Table({
   const paginationConfig = {
     showSizeChanger: true,
     defaultCurrent: 1,
+    defaultPageSize: paginationModel.page_size,
     total: dataCount,
     onChange: handlePaginationChange,
   };
@@ -190,24 +192,6 @@ export function Table({
     </View>
   );
 
-  function filterColumns(columns: any[]) {
-    return columns.filter(
-      (col) =>
-        !EXCLUDED_COLUMNS_SUFFIXES.some((suffix) =>
-          col.dataIndex.endsWith(suffix)
-        )
-    );
-  }
-
-  function hiddenColumns(columns: any[]) {
-    return columns.map((col) => {
-      const hidden = EXCLUDED_COLUMNS_SUFFIXES.some((suffix) =>
-        col.dataIndex.endsWith(suffix)
-      );
-      return { ...col, hidden };
-    });
-  }
-
   function renderTableTitle() {
     return (
       <View variant="paper" className="flex-row justify-between items-center">
@@ -236,6 +220,14 @@ export function Table({
               className="text-zinc-700 hover:text-zinc-600"
             />
           </Pressable>
+          {actionConfig?.allowDownload !== false ? (
+            <Pressable onPress={handleDownload}>
+              <ArrowDownTrayIcon
+                size={18}
+                className="text-zinc-700 hover:text-zinc-600"
+              />
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );

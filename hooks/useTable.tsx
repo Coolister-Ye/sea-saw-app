@@ -11,9 +11,14 @@ import {
 } from "@/utlis/serializer";
 import EllipsisTooltip from "@/components/table/EllipsisTooltip";
 import { useLocale } from "@/context/Locale";
-import { formatCurrency, formatPercentage } from "@/utlis/commonUtils";
+import {
+  changeToPlural,
+  formatCurrency,
+  formatPercentage,
+} from "@/utlis/commonUtils";
 import { ActionCell } from "@/components/table/ActionCell";
 import { useToast } from "@/context/Toast";
+import Toast from "@/components/themed/Toast";
 
 type TableConfigType = {
   table: string;
@@ -48,7 +53,7 @@ type Action =
   | { type: "SET_EDITING_KEY"; payload: string };
 
 const initialState: State = {
-  paginationModel: { page: 1, page_size: 50 },
+  paginationModel: { page: 1, page_size: 10 },
   columns: [],
   data: [],
   flatData: [],
@@ -95,6 +100,7 @@ export function useTable({
     success,
     clearError,
     clearSuccess,
+    request,
   } = useDataService();
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -112,6 +118,7 @@ export function useTable({
   const dataRef = useRef<any>(data);
   const flatDataRef = useRef<any>(flatData);
   const editingKeyRef = useRef<string>(editingKey);
+  const filtersRef = useRef<any>(null);
 
   console.log("columnsRef", columnsRef);
   console.log("dataRef", dataRef);
@@ -243,12 +250,18 @@ export function useTable({
     // Add action column
     const actionColumn = createActionColumn(splits);
 
+    if (actionColumn === null) {
+      return processedHeaders;
+    }
+
     return [...processedHeaders, actionColumn];
   };
 
   // Action column for edit/delete operations
   const createActionColumn = (splits: any) => {
     const { allowAdd, allowDelete } = actionConfig || {};
+
+    if (allowAdd === false && allowDelete === false) return null;
 
     const renderActions = (_: any, record: any) => (
       <ActionCell
@@ -411,7 +424,9 @@ export function useTable({
         list(table, { ordering: ordering, ...pagination, ...params }),
       ]);
 
-      const processedColumns = processColumns(columnsMeta.actions.POST);
+      const processedColumns = processColumns(
+        columnsMeta.actions.POST || columnsMeta.actions.OPTIONS
+      );
       const processedData = assignKey(
         flattenData(
           rows.results,
@@ -424,6 +439,7 @@ export function useTable({
       dataRef.current = rows.results;
       flatDataRef.current = processedData;
       flatColumnsRef.current = processedColumns;
+      filtersRef.current = params;
 
       dispatch({ type: "SET_COLUMNS", payload: processedColumns });
       dispatch({ type: "SET_FLAT_DATA", payload: processedData });
@@ -457,6 +473,16 @@ export function useTable({
     dispatch({ type: "SET_FLAT_DATA", payload: processedData });
   };
 
+  const handleDownload = async () => {
+    const body = {
+      model: changeToPlural(table),
+      filters: filtersRef.current,
+    };
+    const downloadTask = await request("crmDownload", "POST", body);
+    console.log(downloadTask);
+    showToast(downloadTask.data.message, "success");
+  };
+
   useEffect(() => {
     debouncedLoadData(paginationModel);
   }, [paginationModel, locale]);
@@ -479,5 +505,6 @@ export function useTable({
     handleColsRerange,
     setColumns: (columns: any[]) =>
       dispatch({ type: "SET_COLUMNS", payload: columns }),
+    handleDownload,
   };
 }

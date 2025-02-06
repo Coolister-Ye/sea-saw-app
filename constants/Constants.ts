@@ -47,6 +47,9 @@ export const constants = {
     tokenVerify: "/api/token/verify/",
     tokenRefresh: "/api/token/refresh/",
     userProfile: "/api/auth/user-detail/",
+
+    listDownloads: "/api/download/download-tasks/",
+    crmDownload: "/api/sea-saw-crm/download/",
   },
   agGridLicense:
     "115cf8e0-b7b1-4f71-9de7-943f7999b3f9[v32]0102_NDEwMjMyOTYwMDAwMA==a6199e52fee935ae85626d004d2023c7",
