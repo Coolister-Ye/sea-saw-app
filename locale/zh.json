@@ -55,6 +55,21 @@
     "stage": "状态",
     "owner": "所有者",
     "download": "下载",
-    "not_completed": "处理中"
+    "not_completed": "处理中",
+    "save your setting": "保存设置",
+    "isnull": "是否为空",
+    "between": "范围选择",
+    "true": "是",
+    "false": "否",
+    "Change Password": "修改密码",
+    "Current Password": "原密码",
+    "New Password": "新密码",
+    "Confirm Password": "确认新密码",
+    "Enter current password": "输入原密码",
+    "Enter new password": "输入新密码",
+    "Confirm new password": "确认新密码",
+    "Confirm": "提交",
+    "Password must be at least 8 characters": "密码必须不少于8位",
+    "Passwords must match": "新密码必须一致"
 }
   

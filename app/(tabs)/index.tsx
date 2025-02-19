@@ -59,8 +59,8 @@ export default function Index() {
   const getStatData = async () => {
     try {
       const [contractResponse, orderResponse] = await Promise.all([
-        request("listContractsStats", "GET"),
-        request("listOrdersStats", "GET"),
+        request({ uri: "listContractsStats", method: "GET" }),
+        request({ uri: "listOrdersStats", method: "GET" }),
       ]);
 
       const rawStats = [
@@ -96,12 +96,11 @@ export default function Index() {
   const getStatDataS2 = async (year?: string, month?: string) => {
     try {
       const params = year && month ? { date: `${year}-${month}` } : undefined;
-      const response = await request(
-        "listOrdersByMonth",
-        "GET",
-        undefined,
-        params
-      );
+      const response = await request({
+        uri: "listOrdersByMonth",
+        method: "GET",
+        params,
+      });
       setOrderStatByMonth(response.data);
     } catch (error) {
       console.error("Error loading statistics data:", error);

@@ -31,14 +31,15 @@ class DataService {
     method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS" | undefined,
     data?: object,
     params?: { [key: string]: string },
-    headers?: { [key: string]: string }
+    headers?: { [key: string]: string },
+    suffix?: string
   ) {
     const commonHeaders = await DataService.getHeaders();
     const baseUrl = getUrl(uri);
     const queryString = params
       ? `?${new URLSearchParams(params).toString()}`
       : "";
-    const url = `${baseUrl}${queryString}`;
+    const url = `${baseUrl}${suffix || ""}${queryString}`;
     return fetchJsonData({
       url,
       method,

@@ -117,10 +117,7 @@ const ActionCell = <T extends Record<string, any>>({
           {/* Edit action */}
           {renderActionIcon(
             <Pressable onPress={startEditing}>
-              <PencilSquareIcon
-                size={20}
-                className="text-zinc-500 hover:text-zinc-400"
-              />
+              <PencilSquareIcon className="text-zinc-500 hover:text-zinc-400 h-5" />
             </Pressable>
           )}
 
@@ -139,7 +136,7 @@ const ActionCell = <T extends Record<string, any>>({
             >
               <div className="flex items-center">
                 {renderActionIcon(
-                  <PlusCircleIcon className="text-lg text-zinc-500 hover:text-zinc-400" />
+                  <PlusCircleIcon className="text-lg text-zinc-500 hover:text-zinc-400 h-5" />
                 )}
               </div>
             </Dropdown>
@@ -154,7 +151,7 @@ const ActionCell = <T extends Record<string, any>>({
               {renderActionIcon(
                 <TrashIcon
                   size={20}
-                  className="text-zinc-500 hover:text-zinc-400"
+                  className="text-zinc-500 hover:text-zinc-400 h-5"
                 />
               )}
             </Popconfirm>

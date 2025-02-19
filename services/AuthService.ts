@@ -134,6 +134,34 @@ class AuthService {
       );
     }
   }
+
+  // 修改密码
+  // 修改密码
+  static async setPasswd(
+    new_password: string,
+    current_password: string
+  ): Promise<{ status: boolean }> {
+    const url = getUrl("setPasswd");
+    const token = await AuthService.getJwtToken(); // Ensure we have a valid token for authorization
+
+    try {
+      // Call the API to change the password
+      const response = await fetchJsonData({
+        url,
+        method: "POST",
+        body: { new_password, current_password },
+        header: getJwtHeader(token), // Use JWT token for authorization
+      });
+      return { status: true };
+    } catch (error) {
+      // Enhanced error handling
+      if (error instanceof Error) {
+        throw new Error(`Password change failed: ${error.message}`);
+      } else {
+        throw new Error("Password change failed due to an unknown error.");
+      }
+    }
+  }
 }
 
 export { AuthError, AuthService };

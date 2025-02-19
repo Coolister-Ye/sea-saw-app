@@ -35,43 +35,62 @@ export default function ContractScreen() {
 
   // Column configuration for the table
   const colConfig = {
-    pk: {
-      width: 50, // Set column width
-    },
+    pk: { width: 30 },
+    contract_code: { width: 150 },
+    contract_date: { width: 120 },
+    stage: { width: 100 },
     owner: { hidden: true }, // Hide the owner column
     created_at: { hidden: true }, // Hide the created_at column
     updated_at: { hidden: true }, // Hide the updated_at column
-    "orders.pk": { hidden: true }, // Hide nested order ID column
-    "orders.products.pk": { hidden: true }, // Hide nested product ID column
     "contact.full_name": {
-      variant: "lookup", // Define column as a lookup type
-      getOptions: searchContact, // Provide async option loader
+      variant: "lookup",
+      getOptions: searchContact,
     },
-    "orders.deposit": {
-      variant: "currency", // Format as currency
+    "orders.pk": { hidden: true, width: 30 }, // Hide nested order ID column
+    "orders.order_code": { width: 150 },
+    "orders.destination_port": { width: 150 },
+    "orders.deposit": { variant: "currency" },
+    "orders.products.pk": { hidden: true, width: 30 }, // Hide nested product ID column
+    "orders.balance": { variant: "currency" },
+    "orders.products.glazing": { variant: "percentage" },
+    "orders.products.price": { variant: "currency" },
+    "orders.products.total_price": { variant: "currency" },
+  };
+
+  const formula = {
+    "orders.products.total_price": (inputs: Record<string, any>) => {
+      let {
+        "orders.products.weight": weight,
+        "orders.products.quantity": quantity,
+        "orders.products.price": price,
+      } = inputs;
+
+      // 提取 weight 数值
+      weight = typeof weight === "string" ? parseFloat(weight) : weight;
+      return weight * quantity * price;
     },
-    "orders.balance": {
-      variant: "currency", // Format as currency
+    "orders.products.progress_weight": (inputs: Record<string, any>) => {
+      let {
+        "orders.products.progress_quantity": quantity,
+        "orders.products.weight": weight,
+      } = inputs;
+      weight = typeof weight === "string" ? parseFloat(weight) : weight;
+      return quantity * weight;
     },
-    "orders.products.glazing": {
-      variant: "percentage", // Format as percentage
-    },
-    "orders.products.price": {
-      variant: "currency", // Format as currency
-    },
-    "orders.products.total_price": {
-      variant: "currency", // Format as currency
+    "orders.products.total_net_weight": (inputs: Record<string, any>) => {
+      let {
+        "orders.products.quantity": quantity,
+        "orders.products.net_weight": net_weight,
+      } = inputs;
+      return quantity * net_weight;
     },
   };
 
   return (
     <Table
       table="contract" // Table identifier
-      fixedCols={{
-        right: ["orders.products.progress_quantity"], // Fix the progress column on the right
-        left: ["contract_code"], // Fix the contract code column on the left
-      }}
       colConfig={colConfig} // Pass column configuration
+      formula={formula}
     />
   );
 }

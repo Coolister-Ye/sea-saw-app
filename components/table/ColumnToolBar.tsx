@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/sortable";
 import { forwardRef, useState } from "react";
 import { Checkbox } from "expo-checkbox";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { EllipsisVerticalIcon } from "react-native-heroicons/outline";
 import { CSS } from "@dnd-kit/utilities";
 import { BasicFrame } from "../sea/BasicFrame";
 import {
@@ -15,12 +15,24 @@ import {
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import View from "../themed/View";
+import Text from "../themed/Text";
 import { useLocale } from "@/context/Locale";
+import { StarIcon } from "react-native-heroicons/solid";
+import { Pressable } from "react-native";
+import useDataService from "@/hooks/useDataService";
+import { StringChain } from "lodash";
+import { useToast } from "@/context/Toast";
 
 // Type definition for ColumnsToolBar props
 // ColumnsToolBar组件的Props类型定义
 export type ColumnsToolBarProps = {
-  columns: Array<{ id: string; label: string; hidden: boolean }>; // Columns data / 列数据
+  table: string;
+  columns: Array<{
+    id: string;
+    label: string;
+    hidden: boolean;
+    dataIndex: string;
+  }>; // Columns data / 列数据
   onSubmit?: (
     values: Array<{ id: string; label: string; hidden: boolean }>
   ) => void; // Callback for submitting the columns' state / 提交列状态的回调
@@ -30,6 +42,7 @@ export type ColumnsToolBarProps = {
 // ColumnsToolBar component that allows dragging and selecting columns
 // 允许拖动和选择列的ColumnsToolBar组件
 export function ColumnsToolBar({
+  table,
   columns,
   onSubmit,
   onCancel,
@@ -48,6 +61,8 @@ export function ColumnsToolBar({
   const [activeId, setActiveId] = useState<string | null>(null); // State to track the active dragged item / 跟踪当前正在拖动的项目的状态
   const rankedColumns = forwardChecked(columns); // Sort columns initially by hidden state / 初始时根据hidden状态对列进行排序
   const [items, setItems] = useState(rankedColumns); // State to manage columns list after dragging / 用于管理拖动后的列列表
+  const { request } = useDataService();
+  const { showToast } = useToast();
 
   // Find the active (currently dragged) item
   // 查找当前激活（正在拖动的）项
@@ -75,8 +90,7 @@ export function ColumnsToolBar({
       >
         <div className="flex self-stretch items-center">
           {/* Drag handle / 拖动手柄 */}
-          <MaterialCommunityIcons
-            name="drag-vertical"
+          <EllipsisVerticalIcon
             size={18}
             className="text-zinc-500"
             {...listeners}
@@ -185,11 +199,59 @@ export function ColumnsToolBar({
     onCancel && onCancel(); // Trigger cancel callback if defined / 如果定义了取消回调，则触发
   };
 
+  const FooterAddon = () => {
+    // Handle the save action
+    const handleOnSave = async () => {
+      try {
+        // Define the type for column_pref
+        const column_pref = items.map(({ dataIndex, hidden }) => ({
+          dataIndex,
+          hidden,
+        }));
+        // Prepare the request body with table name and column preferences
+        const body = { table_name: table, column_pref };
+
+        // Make the API call to save user column preferences
+        const response = await request({
+          uri: "createUserColPreference",
+          method: "POST",
+          data: body,
+          suffix: `${table}/`,
+        });
+
+        if (response.status) {
+          // Show success toast message after saving
+          showToast("save successfully!", "success");
+        } else {
+          showToast("Failed to save settings. Please try again.", "error");
+        }
+      } catch (error) {
+        // Handle errors gracefully (optional)
+        showToast("An error occurred. Please try again later.", "error");
+      }
+    };
+
+    return (
+      <View className="flex-row items-center justify-end px-3 py-2 bg-green-100 group">
+        <Pressable
+          className="flex-row items-center justify-end"
+          onPress={handleOnSave}
+        >
+          <Text className="text-blue-500 group-hover:text-blue-600 px-1">
+            {i18n.t("save your setting")}
+          </Text>
+          <StarIcon className="h-5 w-5 text-blue-500 group-hover:text-blue-600" />
+        </Pressable>
+      </View>
+    );
+  };
+
   return (
     <BasicFrame
       headerText={i18n.t("Column tool")} // Header text for the frame / 组件的标题文本
       handleSubmit={handleSubmit} // Submit handler / 提交处理函数
       handleCancel={handleCancel} // Cancel handler / 取消处理函数
+      footerAddon={FooterAddon}
     >
       <div className="flex flex-col w-full h-full">
         {/* Drag and drop context setup / 拖放上下文设置 */}

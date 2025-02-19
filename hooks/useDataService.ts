@@ -151,20 +151,29 @@ export default function useDataService() {
   };
 
   // Generic Request, this is a wrapper for DataService.genericRequest
-  const request = async (
-    uri: string,
-    method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS" | undefined,
-    data?: object,
-    params?: { [key: string]: string },
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
+  const request = async ({
+    uri,
+    method,
+    data,
+    params,
+    headers,
+    suffix,
+  }: {
+    uri: string;
+    method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS";
+    data?: object;
+    params?: { [key: string]: string };
+    headers?: { [key: string]: string };
+    suffix?: string;
+  }): Promise<ApiResponse> => {
     return handleApiCall(() =>
       DataService.genericRequest(
         uri,
         method,
         data,
         params,
-        mergeHeaders(headers)
+        mergeHeaders(headers),
+        suffix
       )
     );
   };

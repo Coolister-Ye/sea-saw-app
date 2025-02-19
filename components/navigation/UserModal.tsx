@@ -23,7 +23,7 @@ export default function UserModal({ isVisible, setVisible }: UserModalProps) {
             onPress={() => setVisible(false)}
             className="absolute top-0 right-0 p-3 z-50"
           />
-          <UserProfile />
+          <UserProfile setVisible={setVisible} />
         </Animated.View>
       </Animated.View>
     </Modal>

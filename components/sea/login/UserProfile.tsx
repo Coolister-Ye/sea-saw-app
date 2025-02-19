@@ -5,8 +5,9 @@ import { useAuth } from "@/context/Auth";
 import { useLocale } from "@/context/Locale";
 import { PowerIcon } from "react-native-heroicons/outline";
 import { Pressable } from "react-native";
+import { Link } from "expo-router";
 
-export function UserProfile() {
+export function UserProfile({ setVisible }: { setVisible?: any }) {
   const { user, logout } = useAuth();
   const { i18n } = useLocale();
   const {
@@ -39,6 +40,15 @@ export function UserProfile() {
             )}`}</Text>
           </View>
         </View>
+      </View>
+      <View className="py-3 px-3">
+        <Link
+          href="/set_passwd"
+          className="text-blue-500 hover:text-blue-600 text-sm"
+          onPress={() => setVisible(false)}
+        >
+          {i18n.t("Change Password")}
+        </Link>
       </View>
       <View className="bg-zinc-100 px-1">
         <Pressable

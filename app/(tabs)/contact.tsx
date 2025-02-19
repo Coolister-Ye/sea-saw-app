@@ -23,7 +23,8 @@ export default function ContactScreen() {
   };
 
   const colConfig = {
-    pk: { width: 50 },
+    pk: { width: 30 },
+    email: { width: 200 },
     owner: { hidden: true }, // Hide the owner column
     created_at: { hidden: true }, // Hide the created_at column
     updated_at: { hidden: true }, // Hide the updated_at column
@@ -35,5 +36,18 @@ export default function ContactScreen() {
     },
   };
 
-  return <Table table="contact" colConfig={colConfig} />;
+  // Set the formula for edit mode
+  const formula = {
+    full_name: ({ first_name, last_name }: any) =>
+      `${first_name} ${last_name}`.trim(),
+  };
+
+  return (
+    <Table
+      table="contact"
+      colConfig={colConfig}
+      formula={formula}
+      defaultColWidth={150}
+    />
+  );
 }

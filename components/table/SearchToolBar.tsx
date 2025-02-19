@@ -1,5 +1,6 @@
 import {
   AutoComplete,
+  Checkbox,
   ConfigProvider,
   DatePicker,
   Form,
@@ -12,6 +13,8 @@ import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { ScrollView } from "react-native";
 import { DebounceSelect } from "./DebounceSelect";
+import { useState } from "react";
+import { NumberRangeInput } from "./NumberRangeInput";
 
 // OptionType 定义了每个选项的类型
 type OptionType = {
@@ -67,18 +70,42 @@ export function SearchToolBar({
     if (!operations) return null;
 
     // 格式化操作选项
-    const operationOpts = operations.map((opr) => ({
+    let operationOpts = operations.map((opr) => ({
       value: opr,
       label: i18n.t(opr), // 使用国际化的标签
       key: opr,
     }));
+
+    const rangeOpt = { value: "range", label: i18n.t("between"), key: "range" };
+
+    if (
+      variant === "datepicker" ||
+      ["decimal", "float", "integer"].includes(type || "")
+    ) {
+      operationOpts = [...operationOpts, rangeOpt];
+    }
+
+    const [currentOpr, setCurrentOpr] = useState<string>(
+      operationOpts[0]?.value
+    );
 
     // 替换数据字段中的"."为"__"以避免命名冲突
     const formatedDi = dataIndex.replace(/\./g, "__");
 
     // 渲染不同类型的可编辑单元格
     const inputComponent = () => {
-      if (variant === "picklist") {
+      if (currentOpr === "isnull") {
+        return (
+          <Select
+            options={[
+              { value: true, label: i18n.t("true") },
+              { value: false, label: i18n.t("false") },
+            ]}
+            allowClear
+            style={{ minWidth: 80, flex: 1 }}
+          />
+        );
+      } else if (variant === "picklist") {
         return (
           <Select
             options={options}
@@ -98,8 +125,15 @@ export function SearchToolBar({
           )
         );
       } else if (variant === "datepicker") {
+        if (currentOpr === "range") {
+          const { RangePicker } = DatePicker;
+          return <RangePicker style={{ minWidth: 80 }} />;
+        }
         return <DatePicker style={{ minWidth: 80, flex: 1 }} />;
       } else if (["decimal", "float", "integer"].includes(type || "")) {
+        if (currentOpr === "range") {
+          return <NumberRangeInput className={`${styles.customRangeInput}`} />;
+        }
         return <InputNumber style={{ minWidth: 80, flex: 1 }} />;
       } else {
         return (
@@ -135,6 +169,7 @@ export function SearchToolBar({
                 labelInValue={false}
                 options={operationOpts}
                 style={{ width: 100 }}
+                onChange={(val) => setCurrentOpr(val)}
               />
             </Form.Item>
           </div>
@@ -151,14 +186,30 @@ export function SearchToolBar({
           <div className={`${styles.customInput} w-full`}>
             <Form.Item
               name={formatedDi}
-              getValueProps={(value) => ({
-                value: variant === "datepicker" && value ? dayjs(value) : value, // 处理日期格式
-              })}
-              normalize={(value) =>
-                variant === "datepicker" && value
-                  ? `${dayjs(value).format("YYYY-MM-DD")}` // 格式化日期
-                  : value
-              }
+              getValueProps={(value) => {
+                if (variant === "datepicker") {
+                  if (Array.isArray(value)) {
+                    return value
+                      .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
+                      .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
+                  } else {
+                    return `${dayjs(value).format("YYYY-MM-DD")}`;
+                  }
+                }
+                return value;
+              }}
+              normalize={(value) => {
+                if (variant === "datepicker") {
+                  if (Array.isArray(value)) {
+                    return value
+                      .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
+                      .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
+                  } else {
+                    return `${dayjs(value).format("YYYY-MM-DD")}`;
+                  }
+                }
+                return value;
+              }}
               noStyle
             >
               {inputComponent()}
@@ -169,21 +220,35 @@ export function SearchToolBar({
     );
   };
 
-  // 构建筛选参数
+  // 构建搜索参数
   const buildFilterParams = (values: Record<string, any>) => {
     const filterParams: Record<string, string> = {};
 
+    // 遍历所有字段
     Object.keys(values).forEach((key) => {
       const value = values[key];
 
-      // 跳过操作字段和空值
+      // 跳过操作字段和空值字段
       if (key.includes("-operation") || !value) return;
 
-      // 如果字段是日期类型，格式化为"YYYY-MM-DD"
+      // 获取操作符，默认为 'exact'
       const operationKey = `${key}-operation`;
-      const operation = values[operationKey] || "exact"; // 默认为 "exact"
-      const filterKey = operation === "exact" ? key : `${key}__${operation}`; // 根据操作类型构建字段名
-      filterParams[filterKey] = value; // 添加到筛选参数
+      const operation = values[operationKey] || "exact";
+
+      // 将range筛选转化成对比操作
+      if (operation === "range" && Array.isArray(value)) {
+        filterParams[`${key}__gte`] = value[0];
+        filterParams[`${key}__lte`] = value[1];
+      } else if (operation === "range" && typeof value === "object") {
+        filterParams[`${key}__gte`] = value.min;
+        filterParams[`${key}__lte`] = value.max;
+      } else if (operation === "exact") {
+        // 对于 exact 操作符，直接传入值
+        filterParams[key] = value;
+      } else {
+        // 对于其他操作符（如 'contains', 'lt', 'gt' 等），构造字段
+        filterParams[`${key}__${operation}`] = value;
+      }
     });
 
     return filterParams;
@@ -208,7 +273,7 @@ export function SearchToolBar({
           name="searchToolBar"
           labelWrap
           labelCol={{ span: 6 }} // 标签宽度
-          wrapperCol={{ flex: 18 }} // 输入框宽度
+          wrapperCol={{ span: 18 }} // 输入框宽度
           onFinish={onFinish}
           colon={false} // 不使用冒号
           initialValues={{}} // 初始值为空
@@ -275,6 +340,19 @@ const useStyle = createStyles(({ css }) => ({
     }
 
     .ant-input-number {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
+      width: 100%;
+    }
+  `,
+  customRangeInput: css`
+    .ant-input-number:first-of-type {
+      border-radius: 0;
+      width: 100%;
+    }
+    .ant-input-number:nth-of-type(2) {
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
       border-top-right-radius: 5px;

@@ -32,6 +32,10 @@ interface AuthContextType {
   checkLoginStatus: () => void;
   isGroupX: (groupName: string) => boolean;
   isStaff: () => boolean;
+  setPasswd: (params: {
+    new_password: string;
+    current_password: string;
+  }) => Promise<any>;
 }
 
 // AuthService返回的响应类型
@@ -170,6 +174,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Set new password
+  // 修改密码功能
+  const setPasswd = async ({ new_password, current_password }: any) => {
+    setLoading(true); // Start loading state
+
+    try {
+      const response = await AuthService.setPasswd(
+        new_password,
+        current_password
+      );
+
+      setIsLogin(false); // Set login state to false (the user may need to log in again)
+      setUser(null); // Clear the user data
+      router.replace("/login"); // Redirect to the login page for re-authentication
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      setError(errorMessage); // Set error message
+    } finally {
+      setLoading(false); // Exit loading state
+    }
+  };
+
   // 检查用户是否属于指定的用户组
   const isGroupX = (groupName: string): boolean => {
     return (
@@ -207,6 +234,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           checkLoginStatus,
           isGroupX,
           isStaff,
+          setPasswd,
         }}
       >
         {children}

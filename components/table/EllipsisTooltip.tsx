@@ -21,18 +21,21 @@ const EllipsisTooltip: React.FC<{
   }, [children]); // 当内容变化时重新检查是否需要显示 Tooltip
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        textOverflow: "ellipsis", // 超出部分用省略号表示
-        overflow: "hidden", // 隐藏超出部分
-        whiteSpace: "nowrap", // 防止换行
-      }}
-    >
+    <div ref={containerRef}>
       {visible ? (
         // 如果内容超出，显示 Tooltip
         <Tooltip title={title}>
-          <div>{children}</div>
+          <div
+            style={
+              {
+                // textOverflow: "ellipsis", // 超出部分用省略号表示?
+                // overflow: "hidden", // 隐藏超出部分
+                // whiteSpace: "nowrap", // 防止换行
+              }
+            }
+          >
+            {children}
+          </div>
         </Tooltip>
       ) : (
         // 如果内容没有超出，直接显示内容

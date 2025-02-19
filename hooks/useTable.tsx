@@ -18,7 +18,7 @@ import {
 } from "@/utlis/commonUtils";
 import { ActionCell } from "@/components/table/ActionCell";
 import { useToast } from "@/context/Toast";
-import Toast from "@/components/themed/Toast";
+import { View } from "react-native";
 
 type TableConfigType = {
   table: string;
@@ -53,7 +53,7 @@ type Action =
   | { type: "SET_EDITING_KEY"; payload: string };
 
 const initialState: State = {
-  paginationModel: { page: 1, page_size: 10 },
+  paginationModel: { page: 1, page_size: 50 },
   columns: [],
   data: [],
   flatData: [],
@@ -83,7 +83,7 @@ function reducer(state: State, action: Action): State {
 export function useTable({
   table,
   tableRef,
-  defaultColWidth = 150,
+  defaultColWidth = 120,
   fixedCols,
   colConfig = {},
   actionConfig,
@@ -162,7 +162,10 @@ export function useTable({
    * @param columnsMeta - The metadata for table columns.
    * @returns An array of processed column configurations.
    */
-  const processColumns = (columnsMeta: any) => {
+  const processColumns = (
+    columnsMeta: any,
+    columnPref: Array<{ dataIndex: string; hidden?: boolean }>
+  ) => {
     const { headers, splits } = flattenHeaderMeta(columnsMeta);
 
     const getVariant = (col: any) => {
@@ -216,36 +219,63 @@ export function useTable({
       getOptions: col.getOptions,
     });
 
-    // Process headers with enhanced properties
-    const processedHeaders = headers.map((_col: any, index: number) => {
-      const variant = getVariant(_col);
-      const formater = getFormater(variant);
-      const extraConf = colConfig?.[_col.dataIndex] || {};
-      const col = { ..._col, ...extraConf, ...{ variant, formater } };
-      const fixed = fixedCols?.right?.includes(_col.dataIndex)
-        ? "right"
-        : fixedCols?.left?.includes(_col.dataIndex)
-        ? "left"
-        : undefined;
+    // Sort headers according to columnPref
+    const sortedHeaders = columnPref
+      .filter((pref) =>
+        headers.some((header) => header.dataIndex === pref.dataIndex)
+      )
+      .map((pref) => {
+        const header = headers.find(
+          (header) => header.dataIndex === pref.dataIndex
+        );
+        return header;
+      });
 
-      return {
-        ...col,
-        id: index,
-        label: col.title,
-        hidden: false,
-        ellipsis: { showTitle: false },
-        width: defaultColWidth || 200, // Fallback to default width
-        fixed: fixed,
-        options: col.choices,
-        render: (text: string) => (
-          <EllipsisTooltip title={text}>
-            {text ? formater(text) : "-"}
-          </EllipsisTooltip>
-        ),
-        onCell: (record: any) => createOnCell(record, col, !col.read_only),
-        ...extraConf,
-      };
-    });
+    // Filter out columns that are not in columnPref and keep their original order
+    const remainingHeaders = headers.filter(
+      (header) =>
+        !columnPref.some((pref) => pref.dataIndex === header.dataIndex)
+    );
+
+    // Concatenate sorted headers and remaining headers (non-preference columns)
+    const finalSortedHeaders = [...sortedHeaders, ...remainingHeaders];
+
+    // Process headers with enhanced properties
+    const processedHeaders = finalSortedHeaders.map(
+      (_col: any, index: number) => {
+        const variant = getVariant(_col);
+        const formater = getFormater(variant);
+        const userConf = columnPref.find(
+          (pref) => pref.dataIndex === _col.dataIndex
+        );
+        const initialConf = colConfig?.[_col.dataIndex] || {};
+        // The priority of user setting is higher than that of initial setting
+        const extraConf = { ...initialConf, ...userConf };
+        const col = { ..._col, ...extraConf, ...{ variant, formater } };
+        const fixed = fixedCols?.right?.includes(_col.dataIndex)
+          ? "right"
+          : fixedCols?.left?.includes(_col.dataIndex)
+          ? "left"
+          : undefined;
+
+        return {
+          ...col,
+          id: index,
+          label: col.title,
+          hidden: false,
+          width: defaultColWidth || 100, // Fallback to default width
+          fixed: fixed,
+          options: col.choices,
+          render: (text: string) => (
+            <EllipsisTooltip title={text}>
+              {text ? formater(text) : ""}
+            </EllipsisTooltip>
+          ),
+          onCell: (record: any) => createOnCell(record, col, !col.read_only),
+          ...extraConf,
+        };
+      }
+    );
 
     // Add action column
     const actionColumn = createActionColumn(splits);
@@ -259,9 +289,10 @@ export function useTable({
 
   // Action column for edit/delete operations
   const createActionColumn = (splits: any) => {
-    const { allowAdd, allowDelete } = actionConfig || {};
+    const { allowAdd, allowDelete, allowEdit } = actionConfig || {};
 
-    if (allowAdd === false && allowDelete === false) return null;
+    if (allowAdd === false && allowDelete === false && allowEdit === false)
+      return null;
 
     const renderActions = (_: any, record: any) => (
       <ActionCell
@@ -413,19 +444,33 @@ export function useTable({
     }
   };
 
+  const loadUserPreference = () => {
+    // Make the API call to save user column preferences
+    const response = request({
+      uri: "getUserColPreference",
+      method: "GET",
+      suffix: `${table}/`,
+    });
+    return response;
+  };
+
   // Load data and columns
   const loadTableData = async (
     pagination: PaginationProps,
     params?: { [key: string]: any }
   ) => {
     try {
-      const [{ data: columnsMeta }, { data: rows }] = await Promise.all([
-        options(table),
-        list(table, { ordering: ordering, ...pagination, ...params }),
-      ]);
+      const [{ data: columnsMeta }, { data: rows }, { data: userPref }] =
+        await Promise.all([
+          options(table),
+          list(table, { ordering: ordering, ...pagination, ...params }),
+          loadUserPreference(),
+        ]);
 
+      const { column_pref: columnPref } = userPref;
       const processedColumns = processColumns(
-        columnsMeta.actions.POST || columnsMeta.actions.OPTIONS
+        columnsMeta.actions.POST || columnsMeta.actions.OPTIONS,
+        columnPref || []
       );
       const processedData = assignKey(
         flattenData(
@@ -461,13 +506,13 @@ export function useTable({
     const processedData = assignKey(
       flattenData(
         dataRef.current,
-        columns.map((col: { dataIndex: any }) => col.dataIndex),
+        flatColumnsRef.current.map((col: { dataIndex: any }) => col.dataIndex),
         []
       )
     );
 
     flatDataRef.current = processedData;
-    flatColumnsRef.current = columns;
+    // flatColumnsRef.current = columns;
 
     dispatch({ type: "SET_COLUMNS", payload: columns });
     dispatch({ type: "SET_FLAT_DATA", payload: processedData });
@@ -478,8 +523,11 @@ export function useTable({
       model: changeToPlural(table),
       filters: filtersRef.current,
     };
-    const downloadTask = await request("crmDownload", "POST", body);
-    console.log(downloadTask);
+    const downloadTask = await request({
+      uri: "crmDownload",
+      method: "POST",
+      data: body,
+    });
     showToast(downloadTask.data.message, "success");
   };
 

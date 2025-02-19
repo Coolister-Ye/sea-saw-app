@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  # 前端服务
+  frontend:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"

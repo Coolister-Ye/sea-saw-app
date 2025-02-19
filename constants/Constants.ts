@@ -1,8 +1,8 @@
 export const constants = {
   localhost: {
-    apiDomain: "http://192.168.0.88:8000",
+    // apiDomain: "http://192.168.0.88:8000",
     // apiDomain: "http://localhost:8000",
-    // apiDomain: "http://192.168.3.204:8000",
+    apiDomain: "http://192.168.3.204:8001",
   },
   prod: {
     apiDomain: "https://coolister.top:8000",
@@ -47,9 +47,13 @@ export const constants = {
     tokenVerify: "/api/token/verify/",
     tokenRefresh: "/api/token/refresh/",
     userProfile: "/api/auth/user-detail/",
+    setPasswd: "/auth/users/set_password/",
 
     listDownloads: "/api/download/download-tasks/",
     crmDownload: "/api/sea-saw-crm/download/",
+
+    getUserColPreference: "/api/preference/user-column-preference/",
+    createUserColPreference: "/api/preference/user-column-preference/",
   },
   agGridLicense:
     "115cf8e0-b7b1-4f71-9de7-943f7999b3f9[v32]0102_NDEwMjMyOTYwMDAwMA==a6199e52fee935ae85626d004d2023c7",

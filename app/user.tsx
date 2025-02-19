@@ -1,4 +1,7 @@
 import { UserProfile } from "@/components/sea/login/UserProfile";
+import { useLocale } from "@/context/Locale";
+import { Link } from "expo-router";
+import { View, Text } from "react-native";
 import Animated, { FadeIn, SlideInRight } from "react-native-reanimated";
 
 // 用户屏幕组件，展示用户个人资料

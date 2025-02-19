@@ -43,6 +43,7 @@ export default function DownloadScreen() {
     allowAdd: false,
     allowDelete: false,
     allowDownload: false,
+    allowEdit: false,
   };
 
   return (

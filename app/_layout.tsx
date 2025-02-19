@@ -4,7 +4,7 @@ import "antd/dist/reset.css";
 import "ag-grid-enterprise";
 import { LicenseManager } from "ag-grid-enterprise";
 import { constants } from "@/constants/Constants";
-import { LocaleProvider } from "@/context/Locale";
+import { LocaleProvider, useLocale } from "@/context/Locale";
 import { AuthProvider } from "@/context/Auth";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -67,6 +67,12 @@ export default function RootLayout() {
                 presentation: "transparentModal",
                 animation: "fade",
                 headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="set_passwd"
+              options={{
+                title: "Change Password",
               }}
             />
             <Stack.Screen name="+not-found" />

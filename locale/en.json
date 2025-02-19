@@ -55,6 +55,19 @@
      "stage": "Stage",
      "owner": "Owner",
      "download": "Download",
-     "not_completed": "Not completed"
+     "not_completed": "Not completed",
+     "save your setting": "save your setting",
+     "between": "between",
+     "true": "True",
+     "false": "False",
+     "Change Password": "Change Password",
+     "Current Password": "Current Password",
+     "New Password": "New Password",
+     "Confirm Password": "Confirm Password",
+     "Enter current password": "Enter current password",
+     "Enter new password": "Enter new password",
+     "Confirm new password": "Confirm new password",
+     "Password must be at least 8 characters": "Password must be at least 8 characters",
+     "Passwords must match": "Passwords must match"
   }
   

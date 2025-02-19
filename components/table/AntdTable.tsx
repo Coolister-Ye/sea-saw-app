@@ -21,10 +21,13 @@ import i18n from "@/locale/i18n";
 
 type TableProps = {
   table: string;
+  columnOrder?: string[];
   fixedCols?: Partial<Record<"left" | "right", string[]>>;
   colConfig?: Record<string, any>;
   actionConfig?: Record<string, any>;
   ordering?: string;
+  formula?: Record<string, (inputs: Record<string, any>) => any>;
+  defaultColWidth?: number;
 };
 
 // Constants for column filters
@@ -41,10 +44,13 @@ const EXCLUDED_COLUMNS_SUFFIXES = [
 
 export function Table({
   table,
+  columnOrder,
   fixedCols,
   colConfig,
   actionConfig,
   ordering,
+  formula,
+  defaultColWidth,
 }: TableProps) {
   const { styles } = useStyle();
   const tableRef = useRef<any>(null);
@@ -71,6 +77,7 @@ export function Table({
     colConfig,
     actionConfig,
     ordering,
+    defaultColWidth,
   });
 
   // Memoized columns filter logic
@@ -130,6 +137,7 @@ export function Table({
             className="fixed z-50 inset-y-0 right-0 bg-white w-full md:w-96 border border-zinc-200 drop-shadow"
           >
             <ColumnsToolBar
+              table={table}
               columns={columns}
               onCancel={() => setShowColumnBar(false)}
               onSubmit={handleColumnBarSubmit}
@@ -144,7 +152,7 @@ export function Table({
           <Animated.View
             entering={FadeIn}
             exiting={FadeOut}
-            className="fixed z-50 inset-y-0 right-0 bg-white w-full md:w-[28rem] border border-zinc-200 drop-shadow"
+            className="fixed z-50 inset-y-0 right-0 bg-white w-full md:w-[32rem] border border-zinc-200 drop-shadow"
           >
             <SearchToolBar
               columns={columns}
@@ -163,6 +171,9 @@ export function Table({
               Table: {
                 footerBg: "#ffffff",
                 headerBorderRadius: 0,
+                cellFontSizeSM: 12,
+                cellPaddingBlockSM: 5,
+                cellPaddingInlineSM: 5,
               },
             },
           }}
@@ -186,6 +197,13 @@ export function Table({
             title={renderTableTitle}
             footer={renderTableFooter}
             loading={loading}
+            onRow={(record, recordIndex) =>
+              ({
+                index: recordIndex,
+                formula: formula,
+                record: record,
+              } as any)
+            }
           />
         </ConfigProvider>
       </View>
@@ -209,23 +227,14 @@ export function Table({
         </View>
         <View className="mr-3 flex-row space-x-2">
           <Pressable onPress={handleColumnBarToggle}>
-            <Cog6ToothIcon
-              size={18}
-              className="text-zinc-700 hover:text-zinc-600"
-            />
+            <Cog6ToothIcon className="text-zinc-700 hover:text-zinc-600" />
           </Pressable>
           <Pressable onPress={handleSearchBarToggle}>
-            <MagnifyingGlassIcon
-              size={18}
-              className="text-zinc-700 hover:text-zinc-600"
-            />
+            <MagnifyingGlassIcon className="text-zinc-700 hover:text-zinc-600" />
           </Pressable>
           {actionConfig?.allowDownload !== false ? (
             <Pressable onPress={handleDownload}>
-              <ArrowDownTrayIcon
-                size={18}
-                className="text-zinc-700 hover:text-zinc-600"
-              />
+              <ArrowDownTrayIcon className="text-zinc-700 hover:text-zinc-600" />
             </Pressable>
           ) : null}
         </View>
@@ -295,6 +304,10 @@ const useStyle = createStyles(({ css }) => ({
     .ant-table-wrapper .ant-table.ant-table-bordered > .ant-table-footer {
       border-top: 1px solid #f0f0f0;
       z-index: 99;
+    }
+
+    .editable-cell-value-wrap > div {
+      min-height: 20px;
     }
   `,
 }));

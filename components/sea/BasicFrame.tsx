@@ -2,12 +2,12 @@ import clsx from "clsx";
 import View from "../themed/View";
 import Text from "../themed/Text";
 import Button from "../themed/Button";
-import { constants } from "../../constants/Constants";
 import { useLocale } from "@/context/Locale";
 
 type BasicFrameProps = {
   headerText: string;
   children: React.ReactNode; // 明确声明 children 类型
+  footerAddon?: React.ReactElement | (() => React.ReactElement); // footer add-on component
   handleCancel: () => void; // onCancel 应该作为 props 传入
   handleSubmit: () => void; // handleSubmit 也应作为 props 传入
   handleReset?: () => void;
@@ -16,6 +16,7 @@ type BasicFrameProps = {
 export function BasicFrame({
   headerText,
   children,
+  footerAddon,
   handleCancel,
   handleSubmit,
   handleReset,
@@ -34,6 +35,15 @@ export function BasicFrame({
 
       {/* Input form */}
       <View className="py-3 flex-1">{children}</View>
+
+      {/* Footer add-on */}
+      <View className="w-full">
+        {footerAddon && (
+          <View>
+            {typeof footerAddon === "function" ? footerAddon() : footerAddon}
+          </View>
+        )}
+      </View>
 
       {/* Footer for buttons */}
       <View
