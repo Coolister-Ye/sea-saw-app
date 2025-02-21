@@ -98,8 +98,7 @@ export const fetchJsonData = async ({
 // 获取基础 API 域名
 // 根据当前环境获取 API 基础 URL
 export function getBaseUrl(): string {
-  const envName = (process.env.EXPO_PUBLIC_ENV_NAME || "prod") as ENV_NAME;
-  return constants[envName]?.apiDomain || ""; // 防止找不到 apiDomain 的情况，返回空字符串
+  return process.env.EXPO_PUBLIC_API_URL || "";
 }
 
 // 根据 urlKey 获取完整的 API URL

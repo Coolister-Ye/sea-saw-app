@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Welcome Sea-saw app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is the frontend application for Sea-saw app, which is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
 
@@ -14,6 +14,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
    ```bash
     npx expo start
+   ```
+
+## Get started issues
+
+1.  You may need to grant full disk permission to watchman and terminal
+
+2. You can choose to run in dev or prod envirnemnt by choosing .env files
+
+   ```
+   NODE_ENV=dev npx expo start
    ```
 
 In the output, you'll find options to open the app in a
@@ -48,155 +58,3 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-
-## quickstart
-```bash
-npx expo export -p web
-```
-
-```
-sea-saw-app
-├─ .env
-├─ README.md
-├─ app
-│  ├─ (tabs)
-│  │  ├─ _layout.tsx
-│  │  ├─ company.tsx
-│  │  ├─ contact.tsx
-│  │  ├─ contract.tsx
-│  │  ├─ download.tsx
-│  │  ├─ index.tsx
-│  │  ├─ playground.tsx
-│  │  └─ production.tsx
-│  ├─ +html.tsx
-│  ├─ +not-found.tsx
-│  ├─ _layout.tsx
-│  ├─ login.tsx
-│  ├─ set_passwd.tsx
-│  └─ user.tsx
-├─ app.json
-├─ assets
-│  ├─ fonts
-│  │  ├─ AntDesign.ttf
-│  │  ├─ FontAwesome.ttf
-│  │  ├─ MaterialCommunityIcons.ttf
-│  │  ├─ MaterialIcons-Regular.ttf
-│  │  └─ SpaceMono-Regular.ttf
-│  └─ images
-│     ├─ adaptive-icon.png
-│     ├─ app.png
-│     ├─ favicon.png
-│     ├─ icon.png
-│     ├─ partial-react-logo.png
-│     ├─ react-logo.png
-│     ├─ react-logo@2x.png
-│     ├─ react-logo@3x.png
-│     └─ splash.png
-├─ babel.config.js
-├─ components
-│  ├─ Collapsible.tsx
-│  ├─ ExternalLink.tsx
-│  ├─ HelloWave.tsx
-│  ├─ ParallaxScrollView.tsx
-│  ├─ ThemedText.tsx
-│  ├─ ThemedView.tsx
-│  ├─ __tests__
-│  │  ├─ ThemedText-test.tsx
-│  │  └─ __snapshots__
-│  │     └─ ThemedText-test.tsx.snap
-│  ├─ data
-│  │  ├─ Calendar.tsx
-│  │  ├─ PlanList.tsx
-│  │  └─ Stats.tsx
-│  ├─ navigation
-│  │  ├─ Avatar.tsx
-│  │  ├─ CloseIcon.tsx
-│  │  ├─ Header.tsx
-│  │  ├─ TabBarIcon.tsx
-│  │  ├─ UserModal.tsx
-│  │  └─ WebSplashScreen.tsx
-│  ├─ sea
-│  │  ├─ BasicFrame.tsx
-│  │  ├─ DatePickerInput.tsx
-│  │  ├─ Dropdown.tsx
-│  │  ├─ Form.tsx
-│  │  ├─ FormView.tsx
-│  │  ├─ InputGroup.tsx
-│  │  ├─ SelectList.tsx
-│  │  ├─ download
-│  │  │  ├─ donwloadList.tsx
-│  │  │  └─ downloadItem.tsx
-│  │  └─ login
-│  │     ├─ InputGroup.tsx
-│  │     └─ UserProfile.tsx
-│  ├─ table
-│  │  ├─ ActionCell.tsx
-│  │  ├─ AntdTable.tsx
-│  │  ├─ ColumnToolBar.tsx
-│  │  ├─ DebounceSelect.tsx
-│  │  ├─ EditableCell.tsx
-│  │  ├─ EditableRow.tsx
-│  │  ├─ EllipsisTooltip.tsx
-│  │  ├─ NumberRangeInput.tsx
-│  │  ├─ SearchToolBar.tsx
-│  │  └─ styles.css
-│  └─ themed
-│     ├─ Alert.tsx
-│     ├─ Button.tsx
-│     ├─ Image.tsx
-│     ├─ Text.tsx
-│     ├─ TextInput.tsx
-│     ├─ Toast.tsx
-│     └─ View.tsx
-├─ constants
-│  ├─ Colors.ts
-│  ├─ Constants.ts
-│  └─ Themes.ts
-├─ context
-│  ├─ Auth.tsx
-│  ├─ Locale.tsx
-│  └─ Toast.tsx
-├─ docker-compose.yml
-├─ global.css
-├─ hooks
-│  ├─ useColorScheme.ts
-│  ├─ useColorScheme.web.ts
-│  ├─ useDataService.ts
-│  ├─ useDevice.ts
-│  ├─ useOutside.ts
-│  ├─ useTable.tsx
-│  └─ useThemeColor.ts
-├─ locale
-│  ├─ en.json
-│  ├─ i18n.ts
-│  └─ zh.json
-├─ metro.config.js
-├─ nativewind-env.d.ts
-├─ nginx
-│  ├─ Dockerfile
-│  └─ nginx.conf
-├─ package-lock.json
-├─ package.json
-├─ scripts
-│  └─ reset-project.js
-├─ services
-│  ├─ AuthService.ts
-│  └─ DataService.ts
-├─ tailwind.config.js
-├─ tsconfig.json
-└─ utlis
-   ├─ .serializer.ts.swp
-   ├─ commonUtils.ts
-   ├─ data.ts
-   ├─ emailValidator.js
-   ├─ exampleData.ts
-   ├─ fieldConverter.tsx
-   ├─ nameValidator.js
-   ├─ passwordValidator.js
-   ├─ serializer-b.ts
-   ├─ serializer.ts
-   ├─ storageHelper.ts
-   ├─ validator.ts
-   └─ webHelper.ts
-
-```
