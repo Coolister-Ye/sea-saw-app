@@ -12,11 +12,10 @@ export default function ContractScreen() {
    */
   const formatContactOptions = (contacts: any[]) =>
     contacts
-      .map(({ first_name = "", last_name = "" }) =>
-        `${first_name} ${last_name}`.trim()
-      ) // Concatenate first and last names, trimming whitespace
-      .filter(Boolean) // Remove empty or falsy names
-      .map((fullName: string) => ({ value: fullName, label: fullName })); // Transform to {value, label} structure
+      .map(({ full_name }) => full_name?.trim()) // 确保 `full_name` 不是 `null` 或 `undefined`
+      .filter(Boolean) // 过滤掉 `null`、`undefined`、空字符串 `""`
+      .map((fullName) => ({ value: fullName, label: fullName }));
+  
 
   /**
    * Fetch contact options for the lookup field based on the search query
@@ -56,36 +55,46 @@ export default function ContractScreen() {
     "orders.products.pk": { hidden: true, width: 30 }, // Hide nested product ID column
     "orders.balance": { variant: "currency" },
     "orders.products.glazing": { variant: "percentage" },
-    "orders.products.price": { variant: "currency" },
-    "orders.products.total_price": { variant: "currency" },
+    "orders.products.price": { variant: "currency5", width: 120 },
+    "orders.products.total_price": { variant: "currency5", width: 120 },
+  };
+
+  const roundToDecimals = (num: number, decimals = 5) => {
+    return typeof num === "number" && !isNaN(num) ? parseFloat(num.toFixed(decimals)) : null;
   };
 
   const formula = {
     "orders.products.total_price": (inputs: Record<string, any>) => {
-      let {
-        "orders.products.weight": weight,
-        "orders.products.quantity": quantity,
-        "orders.products.price": price,
-      } = inputs;
-
-      // 提取 weight 数值
-      weight = typeof weight === "string" ? parseFloat(weight) : weight;
-      return weight * quantity * price;
+      let weight = parseFloat(inputs["orders.products.weight"]);
+      let quantity = parseFloat(inputs["orders.products.quantity"]);
+      let price = parseFloat(inputs["orders.products.price"]);
+  
+      // 如果有任何值无效，则返回 null
+      if (isNaN(weight) || isNaN(quantity) || isNaN(price)) {
+        return null;
+      }
+  
+      return roundToDecimals(weight * quantity * price);
     },
     "orders.products.progress_weight": (inputs: Record<string, any>) => {
-      let {
-        "orders.products.progress_quantity": quantity,
-        "orders.products.weight": weight,
-      } = inputs;
-      weight = typeof weight === "string" ? parseFloat(weight) : weight;
-      return quantity * weight;
+      let quantity = parseFloat(inputs["orders.products.progress_quantity"]);
+      let weight = parseFloat(inputs["orders.products.weight"]);
+  
+      if (isNaN(quantity) || isNaN(weight)) {
+        return null;
+      }
+  
+      return roundToDecimals(quantity * weight, 2);
     },
     "orders.products.total_net_weight": (inputs: Record<string, any>) => {
-      let {
-        "orders.products.quantity": quantity,
-        "orders.products.net_weight": net_weight,
-      } = inputs;
-      return quantity * net_weight;
+      let quantity = parseFloat(inputs["orders.products.quantity"]);
+      let net_weight = parseFloat(inputs["orders.products.net_weight"]);
+  
+      if (isNaN(quantity) || isNaN(net_weight)) {
+        return null;
+      }
+  
+      return roundToDecimals(quantity * net_weight, 2);
     },
   };
 

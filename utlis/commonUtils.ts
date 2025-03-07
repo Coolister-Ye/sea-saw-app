@@ -113,7 +113,7 @@ export function getLength(json: any): number {
  * @returns True if all values are null; otherwise, false.
  */
 export function isObjectEmpty(json: Record<string, any>): boolean {
-  return Object.values(json).every(value => value === null);
+  return Object.values(json).every((value) => value === null);
 }
 
 /**
@@ -125,8 +125,9 @@ export function isObjectEmpty(json: Record<string, any>): boolean {
 export function isJsonEmpty(json: Record<string, any>): boolean {
   return Object.entries(json)
     .filter(([key]) => key !== "pk" && key !== "id")
-    .every(([_, value]) =>
-      value === null || (typeof value === "string" && value.trim() === "")
+    .every(
+      ([_, value]) =>
+        value === null || (typeof value === "string" && value.trim() === "")
     );
 }
 
@@ -158,29 +159,16 @@ export function json2Str(json: any): string {
     .join(", ");
 }
 
-/**
- * Formats a number as currency in USD.
- *
- * @param value - The numeric value to format.
- * @returns The formatted currency string.
- */
-export function formatCurrency(value: number | string): string {
-  const numberValue = typeof value === "number" ? value : parseFloat(value);
+const formatCurrency = (value: any, decimals = 2) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     currencyDisplay: "symbol",
-  }).format(numberValue);
-}
+    maximumFractionDigits: decimals,
+  }).format(value);
+};
 
-/**
- * Formats a number as a percentage string.
- *
- * @param value - The numeric value to format (e.g., 0.25 for 25%).
- * @param decimals - The number of decimal places (default is 2).
- * @returns The formatted percentage string.
- */
-export function formatPercentage(value: number, decimals: number = 2): string {
+function formatPercentage(value: number, decimals: number = 2): string {
   if (isNaN(value)) {
     return "NaN";
   }
