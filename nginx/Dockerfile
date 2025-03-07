@@ -2,7 +2,8 @@
 FROM nginx:alpine
 
 # 复制自定义的 Nginx 配置文件
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/conf.d
 
 # 复制前端构建后的静态文件到 Nginx 默认路径
 COPY dist/ /usr/share/nginx/html/

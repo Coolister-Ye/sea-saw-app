@@ -177,13 +177,21 @@ export function useTable({
       );
     };
 
-    const getFormater = (variant: any): any => {
-      const formatters: { [key: string]: Function } = {
-        currency: formatCurrency,
-        percentage: formatPercentage,
+    const getFormatter = (variant?: string): ((val: any) => any) => {
+      if (!variant) return (val) => val; // 为空时直接返回原值
+    
+      const match = variant.match(/([a-zA-Z]+)(\d+)?/); // 解析格式，如 "currency5"
+      if (!match) return (val) => val;
+    
+      const [, type, decimalStr] = match;
+      const decimals = decimalStr ? parseInt(decimalStr, 10) : 2; // 默认为 2
+    
+      const formatters: Record<string, (val: any) => any> = {
+        currency: (val) => formatCurrency(val, decimals),
+        percentage: (val) => formatPercentage(val, decimals),
       };
-
-      return formatters[variant] || ((val: any) => val);
+    
+      return formatters[type] || ((val) => val);
     };
 
     const isIdExist = (dataIndex: string) => {
@@ -244,7 +252,7 @@ export function useTable({
     const processedHeaders = finalSortedHeaders.map(
       (_col: any, index: number) => {
         const variant = getVariant(_col);
-        const formater = getFormater(variant);
+        const formater = getFormatter(variant);
         const userConf = columnPref.find(
           (pref) => pref.dataIndex === _col.dataIndex
         );

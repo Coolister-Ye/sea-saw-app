@@ -14,7 +14,20 @@ This is the frontend application for Sea-saw app, which is an [Expo](https://exp
 
    ```bash
     npx expo start
+    npx expo start --no-dev --minify
+
    ```
+
+3. Export web application (Default to use .env.production to set up enviroment variables)
+
+   ```bash
+   npx expo export -p web
+   ```
+
+4. Run in docker
+```bash
+docker compose up --build -d
+```
 
 ## Get started issues
 
