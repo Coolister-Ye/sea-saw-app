@@ -1,5 +1,5 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Modal, TouchableWithoutFeedback } from "react-native";
 import View from "./View";
 import Text from "./Text";
@@ -13,12 +13,12 @@ type AlertProps = {
     title?: string;
     info?: string;
   };
-  onCancel?: (e: any) => void; // Optional cancel handler
-  onConfirm?: (e: any) => void; // Optional confirm handler
+  onCancel?: () => void; // Optional cancel handler
+  onConfirm?: () => void; // Optional confirm handler
   onClose?: () => void; // Optional onClose callback to handle modal close
 };
 
-export default function Alert({
+export function Alert({
   isOpen,
   cancelText,
   confirmText,
@@ -27,24 +27,22 @@ export default function Alert({
   onConfirm,
   onClose,
 }: AlertProps) {
-  const [open, setOpen] = useState(isOpen);
-
-  // Sync open state with the isOpen prop
-  useEffect(() => {
-    setOpen(isOpen);
-  }, [isOpen]);
-
   // Handle modal close logic
   const handleClose = () => {
-    setOpen(false);
     if (onClose) onClose(); // Call onClose if provided
   };
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) {
+      handleClose();
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null; // Return null if the modal is not open
 
   return (
     <Modal
-      visible={open}
+      visible={isOpen}
       style={{ margin: 0 }}
       transparent
       animationType="fade"
@@ -81,7 +79,10 @@ export default function Alert({
             <Button
               variant="error"
               className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto"
-              onPress={onConfirm}
+              onPress={() => {
+                if (onConfirm) onConfirm();
+                handleClose(); // Close the modal after confirming
+              }}
               accessibilityLabel="Confirm action"
             >
               {confirmText}
@@ -89,9 +90,9 @@ export default function Alert({
             <Button
               variant="outlined"
               className="mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300 sm:mt-0 sm:w-auto"
-              onPress={(e) => {
-                onCancel && onCancel(e);
-                handleClose();
+              onPress={() => {
+                if (onCancel) onCancel();
+                handleClose(); // Close the modal after cancelling
               }}
               accessibilityLabel="Cancel action"
             >

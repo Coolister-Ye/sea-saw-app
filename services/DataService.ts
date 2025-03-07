@@ -1,150 +1,135 @@
-import { AuthService } from "./AuthService";
-import { fetchJsonData, getJwtHeader, getUrl } from "@/utlis/webHelper";
+import { fetchJson, getUrl } from "@/utlis/webHelper";
 import { capitalizeString, changeToPlural } from "@/utlis/commonUtils";
+import { constants } from "@/constants/Constants";
+
+// Base request configuration
+export interface RequestConfig {
+  uri: string;
+  method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS";
+  body?: object;
+  params?: Record<string, any>;
+  headers?: Record<string, any>;
+  suffix?: string;
+  signal?: AbortSignal;
+}
+
+// API-specific request parameters
+export interface ViewsetRequestParams extends Partial<RequestConfig> {
+  contentType: string;
+  action?: string;
+  id?: any;
+}
 
 class DataService {
-  // Helper function to get JWT headers
-  static async getHeaders() {
-    const token = await AuthService.getJwtToken();
-    return getJwtHeader(token);
+  // Validate if action exists in constants.api
+  private static validateApiAction(action: string): void {
+    if (!(action in constants.api)) {
+      throw new Error(`Invalid API action: ${action}`);
+    }
   }
 
-  // Helper function to construct URL for different API actions
-  static constructUrl(
-    contentType: string,
-    action: string,
-    id?: any,
-    params?: { [key: string]: string }
-  ) {
-    const baseUrl = getUrl(
-      `${action}${changeToPlural(capitalizeString(contentType))}`
-    );
+  // Construct URL from action, contentType, id, and params
+  private static constructUrl({
+    contentType,
+    action = "",
+    id,
+    params,
+    suffix = "",
+  }: Omit<ViewsetRequestParams, "method" | "headers" | "body">): string {
+    const constructedUrl = `${action}${changeToPlural(
+      capitalizeString(contentType)
+    )}`;
+    this.validateApiAction(constructedUrl);
+
+    const baseUrl = getUrl(constructedUrl as keyof typeof constants.api);
     const urlWithId = id ? baseUrl.replace("{id}", id) : baseUrl;
     const queryString = params
       ? `?${new URLSearchParams(params).toString()}`
       : "";
-    return `${urlWithId}${queryString}`;
+
+    return `${urlWithId}${suffix}${queryString}`;
   }
 
-  static async genericRequest(
-    uri: string,
-    method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS" | undefined,
-    data?: object,
-    params?: { [key: string]: string },
-    headers?: { [key: string]: string },
-    suffix?: string
-  ) {
-    const commonHeaders = await DataService.getHeaders();
-    const baseUrl = getUrl(uri);
+  // Generic request method for any custom API calls
+  static async genericRequest({
+    uri,
+    method,
+    body,
+    params,
+    headers,
+    suffix = "",
+    signal,
+  }: RequestConfig) {
+    const baseApiUrl = this.checkAndGetUrl(uri);
     const queryString = params
       ? `?${new URLSearchParams(params).toString()}`
       : "";
-    const url = `${baseUrl}${suffix || ""}${queryString}`;
-    return fetchJsonData({
-      url,
-      method,
-      body: data,
-      header: { ...commonHeaders, ...headers },
+    const url = `${baseApiUrl}${suffix}${queryString}`;
+
+    return fetchJson({ url, method, body, headers, signal });
+  }
+
+  // Main request handler for viewset-based requests
+  static async viewsetRequest({
+    method,
+    contentType,
+    action = "",
+    id,
+    body,
+    params,
+    headers,
+    suffix = "",
+  }: ViewsetRequestParams) {
+    const url = this.constructUrl({ contentType, action, id, params, suffix });
+    return fetchJson({ url, method, body, headers });
+  }
+
+  // Validate if URI exists in constants.api
+  private static checkAndGetUrl(uri: string): string {
+    this.validateApiAction(uri);
+    return getUrl(uri as keyof typeof constants.api);
+  }
+
+  // ====== Simplified CRUD Operations ======
+
+  static listView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      ...params,
+      method: "GET",
+      action: "list",
     });
   }
 
-  // General method to handle API requests
-  static async request(
-    method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS" | undefined,
-    contentType: string,
-    action: string,
-    id?: any,
-    data?: object,
-    params?: { [key: string]: string },
-    headers?: { [key: string]: string }
-  ) {
-    const commonHeaders = await DataService.getHeaders();
-    const url = DataService.constructUrl(contentType, action, id, params);
-
-    return fetchJsonData({
-      url,
-      method,
-      body: data,
-      header: { ...commonHeaders, ...headers },
+  static createView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      ...params,
+      method: "POST",
+      action: "create",
     });
   }
 
-  // Specific methods for API actions
-  static listView(
-    contentType: string,
-    params?: { [key: string]: string },
-    headers?: { [key: string]: string }
-  ) {
-    return DataService.request(
-      "GET",
-      contentType,
-      "list",
-      undefined,
-      undefined,
-      params,
-      headers
-    );
+  static updateView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      ...params,
+      method: "PATCH",
+      action: "update",
+    });
   }
 
-  static createView(
-    contentType: string,
-    data: object,
-    headers?: { [key: string]: string }
-  ) {
-    return DataService.request(
-      "POST",
-      contentType,
-      "create",
-      undefined,
-      data,
-      undefined,
-      headers
-    );
+  static deleteView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      ...params,
+      method: "DELETE",
+      action: "delete",
+    });
   }
 
-  static updateView(
-    id: any,
-    contentType: string,
-    data: object,
-    headers?: { [key: string]: string }
-  ) {
-    return DataService.request(
-      "PATCH",
-      contentType,
-      "update",
-      id,
-      data,
-      undefined,
-      headers
-    );
-  }
-
-  static deleteView(
-    id: any,
-    contentType: string,
-    headers?: { [key: string]: string }
-  ) {
-    return DataService.request(
-      "DELETE",
-      contentType,
-      "delete",
-      id,
-      undefined,
-      undefined,
-      headers
-    );
-  }
-
-  static optionView(contentType: string, headers?: { [key: string]: string }) {
-    return DataService.request(
-      "OPTIONS",
-      contentType,
-      "list",
-      undefined,
-      undefined,
-      undefined,
-      headers
-    );
+  static optionView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      ...params,
+      method: "OPTIONS",
+      action: "list",
+    });
   }
 }
 

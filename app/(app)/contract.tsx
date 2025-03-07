@@ -25,7 +25,10 @@ export default function ContractScreen() {
    */
   const searchContact = async (search: string) => {
     try {
-      const { data } = await list("contact", { search, page_size: 5 });
+      const { data } = await list({
+        contentType: "contact",
+        params: { search, page_size: 5 },
+      });
       return formatContactOptions(data.results); // Format the API results into selectable options
     } catch (error) {
       console.error("Error loading lookup data: ", error);

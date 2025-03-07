@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import View from "../themed/View";
 import Text from "../themed/Text";
-import Button from "../themed/Button";
 import { useLocale } from "@/context/Locale";
+import Button from "../themed/Button";
 
 type BasicFrameProps = {
   headerText: string;

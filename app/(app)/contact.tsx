@@ -14,7 +14,10 @@ export default function ContactScreen() {
 
   const searchCompany = async (search: string) => {
     try {
-      const { data } = await list("company", { search, page_size: 5 });
+      const { data } = await list({
+        contentType: "company",
+        params: { search, page_size: 5 },
+      });
       return formatCompanyOptions(data.results);
     } catch (error) {
       console.error("Error loading lookup data: ", error);

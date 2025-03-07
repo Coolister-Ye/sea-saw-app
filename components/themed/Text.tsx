@@ -9,7 +9,8 @@ type TextProps = BeseTextProps & {
 export default function Text({ className, variant, ...rest }: TextProps) {
   const _className = clsx(
     variant === "primary" && "text-text-primary dark:text-dark-text-primary",
-    variant === "secondary" && "text-text-secondary dark:text-dark-text-secondary",
+    variant === "secondary" &&
+      "text-text-secondary dark:text-dark-text-secondary",
     variant === "disable" && "text-text-disabled dark:text-dark-text-disabled",
     variant === "divider" && "text-text-divider dark:text-dark-text-divider",
     variant === "error" && "text-text-error dark:text-dark-text-error",

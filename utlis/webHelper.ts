@@ -1,121 +1,211 @@
 import { constants } from "@/constants/Constants";
+import { getLocalData, setLocalData } from "./storageHelper";
 
-// 定义环境变量类型
-type ENV_NAME = "prod" | "localhost"; // 表示支持的环境类型
+// Define API URL keys type from constants
+type ApiUrlKeys = keyof typeof constants.api;
+type UserToken = { access: string; refresh: string };
 
-// 定义 API 路径的键类型
-type ApiUrlKeys = keyof typeof constants.api; // 获取 constants.api 中定义的所有 API 路径键的类型
-
-// 自定义 FetchError 错误类
+export const USER_TOKEN_KEY = "user_token";
 const ERROR_NAME = "FetchError";
+const RETRY_COUNT = 1;
 
-// 定义一个自定义错误类 FetchError，用于包装 API 请求中的错误信息
 export class FetchError extends Error {
-  url: string; // 请求的 URL
-  status: number; // HTTP 响应状态码
-  statusText: string; // HTTP 响应状态文本
-  body: any; // 错误响应体
+  url: string;
+  status: number;
+  statusText: string;
+  body: any;
 
   constructor(
-    message: any, // 错误信息
-    url: string, // 请求的 URL
-    status: number, // HTTP 状态码
-    statusText: string // HTTP 状态文本
+    message: string,
+    url: string,
+    status: number,
+    statusText: string,
+    body?: any
   ) {
     super(message);
-    this.name = ERROR_NAME; // 设置错误名为 FetchError
-    this.url = url; // 保存 URL
-    this.status = status; // 保存状态码
-    this.statusText = statusText; // 保存状态文本
+    this.name = ERROR_NAME;
+    this.url = url;
+    this.status = status;
+    this.statusText = statusText;
+    this.body = body;
   }
 }
 
-// 请求参数类型定义
+// Request parameter type definition
 type FetchJsonDataProps = {
-  url: string; // 请求的 URL
-  method?: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS"; // HTTP 方法
-  body?: object; // 请求体（可选）
-  header?: Record<string, string>; // 请求头（可选）
+  url: string;
+  method?: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS";
+  body?: unknown; // Allow any JSON-serializable value
+  headers?: Record<string, string>;
+  signal?: AbortSignal; // Optional AbortSignal for request cancellation
+  autoRefresh?: boolean; // Optional flag to enable auto-refresh for jwt token
+  retry?: number; // Optional retry count
+  isUseToken?: boolean; // Optional flag to use jwt token
 };
 
-// 常用请求头常量，设置请求体类型为 JSON
-const HEADERS = {
+// Default request headers with JSON content-type
+const DEFAULT_HEADERS = {
   "Content-Type": "application/json",
 };
 
-// 合并请求头，优先使用外部传入的 header
-// 将默认请求头与外部传入的 header 合并，确保请求的标准性
-const mergeHeaders = (
-  header: Record<string, string> = {}
-): Record<string, string> => ({
-  ...HEADERS,
-  ...header, // 如果传入了 header，则合并覆盖默认的请求头
-});
+// Merge default headers with user-provided headers
+const mergeHeaders = async (
+  headers: Record<string, string> = {},
+  isUseToken: boolean = true
+): Promise<Record<string, string>> => {
+  let authHeader: Record<string, string> = {};
 
-// 异步请求处理函数
-export const fetchJsonData = async ({
-  url,
-  method = "GET",
-  body,
-  header = {},
-}: FetchJsonDataProps): Promise<any> => {
-  const headers = mergeHeaders(header); // 合并请求头
-
-  try {
-    const response = await fetch(url, {
-      method, // 请求方法
-      headers, // 请求头
-      body: body ? JSON.stringify(body) : undefined, // 如果有请求体，转为 JSON 字符串
-    });
-
-    // 处理响应失败情况
-    if (!response.ok) {
-      const errorText = await response.text(); // 获取响应文本
-
-      // 抛出 FetchError 错误并传递相关信息
-      throw new FetchError(
-        errorText || "Request failed", // 错误信息
-        url, // 请求的 URL
-        response.status, // HTTP 状态码
-        response.statusText // HTTP 状态文本
-      );
+  if (isUseToken) {
+    const tokenData = await getLocalData<{ access: string }>(USER_TOKEN_KEY);
+    if (tokenData) {
+      try {
+        const { access } = tokenData;
+        authHeader = getJwtHeader(access);
+      } catch (error) {
+        console.warn("Invalid token format");
+      }
     }
-
-    // 处理 JSON 响应
-    const contentType = response.headers.get("content-type"); // 获取响应的内容类型
-    if (contentType && contentType.includes("application/json")) {
-      return await response.json(); // 如果响应类型是 JSON，解析并返回
-    }
-
-    // 如果响应类型不是 JSON，返回 null
-    return null;
-  } catch (error) {
-    // 捕获并抛出错误
-    throw error;
   }
+
+  return {
+    ...DEFAULT_HEADERS,
+    ...authHeader,
+    ...headers,
+  };
 };
 
-// 获取基础 API 域名
-// 根据当前环境获取 API 基础 URL
+// 辅助函数：解析响应错误体
+async function parseErrorBody(response: Response): Promise<any> {
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      return await response.json();
+    } catch {
+      return await response.text();
+    }
+  }
+  return await response.text();
+}
+
+export const fetchJson = async <T>(props: FetchJsonDataProps): Promise<T> => {
+  const {
+    url,
+    method = "GET",
+    body,
+    headers = {},
+    signal,
+    autoRefresh = true,
+    retry = RETRY_COUNT,
+    isUseToken = true,
+  } = props;
+
+  const mergedHeaders = await mergeHeaders(headers, isUseToken);
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method,
+      headers: mergedHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (error) {
+    // 网络错误处理（如断网或 DNS 问题）
+    if (error instanceof TypeError) {
+      throw new FetchError("Network connection error", url, 0, error.message);
+    }
+    throw error;
+  }
+
+  // 提取 contentType 供后续使用
+  const contentType = response.headers.get("content-type");
+
+  // 自动刷新 token 的逻辑
+  if (!response.ok) {
+    if (
+      response.status === 401 &&
+      autoRefresh &&
+      retry > 0 &&
+      // 避免对登录和 token 刷新接口进行自动刷新
+      !url.includes(getUrl("login")) &&
+      !url.includes(getUrl("tokenRefresh"))
+    ) {
+      try {
+        const tokenData = await getLocalData(USER_TOKEN_KEY);
+        if (tokenData) {
+          const parsedToken: UserToken = JSON.parse(tokenData);
+          // 刷新 token（禁用自动刷新并递减重试次数）
+          const newTokenData = await fetchJson<UserToken>({
+            url: getUrl("tokenRefresh"),
+            method: "POST",
+            body: { refresh: parsedToken.refresh },
+            autoRefresh: false,
+            retry: retry - 1,
+          });
+          // 更新本地存储中的 token 数据
+          await setLocalData(USER_TOKEN_KEY, JSON.stringify(newTokenData));
+          // 更新请求头，注入新的 Authorization
+          const newHeaders = {
+            ...headers,
+            ...getJwtHeader(newTokenData.access),
+          };
+          // 重新发起原始请求（此时禁用自动刷新）
+          return await fetchJson<T>({
+            ...props,
+            headers: newHeaders,
+            autoRefresh: false,
+          });
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        throw new FetchError(
+          "Token refresh failed: " +
+            (refreshError instanceof Error
+              ? refreshError.message
+              : "Unknown error"),
+          url,
+          401,
+          "Unauthorized",
+          refreshError
+        );
+      }
+    }
+
+    // 解析错误响应体
+    const errorBody = await parseErrorBody(response);
+    throw new FetchError(
+      typeof errorBody === "string"
+        ? errorBody
+        : JSON.stringify(errorBody) || "Request failed",
+      url,
+      response.status,
+      response.statusText,
+      errorBody
+    );
+  }
+  // 成功响应：解析 JSON 数据
+  if (contentType && contentType.includes("application/json")) {
+    return (await response.json()) as T;
+  }
+  return null as unknown as T;
+};
+
+// Get the base API URL from environment variables
 export function getBaseUrl(): string {
   return process.env.EXPO_PUBLIC_API_URL || "";
 }
 
-// 根据 urlKey 获取完整的 API URL
-// 根据传入的 URL 键（例如 "listUsers"）获取完整的 API 路径
-export function getUrl(urlKey: string): string {
-  const baseUrl = getBaseUrl(); // 获取基础 URL
-  const apiUrl = constants.api[urlKey as ApiUrlKeys]; // 获取具体的 API 路径
-
+// Get the full API URL by key, ensuring type-safety
+export function getUrl(urlKey: ApiUrlKeys): string {
+  const baseUrl = getBaseUrl();
+  const apiUrl = constants.api[urlKey];
   if (!apiUrl) {
-    throw new Error(`API path for '${urlKey}' is not defined.`); // 如果未定义该 API 路径，抛出错误
+    throw new Error(`API path for '${urlKey}' is not defined.`);
   }
-
-  return `${baseUrl}${apiUrl}`; // 返回完整的 API URL
+  return `${baseUrl}${apiUrl}`;
 }
 
-// 获取 Bearer Token 请求头
-// 根据传入的 Token 获取包含 Authorization 的请求头
-export const getJwtHeader = (token: string) => ({
-  Authorization: `Bearer ${token}`, // 设置 Authorization 字段为 Bearer token
+// Get Bearer Token headers for authorization
+export const getJwtHeader = (token: string): Record<string, string> => ({
+  Authorization: `Bearer ${token}`,
 });

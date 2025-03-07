@@ -1,10 +1,11 @@
-import { fetchJsonData, getJwtHeader, getUrl } from "@/utlis/webHelper";
+import { fetchJson, getUrl } from "@/utlis/webHelper";
 import {
   getLocalData,
   setLocalData,
   removeLocalData,
 } from "@/utlis/storageHelper";
 
+// 自定义认证错误
 class AuthError extends Error {
   constructor(message: string) {
     super(message);
@@ -17,98 +18,61 @@ interface UserToken {
   refresh: string;
 }
 
+interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+}
+
 class AuthService {
+  private static USER_TOKEN_KEY = "user_token";
+
   // 登录
   static async login(
     username: string,
     password: string
   ): Promise<{ status: boolean }> {
-    const url = getUrl("login");
-
     try {
-      const data = await fetchJsonData({
-        url,
+      const tokenData = await fetchJson<UserToken>({
+        url: getUrl("login"),
         method: "POST",
         body: { username, password },
+        autoRefresh: false,
+        isUseToken: false,
       });
 
-      // 存储 token，直接存储对象
-      await setLocalData("userToken", JSON.stringify(data)); // Ensure data is stringified
+      this.saveToken(tokenData);
 
       return { status: true };
     } catch (error) {
-      throw new AuthError(
-        `Login failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
-  }
-
-  // 获取用户资料
-  static async getUserProfile(): Promise<any> {
-    const url = getUrl("userProfile");
-    const token = await AuthService.getJwtToken();
-
-    try {
-      return await fetchJsonData({
-        url,
-        method: "GET",
-        header: getJwtHeader(token),
-      });
-    } catch (error) {
-      throw new Error(
-        `Failed to get user profile: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      throw this.handleAuthError("Login failed", error);
     }
   }
 
   // 获取 JWT Token
   static async getJwtToken(): Promise<string> {
-    const token = await getLocalData("userToken");
-
-    if (!token) {
-      throw new AuthError("You have not logged in yet.");
-    }
-
-    let parsedToken: UserToken;
-    try {
-      parsedToken = JSON.parse(token);
-    } catch (error) {
-      throw new AuthError("Invalid token data or token data broken.");
-    }
+    const tokenData = await this.loadToken();
 
     try {
-      // 验证 token 是否有效
-      await fetchJsonData({
-        url: getUrl("tokenVerify"),
-        method: "POST",
-        body: { token: parsedToken.access },
-      });
-      return parsedToken.access; // 返回有效的 JWT
-    } catch (error) {
-      throw new AuthError(
-        `Token verification failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      await this.verifyToken(tokenData.access);
+      return tokenData.access;
+    } catch {
+      return await this.refreshToken(tokenData.refresh);
     }
   }
 
   // 刷新 JWT Token
-  static async refreshToken(refreshToken: string): Promise<string> {
+  private static async refreshToken(refreshToken: string): Promise<string> {
     try {
-      const refreshResponse = await fetchJsonData({
+      const newToken = await fetchJson<UserToken>({
         url: getUrl("tokenRefresh"),
         method: "POST",
         body: { refresh: refreshToken },
       });
 
-      // 刷新后存储新的 token
-      await setLocalData("userToken", JSON.stringify(refreshResponse)); // Store as string
-      return refreshResponse.access;
+      this.saveToken(newToken);
+      return newToken.access;
     } catch (error) {
       throw new AuthError(
         `Token refresh failed: ${
@@ -118,49 +82,95 @@ class AuthService {
     }
   }
 
+  // 检查是否已登录
+  static async isLogin(): Promise<boolean> {
+    try {
+      await this.getJwtToken();
+      return true;
+    } catch (error) {
+      console.warn("Login status check failed:");
+      return false;
+    }
+  }
+
+  // 获取用户资料
+  static async getUserProfile(): Promise<UserProfile> {
+    try {
+      return await fetchJson<UserProfile>({
+        url: getUrl("userProfile"),
+        method: "GET",
+      });
+    } catch (error) {
+      throw this.handleAuthError("Failed to fetch user profile", error);
+    }
+  }
+
   // 登出
   static async logout(): Promise<{ status: boolean }> {
     try {
-      // 清除本地存储中的 token
-      await removeLocalData("userToken");
-
-      console.log("Logged out successfully.");
+      await removeLocalData(this.USER_TOKEN_KEY);
+      console.info("Logged out successfully.");
       return { status: true };
     } catch (error) {
-      throw new Error(
-        `Logout failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      throw this.handleAuthError("Logout failed", error);
     }
   }
 
   // 修改密码
-  // 修改密码
-  static async setPasswd(
-    new_password: string,
-    current_password: string
+  static async setPassword(
+    newPassword: string,
+    currentPassword: string
   ): Promise<{ status: boolean }> {
-    const url = getUrl("setPasswd");
-    const token = await AuthService.getJwtToken(); // Ensure we have a valid token for authorization
-
     try {
-      // Call the API to change the password
-      const response = await fetchJsonData({
-        url,
+      await fetchJson({
+        url: getUrl("setPasswd"),
         method: "POST",
-        body: { new_password, current_password },
-        header: getJwtHeader(token), // Use JWT token for authorization
+        body: {
+          new_password: newPassword,
+          current_password: currentPassword,
+        },
       });
       return { status: true };
     } catch (error) {
-      // Enhanced error handling
-      if (error instanceof Error) {
-        throw new Error(`Password change failed: ${error.message}`);
-      } else {
-        throw new Error("Password change failed due to an unknown error.");
-      }
+      throw this.handleAuthError("Password change failed", error);
     }
+  }
+
+  // 保存 token
+  private static async saveToken(token: UserToken): Promise<void> {
+    await setLocalData(this.USER_TOKEN_KEY, JSON.stringify(token));
+  }
+
+  // 加载 token
+  private static async loadToken(): Promise<UserToken> {
+    const tokenData = await getLocalData<{ access: string }>(
+      this.USER_TOKEN_KEY
+    );
+    if (!tokenData) {
+      throw new AuthError("You are not logged in.");
+    }
+
+    try {
+      return tokenData as UserToken;
+    } catch {
+      throw new AuthError("Invalid or corrupted token data.");
+    }
+  }
+
+  // 验证 token
+  private static async verifyToken(token: string): Promise<void> {
+    await fetchJson({
+      url: getUrl("tokenVerify"),
+      method: "POST",
+      body: { token },
+    });
+  }
+
+  // 统一处理错误
+  private static handleAuthError(message: string, error: unknown): AuthError {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return new AuthError(`${message}: ${errorMessage}`);
   }
 }
 

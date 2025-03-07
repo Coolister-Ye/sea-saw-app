@@ -1,75 +1,90 @@
-import { useState } from "react";
-import { DataService } from "@/services/DataService";
+import { useState, useCallback } from "react";
+import {
+  DataService,
+  ViewsetRequestParams,
+  RequestConfig,
+} from "@/services/DataService";
 import { AuthError } from "@/services/AuthService";
 import { FetchError } from "@/utlis/webHelper";
 import { useLocale } from "@/context/Locale";
+import { usePathname, useRouter } from "expo-router";
 
-// API Response structure for general API calls
+// API Response structure
 interface ApiResponse {
   status: boolean;
   data?: any;
-  error?: any;
+  error?: ErrorState;
 }
 
-// Error state structure to handle different error cases
+// Error state structure
 interface ErrorState {
   message: string;
   status?: string | number;
 }
 
-// Success state structure for tracking successful operations
+// Success state structure
 interface SuccState {
   message: string;
 }
 
 export default function useDataService() {
-  const { locale, i18n } = useLocale(); // Get the current locale from context
-  const [loading, setLoading] = useState(false); // Loading state for tracking request progress
-  const [error, setError] = useState<ErrorState | null>(null); // Error state to store error details
-  const [success, setSuccess] = useState<SuccState | null>(null); // Success state for tracking success messages
-  const commonHeader = { "Accept-Language": locale }; // Default headers for API calls
+  const router = useRouter();
+  const pathname = usePathname();
+  const { locale, i18n } = useLocale();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<ErrorState | null>(null);
+  const [success, setSuccess] = useState<SuccState | null>(null);
 
-  // Handles making an API call and managing loading, success, and error states
-  const handleApiCall = async (
-    apiCall: () => Promise<any>,
-    successMessage?: string
-  ): Promise<ApiResponse> => {
-    setLoading(true);
-    clearStates(); // Clear previous states
+  const commonHeader = { "Accept-Language": locale };
 
-    try {
-      const data = await apiCall(); // Perform the actual API call
-      if (successMessage) {
-        setSuccess({ message: successMessage });
-      }
-      return { status: true, data }; // Return successful response
-    } catch (err) {
-      const errorState = handleError(err); // Handle errors
-      setError(errorState); // Set the error state
-      return { status: false, error: errorState };
-    } finally {
-      setLoading(false); // Reset loading state after API call finishes
-    }
-  };
+  // Merge default and custom headers
+  const mergeHeaders = useCallback(
+    (headers?: Record<string, string>) => ({
+      ...commonHeader,
+      ...headers,
+    }),
+    [locale]
+  );
 
-  // Utility to clear error and success states
-  const clearStates = () => {
+  // Clear both error and success states
+  const clearStates = useCallback(() => {
     setError(null);
     setSuccess(null);
-  };
+  }, []);
 
-  // Handles different types of errors and returns a structured error state
+  // Unified API call handler
+  const handleApiCall = useCallback(
+    async (
+      apiCall: () => Promise<any>,
+      successMessage?: string
+    ): Promise<ApiResponse> => {
+      setLoading(true);
+      clearStates();
+
+      try {
+        const data = await apiCall();
+        if (successMessage) {
+          setSuccess({ message: i18n.t(successMessage) });
+        }
+        return { status: true, data };
+      } catch (err) {
+        const errorState = handleError(err);
+        setError(errorState);
+        return { status: false, error: errorState };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [clearStates, i18n]
+  );
+
+  // Error handler
   const handleError = (err: any): ErrorState => {
     if (err instanceof FetchError) {
-      return {
-        message: err.message,
-        status: err.status,
-      };
+      return { message: err.message, status: err.status };
     } else if (err instanceof AuthError) {
-      return {
-        message: err.message,
-        status: "auth-error",
-      };
+      router.replace(`/login?next=${pathname}`);
+      return { message: err.message, status: "auth-error" };
     } else {
       return {
         message:
@@ -81,115 +96,97 @@ export default function useDataService() {
     }
   };
 
-  // Utility functions to clear error or success state
-  const clearError = () => setError(null);
-  const clearSuccess = () => setSuccess(null);
+  // Generic CRUD API operations
+  const create = useCallback(
+    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
+      return handleApiCall(
+        () =>
+          DataService.createView({
+            ...props,
+            headers: mergeHeaders(props.headers),
+          }),
+        i18n.t("Create successfully")
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // Helper function to merge headers
-  const mergeHeaders = (headers?: { [key: string]: string }) => ({
-    ...commonHeader,
-    ...headers,
-  });
+  const update = useCallback(
+    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
+      return handleApiCall(
+        () =>
+          DataService.updateView({
+            ...props,
+            headers: mergeHeaders(props.headers),
+          }),
+        i18n.t("Update successfully")
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // API call for creating a new resource
-  const create = async (
-    contentType: string,
-    data: object,
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
-    return handleApiCall(
-      () => DataService.createView(contentType, data, mergeHeaders(headers)),
-      "Create successfully"
-    );
-  };
+  const list = useCallback(
+    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
+      return handleApiCall(() =>
+        DataService.listView({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // API call for updating an existing resource
-  const update = async (
-    id: any,
-    contentType: string,
-    data: object,
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
-    return handleApiCall(
-      () =>
-        DataService.updateView(id, contentType, data, mergeHeaders(headers)),
-      "Update successfully"
-    );
-  };
+  const deleteItem = useCallback(
+    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
+      return handleApiCall(
+        () =>
+          DataService.deleteView({
+            ...props,
+            headers: mergeHeaders(props.headers),
+          }),
+        i18n.t("Delete successfully")
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // API call to fetch a list of resources
-  const list = async (
-    contentType: string,
-    params?: { [key: string]: any },
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
-    return handleApiCall(() =>
-      DataService.listView(contentType, params, mergeHeaders(headers))
-    );
-  };
+  const options = useCallback(
+    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
+      return handleApiCall(() =>
+        DataService.optionView({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // API call to delete a resource
-  const deleteItem = async (
-    id: any,
-    contentType: string,
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
-    return handleApiCall(
-      () => DataService.deleteView(id, contentType, mergeHeaders(headers)),
-      "Delete successfully"
-    );
-  };
+  // Generic request handler
+  const request = useCallback(
+    async (props: RequestConfig): Promise<ApiResponse> => {
+      return handleApiCall(() =>
+        DataService.genericRequest({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      );
+    },
+    [handleApiCall, mergeHeaders]
+  );
 
-  // API call to fetch options for a given resource type
-  const options = async (
-    contentType: string,
-    headers?: { [key: string]: string }
-  ): Promise<ApiResponse> => {
-    return handleApiCall(() =>
-      DataService.optionView(contentType, mergeHeaders(headers))
-    );
-  };
-
-  // Generic Request, this is a wrapper for DataService.genericRequest
-  const request = async ({
-    uri,
-    method,
-    data,
-    params,
-    headers,
-    suffix,
-  }: {
-    uri: string;
-    method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS";
-    data?: object;
-    params?: { [key: string]: string };
-    headers?: { [key: string]: string };
-    suffix?: string;
-  }): Promise<ApiResponse> => {
-    return handleApiCall(() =>
-      DataService.genericRequest(
-        uri,
-        method,
-        data,
-        params,
-        mergeHeaders(headers),
-        suffix
-      )
-    );
-  };
-
-  // Return the functions and state management hooks to the component
+  // Expose functions and state
   return {
     create,
+    update,
     list,
     deleteItem,
-    update,
     options,
     request,
     loading,
     error,
     success,
-    clearError,
-    clearSuccess,
+    clearStates,
   };
 }
