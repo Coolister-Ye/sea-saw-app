@@ -43,7 +43,7 @@ const ActionCell = <T extends Record<string, any>>({
   handleDelete,
   ...restProps
 }: ActionCellProps<T>) => {
-  const form = useContext(EditableContext);
+  const { form, recordRef } = useContext(EditableContext);
   const { i18n } = useLocale(); // 用于本地化 (i18n)
   const { showToast } = useToast();
 
@@ -53,7 +53,7 @@ const ActionCell = <T extends Record<string, any>>({
     if (!form) return;
     try {
       const values = _.omitBy(await form.validateFields(), _.isUndefined); // 删除未定义的值
-      await handleSave(record, { ...record, ...values });
+      await handleSave(record, { ...recordRef.current, ...values });
     } catch (error) {
       console.error("Save failed:", error); // 保存失败时打印错误
     }
@@ -62,10 +62,10 @@ const ActionCell = <T extends Record<string, any>>({
   // Start editing the record and set the form's fields
   // 开始编辑记录并将当前记录的值填入表单
   const startEditing = () => {
-    console.log("startEditing");
     if (form) {
       form.resetFields(); // 重置表单字段
       form.setFieldsValue(record); // 将表单字段设置为当前记录的值
+      recordRef.current = record;
       handleEdit(record); // 调用编辑操作
     }
   };
@@ -82,7 +82,7 @@ const ActionCell = <T extends Record<string, any>>({
   const handleAddClick: MenuProps["onClick"] = ({ key }) => {
     // 不允许同时行编辑
     if (editingKey !== "") {
-      showToast(i18n.t("Exit row editing mode first"), "error");
+      showToast({ message: i18n.t("Exit row editing mode first") });
       return;
     }
     validAddOptions.find((opt) => opt.key === key)?.onAction(); // 执行对应的操作

@@ -429,7 +429,7 @@ export function useTable({
         });
       })
     );
-    refreshData();
+    refreshData({ pagination: paginationModel });
   };
 
   const handleSave = async (prevRecord: any, newRecord: any) => {
@@ -445,7 +445,7 @@ export function useTable({
       : await create({ contentType: table, body: unflattenedData });
 
     if (response?.status) {
-      refreshData();
+      refreshData({ pagination: paginationModel });
       editingKeyRef.current = "";
     } else if (response?.error?.status === "auth-error") {
       router.navigate("/login");
@@ -512,14 +512,14 @@ export function useTable({
     }
   };
 
-  const refreshData = async (params?: any) => {
+  const refreshData = async ({ pagination, params }: any) => {
     setLoading(true);
     try {
       const { data: rows } = await list({
         contentType: table,
         params: {
           ordering,
-          ...paginationModel,
+          ...(pagination || paginationModel),
           ...filtersRef.current,
           ...params,
         },
@@ -553,9 +553,7 @@ export function useTable({
     params?: { [key: string]: any }
   ) => {
     if (pagination === paginationModel) return;
-
-    dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination });
-    refreshData(params);
+    refreshData({ pagination, params });
   };
 
   const handleLocaleChange = async (locale: string) => {

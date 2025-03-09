@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useRef } from "react";
 import { Form, FormInstance } from "antd";
 
 interface EditableRowProps {
@@ -9,7 +9,13 @@ interface EditableRowProps {
 }
 
 // 创建一个 EditableContext，上下文用来传递 Form 实例
-export const EditableContext = createContext<FormInstance<any> | null>(null);
+export const EditableContext = createContext<{
+  form: FormInstance<any>;
+  recordRef: any;
+}>({
+  form: {} as FormInstance,
+  recordRef: {},
+});
 
 const EditableRow = ({
   index,
@@ -18,6 +24,7 @@ const EditableRow = ({
   ...props
 }: EditableRowProps) => {
   const [form] = Form.useForm(); // 创建一个表单实例
+  const recordRef = useRef<Record<string, any>>(record);
 
   const onValuesChange = (
     changedValues: Record<string, any>,
@@ -44,7 +51,7 @@ const EditableRow = ({
       autoComplete="on"
       onValuesChange={onValuesChange}
     >
-      <EditableContext.Provider value={form}>
+      <EditableContext.Provider value={{ form, recordRef }}>
         <tr {...props} />
       </EditableContext.Provider>
     </Form>

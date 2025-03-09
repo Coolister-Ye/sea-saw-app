@@ -98,7 +98,7 @@ export function Table({
   };
 
   const handleSearchBarSubmit = (params: any) => {
-    refreshData(params);
+    refreshData({ params });
     setShowSearchBar(false);
   };
 

@@ -56,7 +56,7 @@ const EditableCell = ({
 }: React.PropsWithChildren<EditableCellProps<any>>) => {
   const [editing, setEditing] = useState(false); // 控制编辑状态
   const inputRef = useRef<any>(null); // 引用输入框组件
-  const form = useContext(EditableContext); // 获取编辑上下文
+  const { form, recordRef } = useContext(EditableContext); // 获取编辑上下文
   const toast = useToast();
   const { i18n } = useLocale();
   const popupClassName = "date-picker-popup-for-hack";
@@ -96,10 +96,10 @@ const EditableCell = ({
       values = _.omitBy(values, _.isUndefined); // 去除 undefined 的值
 
       // 合并旧数据和新数据
-      const newRecord = { ...record, ...values };
+      recordRef.current = { ...recordRef.current, ...values };
 
       // 执行保存操作
-      await handleSave(record, newRecord);
+      await handleSave(record, recordRef.current);
 
       toggleEdit(); // 结束编辑状态
     } catch (err) {
@@ -140,8 +140,6 @@ const EditableCell = ({
   };
 
   const handleLookupSelected = async (option: string) => {
-    if (isRowEditing) return;
-
     const { value, pk } = option
       ? JSON.parse(option)
       : { value: null, pk: null };
@@ -152,16 +150,21 @@ const EditableCell = ({
       return;
     }
 
-    const newRecord = {
-      ...record,
+    recordRef.current = {
+      ...recordRef.current,
       ...{
         [pkName]: pk,
         [dataIndex]: value,
       },
     };
 
+    if (isRowEditing) {
+      form?.setFieldsValue(recordRef.current);
+      return;
+    }
+
     try {
-      await handleSave(record, newRecord);
+      await handleSave(record, recordRef.current);
       toggleEdit();
     } catch (err) {
       console.error("Save failed:", err);

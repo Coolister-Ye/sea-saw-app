@@ -11,7 +11,7 @@ import { useLocale } from "@/context/Locale";
 import { BasicFrame } from "../sea/BasicFrame";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
-import { ScrollView } from "react-native";
+import { ScrollView, TextInput } from "react-native";
 import { DebounceSelect } from "./DebounceSelect";
 import { useState } from "react";
 import { NumberRangeInput } from "./NumberRangeInput";
@@ -196,7 +196,7 @@ export function SearchToolBar({
                     return `${dayjs(value).format("YYYY-MM-DD")}`;
                   }
                 }
-                return value;
+                return {};
               }}
               normalize={(value) => {
                 if (variant === "datepicker") {
