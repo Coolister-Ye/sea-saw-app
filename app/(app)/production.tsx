@@ -1,6 +1,49 @@
-// import { Table } from "@/components/sea/table/AntdTable";
 import { Table } from "@/components/table/AntdTable";
+import { EllipsisTooltip } from "@/components/table/EllipsisTooltip";
+import { Progress, Tag } from "antd";
 import React from "react";
+import { View, Text } from "react-native";
+
+function ProgressQuantityCell({ val, record }: { val: any; record: any }) {
+  const { ["products.quantity"]: quantity } = record;
+  const progress = (val / quantity) * 100;
+  return (
+    <View className="flex flex-row items-center justify-between">
+      <EllipsisTooltip title={val}>
+        <Text className="text-xs">{val}</Text>
+      </EllipsisTooltip>
+      <Progress type="circle" percent={progress} size={20} />
+    </View>
+  );
+}
+
+type OrderStage =
+  | "生产中"
+  | "已完成生产"
+  | "运输中"
+  | "支付中"
+  | "完成"
+  | "已取消"
+  | "延迟中"
+  | "问题单";
+function OrderStageCell({ val }: { val: OrderStage }) {
+  const colorMap = {
+    生产中: "blue",
+    已完成生产: "green",
+    运输中: "orange",
+    支付中: "yellow",
+    完成: "green",
+    已取消: "#ff4d4f",
+    延迟中: "orange",
+    问题单: "red",
+  };
+
+  return (
+    <EllipsisTooltip title={val}>
+      {val ? <Tag color={colorMap[val] || ""}>{val}</Tag> : ""}
+    </EllipsisTooltip>
+  );
+}
 
 export default function OrderScreen() {
   const colConfig = {
@@ -12,9 +55,19 @@ export default function OrderScreen() {
     updated_at: { hidden: true }, // Hide the updated_at column
     created_by: { hidden: true },
     updated_by: { hidden: true },
+    stage: {
+      width: 100,
+      render: (text: any) => <OrderStageCell val={text} />,
+    },
     "products.pk": { hidden: true, width: 30 },
     "products.price": { variant: "currency" },
     "products.total_price": { variant: "currency" },
+    "products.progress_quantity": {
+      width: 120,
+      render: (text: any, record: any) => (
+        <ProgressQuantityCell val={text} record={record} />
+      ),
+    },
   };
 
   const fixedCols = {
@@ -23,11 +76,11 @@ export default function OrderScreen() {
 
   const formula = {
     "products.progress_weight": (inputs: Record<string, any>) => {
-      let {
-        "products.progress_quantity": quantity,
-        "products.weight": weight,
-      } = inputs;
-      weight = typeof weight === "string" ? parseFloat(weight) : weight;
+      let quantity = parseFloat(inputs["products.progress_quantity"]);
+      let weight = parseFloat(inputs["products.weight"]);
+      if (isNaN(quantity) || isNaN(weight)) {
+        return null;
+      }
       return quantity * weight;
     },
   };

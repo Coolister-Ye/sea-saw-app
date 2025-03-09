@@ -68,6 +68,7 @@ export function Table({
     error,
     handleDownload,
     hanlePaginationChange: onPaginationChange,
+    refreshData,
   } = useTable({
     table,
     tableRef,
@@ -77,10 +78,6 @@ export function Table({
     ordering,
     defaultColWidth,
   });
-
-  // Memoized columns filter logic
-  // const updatedColumns = useMemo(() => filterColumns(columns), [columns]);
-  // const updatedColumns = useMemo(() => hiddenColumns(columns), [columns]);
 
   // Handlers
   const handlePaginationChange = (page: number, page_size: number) => {
@@ -101,7 +98,7 @@ export function Table({
   };
 
   const handleSearchBarSubmit = (params: any) => {
-    onPaginationChange(paginationModel, params);
+    refreshData(params);
     setShowSearchBar(false);
   };
 

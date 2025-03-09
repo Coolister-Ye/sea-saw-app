@@ -18,7 +18,6 @@ import {
 import { ActionCell } from "@/components/table/ActionCell";
 import React from "react";
 import { useAppContext } from "@/context/App";
-import { setIn } from "formik";
 
 type TableConfigType = {
   table: string;
@@ -177,18 +176,18 @@ export function useTable({
 
     const getFormatter = (variant?: string): ((val: any) => any) => {
       if (!variant) return (val) => val; // 为空时直接返回原值
-    
+
       const match = variant.match(/([a-zA-Z]+)(\d+)?/); // 解析格式，如 "currency5"
       if (!match) return (val) => val;
-    
+
       const [, type, decimalStr] = match;
       const decimals = decimalStr ? parseInt(decimalStr, 10) : 2; // 默认为 2
-    
+
       const formatters: Record<string, (val: any) => any> = {
         currency: (val) => formatCurrency(val, decimals),
         percentage: (val) => formatPercentage(val, decimals),
       };
-    
+
       return formatters[type] || ((val) => val);
     };
 
@@ -430,7 +429,7 @@ export function useTable({
         });
       })
     );
-    hanlePaginationChange(paginationModel);
+    refreshData();
   };
 
   const handleSave = async (prevRecord: any, newRecord: any) => {
@@ -446,7 +445,7 @@ export function useTable({
       : await create({ contentType: table, body: unflattenedData });
 
     if (response?.status) {
-      hanlePaginationChange(paginationModel);
+      refreshData();
       editingKeyRef.current = "";
     } else if (response?.error?.status === "auth-error") {
       router.navigate("/login");
@@ -513,16 +512,17 @@ export function useTable({
     }
   };
 
-  const hanlePaginationChange = async (
-    pagination: PaginationProps,
-    params?: { [key: string]: any }
-  ) => {
+  const refreshData = async (params?: any) => {
     setLoading(true);
     try {
-      if (pagination === paginationModel) return;
       const { data: rows } = await list({
         contentType: table,
-        params: { ordering, ...pagination, ...filtersRef.current, ...params },
+        params: {
+          ordering,
+          ...paginationModel,
+          ...filtersRef.current,
+          ...params,
+        },
       });
 
       const processedData = assignKey(
@@ -541,12 +541,21 @@ export function useTable({
       dispatch({ type: "SET_FLAT_DATA", payload: processedData });
       dispatch({ type: "SET_DATA", payload: rows.results });
       dispatch({ type: "SET_DATA_COUNT", payload: rows.count });
-      dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination });
     } catch (error) {
       console.error("Error loading list data:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const hanlePaginationChange = async (
+    pagination: PaginationProps,
+    params?: { [key: string]: any }
+  ) => {
+    if (pagination === paginationModel) return;
+
+    dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination });
+    refreshData(params);
   };
 
   const handleLocaleChange = async (locale: string) => {
@@ -638,5 +647,6 @@ export function useTable({
       dispatch({ type: "SET_COLUMNS", payload: columns }),
     handleDownload,
     hanlePaginationChange,
+    refreshData,
   };
 }

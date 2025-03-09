@@ -17,7 +17,7 @@ function assignRS(
 ) {
   // Filter out keys that end with `.rowSpan` or have a matching key for `.rowSpan`
   const rowSpanKeys = Object.keys(data).filter(
-    (key) => !key.endsWith(".rowSpan") && !data.hasOwnProperty(`${key}.rowSpan`)
+    (key) => !key.endsWith(".rowSpan") // && !data.hasOwnProperty(`${key}.rowSpan`)
   );
 
   // Use reduce to generate the new rowSpan values

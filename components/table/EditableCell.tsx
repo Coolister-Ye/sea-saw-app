@@ -128,7 +128,7 @@ const EditableCell = ({
       editingKey !== "" &&
       !isEditingCurrentRow
     ) {
-      toast.showToast(i18n.t("Exit row editing mode first"), "error");
+      toast.showToast({ message: i18n.t("Exit row editing mode first") });
     } else {
       toggleEdit();
     }
@@ -137,6 +137,35 @@ const EditableCell = ({
   // 处理失去焦点或选择事件
   const handleBlurOrSelect = async () => {
     if (!isRowEditing) save();
+  };
+
+  const handleLookupSelected = async (option: string) => {
+    if (isRowEditing) return;
+
+    const { value, pk } = option
+      ? JSON.parse(option)
+      : { value: null, pk: null };
+    const pkName = `${dataIndex.split(".").slice(0, -1)}.pk`;
+
+    if (record[pkName] === pk && record[dataIndex] === value) {
+      toggleEdit();
+      return;
+    }
+
+    const newRecord = {
+      ...record,
+      ...{
+        [pkName]: pk,
+        [dataIndex]: value,
+      },
+    };
+
+    try {
+      await handleSave(record, newRecord);
+      toggleEdit();
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
   };
 
   // 渲染不同类型的可编辑单元格
@@ -159,7 +188,7 @@ const EditableCell = ({
             fetchOptions={getOptions} // 异步获取选项
             ref={inputRef}
             onBlur={handleBlurOrSelect}
-            onSelect={handleBlurOrSelect}
+            onSelect={handleLookupSelected}
             showSearch
             allowClear
           />
