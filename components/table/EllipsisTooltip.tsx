@@ -45,4 +45,4 @@ const EllipsisTooltip: React.FC<{
   );
 };
 
-export default EllipsisTooltip;
+export { EllipsisTooltip };

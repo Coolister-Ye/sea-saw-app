@@ -215,19 +215,25 @@ export function ColumnsToolBar({
         const response = await request({
           uri: "createUserColPreference",
           method: "POST",
-          data: body,
+          body,
           suffix: `${table}/`,
         });
 
         if (response.status) {
           // Show success toast message after saving
-          showToast("save successfully!", "success");
+          showToast({ message: "save successfully!", variant: "success" });
         } else {
-          showToast("Failed to save settings. Please try again.", "error");
+          showToast({
+            message: "Failed to save settings. Please try again.",
+            variant: "error",
+          });
         }
       } catch (error) {
         // Handle errors gracefully (optional)
-        showToast("An error occurred. Please try again later.", "error");
+        showToast({
+          message: "An error occurred. Please try again later.",
+          variant: "error",
+        });
       }
     };
 

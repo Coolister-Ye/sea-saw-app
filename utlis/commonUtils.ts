@@ -186,11 +186,12 @@ function json2Str(json: any): string {
     .join(", ");
 }
 
-const formatCurrency = (value: any) => {
+const formatCurrency = (value: any, decimals = 2) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     currencyDisplay: "symbol",
+    maximumFractionDigits: decimals,
   }).format(value);
 };
 

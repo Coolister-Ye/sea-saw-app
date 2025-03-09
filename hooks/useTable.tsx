@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useReducer } from "react";
+import { useCallback, useEffect, useRef, useReducer, useState } from "react";
 import useDataService from "./useDataService";
 import { debounce, isEqual } from "lodash";
 import { router } from "expo-router";
@@ -9,16 +9,15 @@ import {
   mergeData,
   unFlattenData,
 } from "@/utlis/serializer";
-import EllipsisTooltip from "@/components/table/EllipsisTooltip";
-import { useLocale } from "@/context/Locale";
+import { EllipsisTooltip } from "@/components/table/EllipsisTooltip";
 import {
   changeToPlural,
   formatCurrency,
   formatPercentage,
 } from "@/utlis/commonUtils";
 import { ActionCell } from "@/components/table/ActionCell";
-import { useToast } from "@/context/Toast";
-import { View } from "react-native";
+import React from "react";
+import { useAppContext } from "@/context/App";
 
 type TableConfigType = {
   table: string;
@@ -95,17 +94,20 @@ export function useTable({
     update,
     deleteItem,
     options,
-    loading,
     error,
     success,
-    clearError,
-    clearSuccess,
+    clearStates,
     request,
   } = useDataService();
 
+  const [loading, setLoading] = useState(false);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { locale, i18n } = useLocale();
-  const { showToast } = useToast();
+
+  const hasMounted = useRef(false);
+  const { locale: _locale, toast, isAppReady } = useAppContext();
+  const { i18n, locale } = _locale;
+  const prevLocale = useRef(locale);
+  const { showToast } = toast;
 
   const { paginationModel, columns, data, flatData, dataCount, editingKey } =
     state;
@@ -119,11 +121,12 @@ export function useTable({
   const flatDataRef = useRef<any>(flatData);
   const editingKeyRef = useRef<string>(editingKey);
   const filtersRef = useRef<any>(null);
+  const columnsPref = useRef<any>(null);
 
-  console.log("columnsRef", columnsRef);
-  console.log("dataRef", dataRef);
-  console.log("flattenData", flatData);
-  console.log("columns", columns);
+  // console.log("columnsRef", columnsRef);
+  // console.log("dataRef", dataRef);
+  // console.log("flattenData", flatData);
+  // console.log("columns", columns);
 
   /**
    * Assigns a unique key to each item in the data array.
@@ -156,12 +159,6 @@ export function useTable({
    * @param columnsMeta - The metadata for table columns.
    * @returns An array of processed column configurations.
    */
-  /**
-   * Process columns metadata to create table headers and additional configurations.
-   *
-   * @param columnsMeta - The metadata for table columns.
-   * @returns An array of processed column configurations.
-   */
   const processColumns = (
     columnsMeta: any,
     columnPref: Array<{ dataIndex: string; hidden?: boolean }>
@@ -177,13 +174,21 @@ export function useTable({
       );
     };
 
-    const getFormater = (variant: any): any => {
-      const formatters: { [key: string]: Function } = {
-        currency: formatCurrency,
-        percentage: formatPercentage,
+    const getFormatter = (variant?: string): ((val: any) => any) => {
+      if (!variant) return (val) => val; // 为空时直接返回原值
+
+      const match = variant.match(/([a-zA-Z]+)(\d+)?/); // 解析格式，如 "currency5"
+      if (!match) return (val) => val;
+
+      const [, type, decimalStr] = match;
+      const decimals = decimalStr ? parseInt(decimalStr, 10) : 2; // 默认为 2
+
+      const formatters: Record<string, (val: any) => any> = {
+        currency: (val) => formatCurrency(val, decimals),
+        percentage: (val) => formatPercentage(val, decimals),
       };
 
-      return formatters[variant] || ((val: any) => val);
+      return formatters[type] || ((val) => val);
     };
 
     const isIdExist = (dataIndex: string) => {
@@ -244,7 +249,7 @@ export function useTable({
     const processedHeaders = finalSortedHeaders.map(
       (_col: any, index: number) => {
         const variant = getVariant(_col);
-        const formater = getFormater(variant);
+        const formater = getFormatter(variant);
         const userConf = columnPref.find(
           (pref) => pref.dataIndex === _col.dataIndex
         );
@@ -382,7 +387,7 @@ export function useTable({
   const handleAdd = () => {
     // 不允许同时编辑多条记录
     if (editingKeyRef.current !== "") {
-      showToast(i18n.t("Exit row editing mode first"), "error");
+      showToast({ message: i18n.t("Exit row editing mode first") });
       return;
     }
 
@@ -417,13 +422,14 @@ export function useTable({
     await Promise.all(
       deleteItems.map(([item, pk]: [string, any]) => {
         const contentType = item.split(".");
-        return deleteItem(
-          pk,
-          item === "pk" ? table : contentType[contentType.length - 2]
-        );
+        return deleteItem({
+          id: pk,
+          contentType:
+            item === "pk" ? table : contentType[contentType.length - 2],
+        });
       })
     );
-    loadTableData(paginationModel);
+    refreshData();
   };
 
   const handleSave = async (prevRecord: any, newRecord: any) => {
@@ -431,11 +437,15 @@ export function useTable({
     const unflattenedData = unFlattenData(newRecord, columnsRef.current);
 
     const response = newRecord.pk
-      ? await update(newRecord.pk, table, unflattenedData)
-      : await create(table, unflattenedData);
+      ? await update({
+          id: newRecord.pk,
+          contentType: table,
+          body: unflattenedData,
+        })
+      : await create({ contentType: table, body: unflattenedData });
 
     if (response?.status) {
-      loadTableData(paginationModel);
+      refreshData();
       editingKeyRef.current = "";
     } else if (response?.error?.status === "auth-error") {
       router.navigate("/login");
@@ -459,11 +469,15 @@ export function useTable({
     pagination: PaginationProps,
     params?: { [key: string]: any }
   ) => {
+    setLoading(true);
     try {
       const [{ data: columnsMeta }, { data: rows }, { data: userPref }] =
         await Promise.all([
-          options(table),
-          list(table, { ordering: ordering, ...pagination, ...params }),
+          options({ contentType: table }),
+          list({
+            contentType: table,
+            params: { ordering, ...pagination, ...params },
+          }),
           loadUserPreference(),
         ]);
 
@@ -485,6 +499,7 @@ export function useTable({
       flatDataRef.current = processedData;
       flatColumnsRef.current = processedColumns;
       filtersRef.current = params;
+      columnsPref.current = columnPref;
 
       dispatch({ type: "SET_COLUMNS", payload: processedColumns });
       dispatch({ type: "SET_FLAT_DATA", payload: processedData });
@@ -492,6 +507,72 @@ export function useTable({
       dispatch({ type: "SET_DATA_COUNT", payload: rows.count });
     } catch (error) {
       console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshData = async (params?: any) => {
+    setLoading(true);
+    try {
+      const { data: rows } = await list({
+        contentType: table,
+        params: {
+          ordering,
+          ...paginationModel,
+          ...filtersRef.current,
+          ...params,
+        },
+      });
+
+      const processedData = assignKey(
+        flattenData(
+          rows.results,
+          flatColumnsRef.current.map(
+            (col: { dataIndex: any }) => col.dataIndex
+          ),
+          []
+        )
+      );
+
+      dataRef.current = rows.results;
+      flatDataRef.current = processedData;
+
+      dispatch({ type: "SET_FLAT_DATA", payload: processedData });
+      dispatch({ type: "SET_DATA", payload: rows.results });
+      dispatch({ type: "SET_DATA_COUNT", payload: rows.count });
+    } catch (error) {
+      console.error("Error loading list data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hanlePaginationChange = async (
+    pagination: PaginationProps,
+    params?: { [key: string]: any }
+  ) => {
+    if (pagination === paginationModel) return;
+
+    dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination });
+    refreshData(params);
+  };
+
+  const handleLocaleChange = async (locale: string) => {
+    setLoading(true);
+    try {
+      const { data: columnsMeta } = await options({ contentType: table });
+      const processedColumns = processColumns(
+        columnsMeta.actions.POST || columnsMeta.actions.OPTIONS,
+        columnsPref.current || []
+      );
+      columnsRef.current = columnsMeta.actions.POST;
+      flatColumnsRef.current = processedColumns;
+      dispatch({ type: "SET_COLUMNS", payload: processedColumns });
+    } catch (error) {
+      console.error("Error loading list data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -503,7 +584,7 @@ export function useTable({
 
   // Handle column reordering
   const handleColsRerange = (columns: any) => {
-    const processedData = assignKey(
+    let processedData = assignKey(
       flattenData(
         dataRef.current,
         flatColumnsRef.current.map((col: { dataIndex: any }) => col.dataIndex),
@@ -512,7 +593,10 @@ export function useTable({
     );
 
     flatDataRef.current = processedData;
-    // flatColumnsRef.current = columns;
+
+    if (editingKeyRef.current !== "") {
+      processedData = [{ key: NEWKEY }, ...processedData];
+    }
 
     dispatch({ type: "SET_COLUMNS", payload: columns });
     dispatch({ type: "SET_FLAT_DATA", payload: processedData });
@@ -526,14 +610,25 @@ export function useTable({
     const downloadTask = await request({
       uri: "crmDownload",
       method: "POST",
-      data: body,
+      body,
     });
-    showToast(downloadTask.data.message, "success");
+    showToast({ message: downloadTask.data.message, variant: "success" });
   };
 
   useEffect(() => {
-    debouncedLoadData(paginationModel);
-  }, [paginationModel, locale]);
+    if (!isAppReady) return;
+
+    if (hasMounted.current) {
+      if (prevLocale.current !== locale) {
+        handleLocaleChange(locale);
+      }
+    } else {
+      debouncedLoadData(paginationModel);
+      hasMounted.current = true;
+    }
+
+    prevLocale.current = locale;
+  }, [locale, isAppReady]);
 
   return {
     flatData,
@@ -541,18 +636,17 @@ export function useTable({
     columns,
     dataCount,
     paginationModel,
-    setPaginationModel: (pagination: PaginationProps) =>
-      dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination }),
     loading,
     error,
     success,
-    clearError,
-    clearSuccess,
+    clearStates,
     handleAdd,
     loadTableData,
     handleColsRerange,
     setColumns: (columns: any[]) =>
       dispatch({ type: "SET_COLUMNS", payload: columns }),
     handleDownload,
+    hanlePaginationChange,
+    refreshData,
   };
 }

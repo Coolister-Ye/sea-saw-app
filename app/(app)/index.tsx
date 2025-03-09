@@ -5,8 +5,9 @@ import useDataService from "@/hooks/useDataService";
 import { useEffect, useState } from "react";
 import Text from "@/components/themed/Text";
 import View from "@/components/themed/View";
-import { ScrollView } from "react-native";
+import { ScrollView, ActivityIndicator } from "react-native";
 import { PlanList } from "@/components/data/PlanList";
+import { useRootNavigationState } from "expo-router";
 
 type StatItem = {
   name: string;
@@ -20,20 +21,13 @@ const POSLIST = ["已完成生产", "运输中", "支付中", "完成"];
 
 export default function Index() {
   const { locale, i18n } = useLocale();
-  const { request } = useDataService();
+  const { request, loading } = useDataService(); // Destructure loading directly from useDataService
 
-  // State for storing statistics and order stats by month
   const [stats, setStats] = useState<StatItem[]>([]);
   const [orderStatByMonth, setOrderStatByMonth] = useState<any>(null);
   const [selectedDay, setSelectedDay] = useState<string>("");
+  const rootNavigationState = useRootNavigationState();
 
-  /**
-   * Processes statistical data, calculating the percentage change between current and previous values.
-   * @param name The name of the stat (e.g., "Contracts added")
-   * @param current The current month's value
-   * @param previous The previous month's value
-   * @returns A formatted stat item or false if data is missing
-   */
   const processStatData = (
     name: string,
     current?: number,
@@ -53,9 +47,6 @@ export default function Index() {
     };
   };
 
-  /**
-   * Fetches statistics for contracts and orders, and processes the data.
-   */
   const getStatData = async () => {
     try {
       const [contractResponse, orderResponse] = await Promise.all([
@@ -88,11 +79,6 @@ export default function Index() {
     }
   };
 
-  /**
-   * Fetches order stats by month and updates the state.
-   * @param year The year for which to fetch data
-   * @param month The month for which to fetch data
-   */
   const getStatDataS2 = async (year?: string, month?: string) => {
     try {
       const params = year && month ? { date: `${year}-${month}` } : undefined;
@@ -107,50 +93,40 @@ export default function Index() {
     }
   };
 
-  /**
-   * Handles month change in the calendar and fetches corresponding data.
-   * @param month The new month selected in the calendar
-   */
   const handleMonthChange = async (month: any) => {
     getStatDataS2(month.year, month.month);
   };
 
-  /**
-   * Renders the plan list based on the selected day.
-   */
   const renderPlanList = () => {
     const plans = orderStatByMonth?.[selectedDay];
     return plans ? <PlanList plans={plans} posList={POSLIST} /> : null;
   };
 
-  // Fetch initial data on component mount and when locale changes
   useEffect(() => {
-    getStatData();
-    getStatDataS2();
-  }, [locale]);
+    if (rootNavigationState?.key) {
+      getStatData();
+      getStatDataS2();
+    }
+  }, []);
 
   return (
     <ScrollView>
       <View style={{ flex: 1, alignItems: "center" }}>
         <View className="w-full p-3">
-          {/* Stats section */}
           <View className="my-3">
             <Stats title={i18n.t("This month")} stats={stats} />
           </View>
 
-          {/* Calendar and plans section */}
           <View className="p-3 w-full">
             <Text variant="primary" className="text-lg font-semibold mb-3">
               {i18n.t("Etd Plan")}
             </Text>
             <View className="p-3 rounded-md" variant="paper">
-              {/* Calendar component */}
               <Calendar
                 markedDates={orderStatByMonth}
                 onMonthChange={handleMonthChange}
-                onDayPress={(day: any) => setSelectedDay(day.dateString)} // Update selected day
+                onDayPress={(day: any) => setSelectedDay(day.dateString)}
               />
-              {/* Render the plan list for the selected day */}
               {renderPlanList()}
             </View>
           </View>

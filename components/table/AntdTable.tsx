@@ -7,7 +7,6 @@ import EditableCell from "./EditableCell";
 import EditableRow from "./EditableRow";
 import { useTable } from "@/hooks/useTable";
 import {
-  PlusCircleIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
   ArrowDownTrayIcon,
@@ -16,8 +15,8 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { ColumnsToolBar } from "./ColumnToolBar";
 import { Pressable } from "react-native";
 import { SearchToolBar } from "./SearchToolBar";
-import Toast from "../themed/Toast";
 import i18n from "@/locale/i18n";
+import { Toast } from "../themed/Toast";
 
 type TableProps = {
   table: string;
@@ -62,14 +61,14 @@ export function Table({
     flatData,
     columns,
     dataCount,
-    setPaginationModel,
     handleAdd,
     loading,
-    loadTableData,
     handleColsRerange,
     paginationModel,
     error,
     handleDownload,
+    hanlePaginationChange: onPaginationChange,
+    refreshData,
   } = useTable({
     table,
     tableRef,
@@ -80,13 +79,9 @@ export function Table({
     defaultColWidth,
   });
 
-  // Memoized columns filter logic
-  // const updatedColumns = useMemo(() => filterColumns(columns), [columns]);
-  // const updatedColumns = useMemo(() => hiddenColumns(columns), [columns]);
-
   // Handlers
   const handlePaginationChange = (page: number, page_size: number) => {
-    setPaginationModel({ page, page_size });
+    onPaginationChange({ page, page_size });
   };
 
   const handleColumnBarToggle = useCallback(() => {
@@ -103,7 +98,7 @@ export function Table({
   };
 
   const handleSearchBarSubmit = (params: any) => {
-    loadTableData(paginationModel, params);
+    refreshData(params);
     setShowSearchBar(false);
   };
 
@@ -218,7 +213,7 @@ export function Table({
             <Button
               variant="primary"
               className="px-3 py-2 flex-row"
-              icon={<PlusCircleIcon className="text-zinc-100 mr-1" />}
+              // icon={<PlusCircleIcon className="text-zinc-100 mr-1" />}
               onPress={handleAdd}
             >
               {i18n.t("add")}

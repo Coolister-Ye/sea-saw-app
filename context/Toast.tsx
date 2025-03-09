@@ -1,66 +1,47 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import Toast from "@/components/themed/Toast"; // 假设你的 Toast 组件在这个文件中
+import { Toast, ToastProps } from "@/components/themed/Toast";
 
 // Toast Context 类型定义
 type ToastContextType = {
-  showToast: (
-    message: string,
-    variant?: "success" | "error" | "warning",
-    info?: string[],
-    duration?: number
-  ) => void;
+  showToast: (props: ToastProps) => void;
 };
 
 // 创建 Toast Context
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// ToastProvider 组件，提供 Toast 上下文
+// ToastProvider 组件
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
-  const [toastData, setToastData] = useState<{
-    message: string | null;
-    variant: "success" | "error" | "warning";
-    info: string[];
-    duration: number;
-  }>({
-    message: null,
-    variant: "error",
-    info: [],
-    duration: 3000,
-  });
+  const [currentToast, setCurrentToast] = useState<ToastProps | null>(null);
 
-  const showToast = (
-    message: string,
-    variant: "success" | "error" | "warning" = "error",
-    info: string[] = [],
-    duration: number = 3000
-  ) => {
-    setToastData({ message, variant, info, duration });
+  // 展示新的 Toast
+  const showToast = (props: ToastProps) => {
+    const newToast = { ...props, timestamp: Date.now() };
+    setCurrentToast(newToast);
+  };
+
+  // 清理 Toast
+  const handleClose = () => {
+    setCurrentToast(null);
   };
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {toastData.message && (
+      {currentToast && (
         <Toast
-          message={toastData.message}
-          variant={toastData.variant}
-          info={toastData.info}
-          duration={toastData.duration}
-          onClose={() =>
-            setToastData({
-              message: null,
-              variant: "error",
-              info: [],
-              duration: 3000,
-            })
-          }
+          message={currentToast.message}
+          variant={currentToast.variant}
+          info={currentToast.info}
+          duration={currentToast.duration}
+          timestamp={currentToast.timestamp}
+          onClose={handleClose}
         />
       )}
     </ToastContext.Provider>
   );
 };
 
-// 使用 ToastContext
+// 使用 ToastContext 的自定义 hook
 export const useToast = (): ToastContextType => {
   const context = useContext(ToastContext);
   if (!context) {
