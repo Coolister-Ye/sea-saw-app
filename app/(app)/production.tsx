@@ -12,7 +12,7 @@ function ProgressQuantityCell({ val, record }: { val: any; record: any }) {
       <EllipsisTooltip title={val}>
         <Text className="text-xs">{val}</Text>
       </EllipsisTooltip>
-      <Progress type="circle" percent={progress} size={20} />
+      <Progress type="circle" percent={progress} size={20} format={(precent) => `${precent?.toFixed(2)}%`}/>
     </View>
   );
 }
