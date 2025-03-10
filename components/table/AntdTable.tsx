@@ -67,7 +67,7 @@ export function Table({
     paginationModel,
     error,
     handleDownload,
-    hanlePaginationChange: onPaginationChange,
+    handlePaginationChange: onPaginationChange,
     refreshData,
   } = useTable({
     table,
@@ -98,7 +98,11 @@ export function Table({
   };
 
   const handleSearchBarSubmit = (params: any) => {
-    refreshData({ params });
+    console.log("handleSearchBarSubmit", params);
+    refreshData({
+      filters: params,
+      pagination: { page: 1, page_size: paginationModel.page_size },
+    });
     setShowSearchBar(false);
   };
 
@@ -240,7 +244,11 @@ export function Table({
   function renderTableFooter() {
     return (
       <View className="items-end w-full" variant="paper">
-        <Pagination size="small" {...paginationConfig} />
+        <Pagination
+          size="small"
+          {...paginationConfig}
+          current={paginationModel.page}
+        />
       </View>
     );
   }

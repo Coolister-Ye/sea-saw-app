@@ -119,14 +119,13 @@ export function useTable({
   const flatColumnsRef = useRef<any>(null);
   const dataRef = useRef<any>(data);
   const flatDataRef = useRef<any>(flatData);
-  const editingKeyRef = useRef<string>(editingKey);
-  const filtersRef = useRef<any>(null);
   const columnsPref = useRef<any>(null);
 
-  // console.log("columnsRef", columnsRef);
-  // console.log("dataRef", dataRef);
-  // console.log("flattenData", flatData);
-  // console.log("columns", columns);
+  // References for table states
+  const editingKeyRef = useRef<string>(editingKey);
+  const filtersRef = useRef<any>(null);
+  const paginationModelRef = useRef<any>(paginationModel);
+  const orderingRef = useRef<any>(ordering);
 
   /**
    * Assigns a unique key to each item in the data array.
@@ -429,7 +428,7 @@ export function useTable({
         });
       })
     );
-    refreshData({ pagination: paginationModel });
+    refreshData();
   };
 
   const handleSave = async (prevRecord: any, newRecord: any) => {
@@ -445,7 +444,7 @@ export function useTable({
       : await create({ contentType: table, body: unflattenedData });
 
     if (response?.status) {
-      refreshData({ pagination: paginationModel });
+      refreshData();
       editingKeyRef.current = "";
     } else if (response?.error?.status === "auth-error") {
       router.navigate("/login");
@@ -465,10 +464,7 @@ export function useTable({
   };
 
   // Load data and columns
-  const loadTableData = async (
-    pagination: PaginationProps,
-    params?: { [key: string]: any }
-  ) => {
+  const loadTableData = async () => {
     setLoading(true);
     try {
       const [{ data: columnsMeta }, { data: rows }, { data: userPref }] =
@@ -476,7 +472,7 @@ export function useTable({
           options({ contentType: table }),
           list({
             contentType: table,
-            params: { ordering, ...pagination, ...params },
+            params: { ordering, ...paginationModelRef.current },
           }),
           loadUserPreference(),
         ]);
@@ -498,7 +494,6 @@ export function useTable({
       dataRef.current = rows.results;
       flatDataRef.current = processedData;
       flatColumnsRef.current = processedColumns;
-      filtersRef.current = params;
       columnsPref.current = columnPref;
 
       dispatch({ type: "SET_COLUMNS", payload: processedColumns });
@@ -512,48 +507,74 @@ export function useTable({
     }
   };
 
-  const refreshData = async ({ pagination, params }: any) => {
-    setLoading(true);
-    try {
-      const { data: rows } = await list({
-        contentType: table,
-        params: {
-          ordering,
-          ...(pagination || paginationModel),
-          ...filtersRef.current,
-          ...params,
-        },
-      });
-
-      const processedData = assignKey(
-        flattenData(
-          rows.results,
-          flatColumnsRef.current.map(
-            (col: { dataIndex: any }) => col.dataIndex
-          ),
-          []
-        )
-      );
-
-      dataRef.current = rows.results;
-      flatDataRef.current = processedData;
-
-      dispatch({ type: "SET_FLAT_DATA", payload: processedData });
-      dispatch({ type: "SET_DATA", payload: rows.results });
-      dispatch({ type: "SET_DATA_COUNT", payload: rows.count });
-    } catch (error) {
-      console.error("Error loading list data:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Refresh data
+  type RefreshDataProps = {
+    ordering?: string;
+    filters?: any;
+    pagination?: any;
   };
 
-  const hanlePaginationChange = async (
-    pagination: PaginationProps,
-    params?: { [key: string]: any }
-  ) => {
-    if (pagination === paginationModel) return;
-    refreshData({ pagination, params });
+  const refreshData = useCallback(
+    debounce(
+      async ({
+        ordering = orderingRef.current,
+        filters = filtersRef.current,
+        pagination = paginationModelRef.current,
+      }: RefreshDataProps = {}) => {
+        setLoading(true);
+        try {
+          const { data: rows } = await list({
+            contentType: table,
+            params: {
+              ordering,
+              ...pagination,
+              ...filters,
+            },
+          });
+
+          const processedData = assignKey(
+            flattenData(
+              rows.results,
+              flatColumnsRef.current.map(
+                (col: { dataIndex: any }) => col.dataIndex
+              ),
+              []
+            )
+          );
+
+          dataRef.current = rows.results;
+          flatDataRef.current = processedData;
+          orderingRef.current = ordering;
+          filtersRef.current = filters;
+          paginationModelRef.current = pagination;
+
+          dispatch({ type: "SET_PAGINATION_MODEL", payload: pagination });
+          dispatch({ type: "SET_FLAT_DATA", payload: processedData });
+          dispatch({ type: "SET_DATA", payload: rows.results });
+          dispatch({ type: "SET_DATA_COUNT", payload: rows.count });
+        } catch (error) {
+          console.error("Error loading list data:", error);
+        } finally {
+          setLoading(false);
+        }
+      },
+      300
+    ), // Debounce for 300ms to reduce API spam
+    []
+  );
+
+  /**
+   * Handles changes to the pagination model.
+   *
+   * @param pagination - The new pagination model to be applied.
+   * Checks if the new pagination model is different from the current model.
+   * If different, updates the pagination model, sets the loading state,
+   * and refreshes the data based on the new pagination.
+   */
+
+  const handlePaginationChange = async (pagination: PaginationProps) => {
+    if (JSON.stringify(pagination) === JSON.stringify(paginationModel)) return;
+    await refreshData({ pagination });
   };
 
   const handleLocaleChange = async (locale: string) => {
@@ -591,7 +612,6 @@ export function useTable({
     );
 
     flatDataRef.current = processedData;
-
     if (editingKeyRef.current !== "") {
       processedData = [{ key: NEWKEY }, ...processedData];
     }
@@ -621,7 +641,7 @@ export function useTable({
         handleLocaleChange(locale);
       }
     } else {
-      debouncedLoadData(paginationModel);
+      debouncedLoadData();
       hasMounted.current = true;
     }
 
@@ -644,7 +664,7 @@ export function useTable({
     setColumns: (columns: any[]) =>
       dispatch({ type: "SET_COLUMNS", payload: columns }),
     handleDownload,
-    hanlePaginationChange,
+    handlePaginationChange,
     refreshData,
   };
 }
