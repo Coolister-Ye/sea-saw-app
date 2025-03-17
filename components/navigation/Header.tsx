@@ -16,11 +16,10 @@ import UserModal from "./UserModal";
 type HeaderProps = React.ComponentProps<typeof Header>;
 
 export function DrawerHeader({ ...props }: HeaderProps) {
-  const { user } = useAuth();
+  const { user, loading: isUserLoading } = useAuth();
   const { isLargeScreen } = useDevice();
   const { locale, changeLocale } = useLocale();
   const navigation = useNavigationContainerRef();
-
   const [usrModalVisible, setUsrModalVisable] = useState(false);
 
   // Toggle drawer menu
@@ -32,7 +31,6 @@ export function DrawerHeader({ ...props }: HeaderProps) {
   const handleChangeLocale = useCallback(() => {
     const newLocale = locale === "en" ? "zh" : "en";
     changeLocale(newLocale);
-    console.log("Locale changed to:", newLocale);
   }, [locale, changeLocale]);
 
   const handleAvatarPress = () => {
@@ -47,13 +45,12 @@ export function DrawerHeader({ ...props }: HeaderProps) {
         {...props}
         headerRight={() => (
           <>
-            {user !== null && user.username && (
-              <Avatar
-                text={user?.username}
-                size="small"
-                onPress={handleAvatarPress}
-              />
-            )}
+            <Avatar
+              text={user?.username}
+              size="small"
+              onPress={handleAvatarPress}
+              isLoading={isUserLoading}
+            />
             <Pressable
               onPress={handleChangeLocale}
               className="p-2 rounded mr-1"

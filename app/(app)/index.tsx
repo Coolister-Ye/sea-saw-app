@@ -1,84 +1,97 @@
 import { Calendar } from "@/components/data/Calendar";
-import Stats from "@/components/data/Stats";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { useEffect, useState } from "react";
 import Text from "@/components/themed/Text";
 import View from "@/components/themed/View";
-import { ScrollView, ActivityIndicator } from "react-native";
+import { ScrollView } from "react-native";
 import { PlanList } from "@/components/data/PlanList";
 import { useRootNavigationState } from "expo-router";
-
-type StatItem = {
-  name: string;
-  stat: string;
-  previousStat: string;
-  change: string;
-  changeType: "increase" | "decrease";
-};
+import SwitchStats from "@/components/data/SwitchStats";
+import { useAppContext } from "@/context/App";
 
 const POSLIST = ["已完成生产", "运输中", "支付中", "完成"];
 
 export default function Index() {
-  const { locale, i18n } = useLocale();
-  const { request, loading } = useDataService(); // Destructure loading directly from useDataService
+  const {
+    auth: { user },
+    locale: { locale, i18n },
+    toast,
+    isAppReady: isAppBaseReady,
+  } = useAppContext();
+  const { request, loading } = useDataService();
 
-  const [stats, setStats] = useState<StatItem[]>([]);
+  const [switchableStats, setSwitchableStats] = useState<any[]>([]);
   const [orderStatByMonth, setOrderStatByMonth] = useState<any>(null);
   const [selectedDay, setSelectedDay] = useState<string>("");
   const rootNavigationState = useRootNavigationState();
+  const [isStatLoading, setStatLoading] = useState(true);
 
-  const processStatData = (
-    name: string,
-    current?: number,
-    previous?: number
-  ): StatItem | false => {
-    if (current === undefined || previous === undefined) return false;
+  const isAppReady = Boolean(rootNavigationState?.key && isAppBaseReady);
 
-    const change = ((current - previous) / previous) * 100;
-    return {
-      name: i18n.t(name),
-      stat: current.toFixed(2),
-      previousStat: previous.toFixed(2),
-      change: Number.isFinite(change)
-        ? `${change.toFixed(2)}%`
-        : change.toString(),
-      changeType: current >= previous ? "increase" : "decrease",
-    };
+  // 过滤无效数据
+  const filterValidStats = (name: string, statArray: any) => {
+    return statArray && Array.isArray(statArray) && statArray.length > 0
+      ? { name: i18n.t(name), statArray }
+      : null;
   };
 
+  // 获取合同和订单的统计数据
   const getStatData = async () => {
+    setStatLoading(true);
     try {
       const [contractResponse, orderResponse] = await Promise.all([
         request({ uri: "listContractsStats", method: "GET" }),
         request({ uri: "listOrdersStats", method: "GET" }),
       ]);
 
-      const rawStats = [
-        processStatData(
-          "Contracts added",
-          contractResponse.data.contracts_this_month_count,
-          contractResponse.data.contracts_last_month_count
+      const stats = [
+        filterValidStats(
+          "Contracts Count by Month",
+          contractResponse.data?.contracts_count_by_month
         ),
-        processStatData(
-          "Orders added",
-          orderResponse.data.orders_this_month_count,
-          orderResponse.data.orders_last_month_count
+        filterValidStats(
+          "Contracts Count by Year",
+          contractResponse.data?.contracts_count_by_year
         ),
-        processStatData(
-          "Income",
-          orderResponse.data.orders_this_month_income,
-          orderResponse.data.orders_last_month_income
+        filterValidStats(
+          "Orders Count by Month",
+          orderResponse.data?.orders_count_by_month
         ),
-      ];
+        filterValidStats(
+          "Orders Count by Year",
+          orderResponse.data?.orders_count_by_year
+        ),
+        filterValidStats(
+          "Orders Received by Month",
+          orderResponse.data?.orders_received_by_month
+        ),
+        filterValidStats(
+          "Orders Received by Year",
+          orderResponse.data?.orders_received_by_year
+        ),
+        filterValidStats(
+          "Orders Receivable by Year",
+          orderResponse.data?.orders_receivable_by_year
+        ),
+        filterValidStats(
+          "Orders Total Amount by Year",
+          orderResponse.data?.orders_total_amount_by_year
+        ),
+        filterValidStats(
+          "Orders Total Amount by Month",
+          orderResponse.data?.orders_total_amount_by_month
+        ),
+      ].filter(Boolean); // 过滤掉 null 值
 
-      const validStats = rawStats.filter(Boolean) as StatItem[];
-      setStats(validStats);
+      setSwitchableStats(stats);
     } catch (error) {
       console.error("Error loading statistics data:", error);
+    } finally {
+      setStatLoading(false);
     }
   };
 
+  // 获取指定月份的订单数据
   const getStatDataS2 = async (year?: string, month?: string) => {
     try {
       const params = year && month ? { date: `${year}-${month}` } : undefined;
@@ -89,32 +102,42 @@ export default function Index() {
       });
       setOrderStatByMonth(response.data);
     } catch (error) {
-      console.error("Error loading statistics data:", error);
+      console.error("Error loading orders by month:", error);
     }
   };
 
-  const handleMonthChange = async (month: any) => {
-    getStatDataS2(month.year, month.month);
+  // 处理月份变化
+  const handleMonthChange = async (
+    month: { year: string; month: string } | null
+  ) => {
+    if (!month) return;
+    await getStatDataS2(month.year, month.month);
   };
 
+  // 渲染计划列表
   const renderPlanList = () => {
-    const plans = orderStatByMonth?.[selectedDay];
-    return plans ? <PlanList plans={plans} posList={POSLIST} /> : null;
+    return orderStatByMonth?.[selectedDay] ? (
+      <PlanList plans={orderStatByMonth[selectedDay]} posList={POSLIST} />
+    ) : null;
   };
 
   useEffect(() => {
-    if (rootNavigationState?.key) {
+    if (isAppReady) {
       getStatData();
       getStatDataS2();
     }
-  }, []);
+  }, [isAppReady, locale, user]);
 
   return (
     <ScrollView>
       <View style={{ flex: 1, alignItems: "center" }}>
         <View className="w-full p-3">
           <View className="my-3">
-            <Stats title={i18n.t("This month")} stats={stats} />
+            <SwitchStats
+              title={i18n.t("This month")}
+              stats={switchableStats}
+              isLoading={isStatLoading}
+            />
           </View>
 
           <View className="p-3 w-full">

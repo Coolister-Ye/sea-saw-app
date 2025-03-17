@@ -14,7 +14,12 @@ function ProgressQuantityCell({ val, record }: { val: any; record: any }) {
       <EllipsisTooltip title={val}>
         <Text className="text-xs">{val}</Text>
       </EllipsisTooltip>
-      <Progress type="circle" percent={progress} size={20} format={(precent) => `${precent?.toFixed(2)}%`}/>
+      <Progress
+        type="circle"
+        percent={progress}
+        size={20}
+        format={(precent) => `${precent?.toFixed(2)}%`}
+      />
     </View>
   );
 }
@@ -106,6 +111,7 @@ export default function ContractScreen() {
       render: (text: any) => <OrderStageCell val={text} />,
     },
     "orders.destination_port": { width: 150 },
+    "orders.total_amount": { variant: "currency" },
     "orders.deposit": { variant: "currency" },
     "orders.products.pk": { hidden: true, width: 30 }, // Hide nested product ID column
     "orders.balance": { variant: "currency" },

@@ -1,17 +1,17 @@
 import React from "react";
 import Image from "@/components/themed/Image";
 import Text from "@/components/themed/Text";
-import { Pressable, View } from "react-native";
+import { Pressable, View, ActivityIndicator } from "react-native";
 import clsx from "clsx";
-import _ from "lodash";
 import { QuestionMarkCircleIcon } from "react-native-heroicons/outline";
 
 type AvatarProps = {
   size?: "small" | "medium" | "large";
-  source?: string; // Image URL (optional)
-  text?: string; // Text for the avatar (optional)
+  source?: string;
+  text?: string;
   onPress?: () => void;
   className?: string;
+  isLoading?: boolean;
 };
 
 const blurhash =
@@ -23,28 +23,33 @@ export const Avatar = ({
   text,
   onPress,
   className,
+  isLoading = false,
 }: AvatarProps) => {
   const _className = clsx(
-    size === "small" && "size-6 text-sm ",
-    size === "medium" && "size-8 text-md",
-    size === "large" && "size-10 text-lg",
-    "items-center justify-center hover:opacity-90",
+    "flex items-center justify-center rounded-lg hover:opacity-90",
+    size === "small" && "w-6 h-6 text-sm",
+    size === "medium" && "w-8 h-8 text-md",
+    size === "large" && "w-10 h-10 text-lg",
     className
   );
   const _textClassName = clsx(
+    "font-medium text-white",
     size === "small" && "text-xs",
     size === "medium" && "text-md",
-    size === "large" && "text-lg",
-    "font-medium text-white"
+    size === "large" && "text-lg"
   );
+
+  if (isLoading) {
+    return <View className={clsx(_className, "bg-gray-500 animate-pulse")} />;
+  }
 
   if (!source && !text) {
     return (
       <Pressable onPress={onPress} className={_className}>
-        <View className={clsx(_className, "rounded-lg")}>
+        <View className={_className}>
           <QuestionMarkCircleIcon
             size={size === "small" ? 24 : size === "medium" ? 32 : 40}
-            className={clsx(_textClassName, "text-zinc-500")}
+            className="text-zinc-500"
           />
         </View>
       </Pressable>
@@ -59,10 +64,10 @@ export const Avatar = ({
           placeholder={{ blurhash }}
           contentFit="cover"
           transition={1000}
-          className="h-full w-full"
+          className="w-full h-full rounded-lg"
         />
       ) : (
-        <View className={clsx(_className, "rounded-lg bg-zinc-500 shadow-md")}>
+        <View className={clsx(_className, "bg-zinc-500 shadow-md")}>
           <Text className={_textClassName}>
             {text?.slice(0, 2).toUpperCase()}
           </Text>

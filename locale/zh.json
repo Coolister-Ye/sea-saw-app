@@ -41,7 +41,7 @@
     "Enter password": "输入密码",
     "Required": "必填",
     "Contact admin to change password": "请联系管理员修改密码",
-    "Comfirm": "确定",
+    "Confirm": "确定",
     "This month": "本月指标",
     "Contracts added": "新增合同",
     "Orders added": "新增生产单",
@@ -68,12 +68,19 @@
     "Enter current password": "输入原密码",
     "Enter new password": "输入新密码",
     "Confirm new password": "确认新密码",
-    "Confirm": "提交",
     "Password must be at least 8 characters": "密码必须不少于8位",
     "Passwords must match": "新密码必须一致",
     "Logout failed": "登出失败",
     "Create failed": "创建失败",
     "Update failed": "更新失败",
-    "Delete failed": "删除失败"
+    "Delete failed": "删除失败",
+    "Contracts Count by Month": "按月统计合同数量",
+    "Contracts Count by Year": "按年统计合同数量",
+    "Orders Count by Month": "按月统计生产单数量",
+    "Orders Count by Year": "按年统计生产单数量",
+    "Orders Received by Month": "按月统计订单已收货款",
+    "Orders Received by Year": "按年统计订单已收货款",
+    "Orders Receivable by Year": "按年统计订单应收货款",
+    "Orders Total Amount by Year": "按年统计订单总金额",
+    "Orders Total Amount by Month": "按月统计订单总金额"
 }
-  

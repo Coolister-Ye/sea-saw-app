@@ -14,16 +14,16 @@ export default function AppLayout() {
   const { isLargeScreen } = useDevice();
   const rootNavigationState = useRootNavigationState();
 
-  const isAppReady = Boolean(rootNavigationState?.key && user && locale);
+  // const isAppReady = Boolean(rootNavigationState?.key && user && locale);
 
-  if (!isAppReady) {
-    return (
-      <>
-        <ActivityIndicator color="blue" />
-        <Slot />
-      </>
-    );
-  }
+  // if (!isAppReady) {
+  //   return (
+  //     <>
+  //       <ActivityIndicator color="blue" />
+  //       <Slot />
+  //     </>
+  //   );
+  // }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

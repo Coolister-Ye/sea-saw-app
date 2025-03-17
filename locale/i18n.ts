@@ -10,6 +10,7 @@ const i18n = new I18n({
   zh,
 });
 
+i18n.defaultLocale = "zh";
 i18n.enableFallback = true;
 
 // Set the locale once at the beginning of your app.
