@@ -14,7 +14,7 @@ import {
   XCircleIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-} from "@heroicons/react/20/solid";
+} from "react-native-heroicons/solid";
 
 // Toast组件的Props类型定义
 export type ToastProps = {

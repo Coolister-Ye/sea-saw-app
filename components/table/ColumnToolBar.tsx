@@ -9,7 +9,7 @@ import { forwardRef, useState } from "react";
 import { Checkbox } from "expo-checkbox";
 import { EllipsisVerticalIcon } from "react-native-heroicons/outline";
 import { CSS } from "@dnd-kit/utilities";
-import { BasicFrame } from "../sea/BasicFrame";
+import { BasicFrame } from "../sea-saw-page/BasicFrame";
 import {
   restrictToParentElement,
   restrictToVerticalAxis,

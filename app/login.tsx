@@ -5,7 +5,7 @@ import Image from "@/components/themed/Image";
 import Text from "@/components/themed/Text";
 import { Formik } from "formik";
 import Checkbox from "expo-checkbox";
-import LoginInputGroup from "@/components/sea/login/InputGroup";
+import LoginInputGroup from "@/components/sea-saw-page/login/InputGroup";
 import { Button } from "@/components/themed/Button";
 import * as Yup from "yup";
 import { useAuth } from "@/context/Auth";

@@ -8,7 +8,7 @@ import {
   Select,
 } from "antd";
 import { useLocale } from "@/context/Locale";
-import { BasicFrame } from "../sea/BasicFrame";
+import { BasicFrame } from "../sea-saw-page/BasicFrame";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { ScrollView, TextInput } from "react-native";

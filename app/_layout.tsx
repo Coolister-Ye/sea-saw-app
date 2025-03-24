@@ -1,15 +1,18 @@
-import { Stack } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import "../global.css";
 import "antd/dist/reset.css";
 import "ag-grid-enterprise";
+import "react-native-svg";
+import { PortalHost } from "@rn-primitives/portal";
 import { LicenseManager } from "ag-grid-enterprise";
 import { constants } from "@/constants/Constants";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { Platform } from "react-native";
-import { WebSplashScreen } from "@/components/navigation/WebSplashScreen";
+import { WebSplashScreen } from "@/components/sea-saw-design/splash/WebSplashScreen";
 import { Asset } from "expo-asset";
 import { AppProvider } from "@/context/App";
+import { DrawerHeader } from "@/components/sea-saw-design/header";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -17,6 +20,7 @@ SplashScreen.setOptions({ duration: 1000, fade: true });
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const isWeb = Platform.OS === "web";
 
   // Set AG Grid license key
   useEffect(() => {
@@ -48,8 +52,10 @@ export default function RootLayout() {
 
   return (
     <AppProvider>
+      {isWeb && <DrawerHeader title="Sea saw" />}
       <Stack>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="(setting)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen
           name="user"
@@ -59,14 +65,9 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen
-          name="set_passwd"
-          options={{
-            title: "Change Password",
-          }}
-        />
         <Stack.Screen name="+not-found" />
       </Stack>
+      <PortalHost />
     </AppProvider>
   );
 }

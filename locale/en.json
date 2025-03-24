@@ -82,5 +82,10 @@
     "Orders Received by Year": "Orders Received by Year",
     "Orders Receivable by Year": "Orders Receivable by Year",
     "Orders Total Amount by Year": "Orders Total Amount by Year",
-    "Orders Total Amount by Month": "Orders Total Amount by Month"
+    "Orders Total Amount by Month": "Orders Total Amount by Month",
+    "No more data": "No more data",
+    "Settings": "Settings",
+    "Change password": "Change password", 
+    "Update your password associated with your account": "Update your password associated with your account",
+    "account": "account"
 }

@@ -82,5 +82,10 @@
     "Orders Received by Year": "按年统计订单已收货款",
     "Orders Receivable by Year": "按年统计订单应收货款",
     "Orders Total Amount by Year": "按年统计订单总金额",
-    "Orders Total Amount by Month": "按月统计订单总金额"
+    "Orders Total Amount by Month": "按月统计订单总金额",
+    "No more data": "没有更多数据了",
+    "Settings": "设置",
+    "Change password": "更新密码", 
+    "Update your password associated with your account": "更新与你账户关联的密码",
+    "account": "账号"
 }

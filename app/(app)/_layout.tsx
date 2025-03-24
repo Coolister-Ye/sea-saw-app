@@ -1,76 +1,73 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ActivityIndicator, Platform, View } from "react-native";
+import { Platform } from "react-native";
 import { useDevice } from "@/hooks/useDevice";
-import { DrawerHeader } from "@/components/navigation/Header";
 import { useLocale } from "@/context/Locale";
 import { useAuth } from "@/context/Auth";
-import { Slot, useRootNavigationState } from "expo-router";
+import CustomDrawerContent from "@/components/sea-saw-design/drawer/DrawerContent";
+import DrawerFooter from "@/components/sea-saw-design/drawer/DrawerFoot";
 
 export default function AppLayout() {
-  const { i18n, locale } = useLocale();
-  const { isGroupX, isStaff, user } = useAuth();
+  const { i18n } = useLocale();
+  const { isGroupX, isStaff } = useAuth();
   const { isLargeScreen } = useDevice();
-  const rootNavigationState = useRootNavigationState();
+  const isWeb = Platform.OS === "web";
 
-  // const isAppReady = Boolean(rootNavigationState?.key && user && locale);
+  // 统一管理 Parent Title 映射
+  const parentTitleMap = {
+    "(playground)": i18n.t("playground"),
+  };
 
-  // if (!isAppReady) {
-  //   return (
-  //     <>
-  //       <ActivityIndicator color="blue" />
-  //       <Slot />
-  //     </>
-  //   );
-  // }
+  // 统一管理权限控制
+  const getDrawerVisibility = (groups: string[]) =>
+    isStaff || groups.some(isGroupX) ? "flex" : "none";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {Platform.OS === "web" && <DrawerHeader title="Sea saw" />}
+      {/* {isWeb && <DrawerHeader title="Sea saw" />} */}
       <Drawer
         screenOptions={{
-          headerShown: Platform.OS !== "web",
+          headerShown: !isWeb,
           drawerType: isLargeScreen ? "permanent" : "front",
           drawerStyle: { width: 280 },
+          drawerItemStyle: { borderRadius: 8 },
         }}
+        drawerContent={(props) => (
+          <CustomDrawerContent
+            parentTitleMap={parentTitleMap}
+            footer={<DrawerFooter />}
+            {...props}
+          />
+        )}
       >
         <Drawer.Screen name="index" options={{ drawerLabel: i18n.t("Home") }} />
 
-        <Drawer.Screen
-          name="contract"
-          options={{
-            drawerLabel: i18n.t("contract"),
-            drawerItemStyle: {
-              display: isStaff || isGroupX("Sale") ? "flex" : "none",
-            },
-          }}
-        />
-        <Drawer.Screen
-          name="contact"
-          options={{
-            drawerLabel: i18n.t("customer"),
-            drawerItemStyle: {
-              display: isStaff || isGroupX("Sale") ? "flex" : "none",
-            },
-          }}
-        />
-        <Drawer.Screen
-          name="company"
-          options={{
-            drawerLabel: i18n.t("company"),
-            drawerItemStyle: {
-              display: isStaff || isGroupX("Sale") ? "flex" : "none",
-            },
-          }}
-        />
+        {[
+          { name: "contract", label: "contract", groups: ["Sale"] },
+          { name: "contact", label: "customer", groups: ["Sale"] },
+          { name: "company", label: "company", groups: ["Sale"] },
+        ].map(({ name, label, groups }) => (
+          <Drawer.Screen
+            key={name}
+            name={name}
+            options={{
+              drawerLabel: i18n.t(label),
+              drawerItemStyle: {
+                display: getDrawerVisibility(groups),
+                borderRadius: 8,
+              },
+            }}
+          />
+        ))}
 
         <Drawer.Screen
           name="production"
           options={{
             drawerLabel: i18n.t("production"),
             drawerItemStyle: {
-              display: isStaff || isGroupX("Production") ? "flex" : "none",
+              display: getDrawerVisibility(["Production"]),
+              borderRadius: 8,
             },
           }}
         />
@@ -80,15 +77,19 @@ export default function AppLayout() {
           options={{ drawerLabel: i18n.t("download") }}
         />
 
-        <Drawer.Screen
-          name="playground"
-          options={{
-            drawerLabel: i18n.t("playground"),
-            drawerItemStyle: {
-              display: isStaff ? "flex" : "none",
-            },
-          }}
-        />
+        {["(playground)/playground", "(playground)/example"].map((name) => (
+          <Drawer.Screen
+            key={name}
+            name={name}
+            options={{
+              drawerLabel: i18n.t("playground"),
+              drawerItemStyle: {
+                display: isStaff ? "flex" : "none",
+                borderRadius: 8,
+              },
+            }}
+          />
+        ))}
       </Drawer>
     </GestureHandlerRootView>
   );

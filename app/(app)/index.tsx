@@ -1,12 +1,12 @@
-import { Calendar } from "@/components/data/Calendar";
+import { Calendar } from "@/components/sea-saw-design/calendar";
 import useDataService from "@/hooks/useDataService";
 import { useEffect, useState } from "react";
 import Text from "@/components/themed/Text";
 import View from "@/components/themed/View";
 import { ScrollView } from "react-native";
-import { PlanList } from "@/components/data/PlanList";
+import { PlanList } from "@/components/sea-saw-page/index/PlanList";
 import { useRootNavigationState } from "expo-router";
-import SwitchStats from "@/components/data/SwitchStats";
+import SwitchStats from "@/components/sea-saw-page/index/SwitchStats";
 import { useAppContext } from "@/context/App";
 
 const POSLIST = ["已完成生产", "运输中", "支付中", "完成"];
@@ -131,7 +131,7 @@ export default function Index() {
   return (
     <ScrollView>
       <View style={{ flex: 1, alignItems: "center" }}>
-        <View className="w-full p-3">
+        <View className="w-full p-1 md:p-3">
           <View className="my-3">
             <SwitchStats
               title={i18n.t("This month")}
