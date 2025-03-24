@@ -11,7 +11,6 @@ import {
 } from "../dropdown-menu";
 import { useLocale } from "@/context/Locale";
 import { PowerIcon } from "react-native-heroicons/solid";
-import { usePathname } from "expo-router";
 
 export function CustomAvatar() {
   const { i18n } = useLocale();
@@ -61,10 +60,10 @@ export function CustomAvatar() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-100" />
         <DropdownMenuItem className="hover:bg-gray-100" onPress={logout}>
-          <Pressable className="rounded mr-1 flex-row hover:opacity-80 justify-center items-center">
+          <View className="rounded mr-1 flex-row hover:opacity-80 justify-center items-center">
             <PowerIcon size={18} className="mr-1 text-text-secondary" />
             <Text>{i18n.t("logout")}</Text>
-          </Pressable>
+          </View>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
