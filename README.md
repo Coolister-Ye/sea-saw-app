@@ -1,79 +1,107 @@
-# Welcome Sea-saw app 👋
 
-This is the frontend application for Sea-saw app, which is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Welcome to Sea-Saw App 👋
 
-## Get started
+<img src="./assets/images/sea-saw-logo.png" style="width: 20%">
 
-1. Install dependencies
+This is the frontend application for the Sea-Saw CRM system, built with [Expo](https://expo.dev) using [`create-expo-app`](https://www.npmjs.com/package/create-expo-app). It provides a flexible and scalable mobile and web solution for managing CRM tasks efficiently. This project can be used as a tmplate for CRM frontend development. [Backend Repository](https://github.com/Coolister-Ye/sea-saw-server) | [Frontend Repository](https://github.com/Coolister-Ye/sea-saw-app)
 
-   ```bash
-   npm install
-   ```
+## 🚀 Features
 
-2. Start the app
+- **Cross-Platform**: Run seamlessly on iOS, Android, and web.
+- **File-Based Routing**: Uses Expo Router for an intuitive navigation structure.
+- **Optimized Performance**: Supports development and production builds with minification.
+- **Docker Support**: Easily deploy the application using Docker.
+- **Environment-Based Configuration**: Supports `.env` files for different environments.
+- **Internationalization (i18n)**: Easily extend to multiple languages for broader audience support.
+- **Real-time Updates**: Integration with backend systems to keep data up-to-date in real-time.
 
-   ```bash
-    npx expo start
-    npx expo start --no-dev --minify
+## 📦 Installation
 
-   ```
+### 1. Install Dependencies
 
-3. Export web application (Default to use .env.production to set up enviroment variables)
+```bash
+npm install
+```
 
-   ```bash
-   npx expo export -p web
-   ```
+### 2. Start the App for Development
 
-4. Run in docker
+#### Development Mode
+
+```bash
+npx expo start
+```
+
+#### Production Mode (Minified)
+
+```bash
+npx expo start --no-dev --minify
+```
+
+### 3. Export Web Application
+
+(Default configuration uses `.env.production` for environment variables)
+
+```bash
+npx expo export -p web
+```
+
+### 4. Run in Docker
+
 ```bash
 docker compose up --build -d
 ```
 
-## Get started issues
+## ⚡ Getting Started Issues
 
-1.  You may need to grant full disk permission to watchman and terminal
+1. Ensure **Watchman** and your terminal have full disk permissions.
+2. Choose a development or production environment using `.env` files:
 
-2. You can choose to run in dev or prod envirnemnt by choosing .env files
-
-   ```
+   ```bash
    NODE_ENV=dev npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Web App Export**: The export process defaults to using the `.env.production` configuration for environment variables. If you need to adjust this, please modify the `.env` files accordingly.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📚 Learn More
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+For further details on developing with Expo, check out:
 
-## Get a fresh project
+- [Expo Documentation](https://docs.expo.dev/): Guides and references.
+- [Learn Expo Tutorial](https://docs.expo.dev/tutorial/introduction/): Step-by-step project tutorial.
 
-When you're ready, run:
+
+## 🛠 Code Style
+
+This project follows the [ESLint](https://eslint.org/) guidelines for consistent code style. To automatically fix issues and format your code, we use [Prettier](https://prettier.io/). We encourage you to format your code before submitting pull requests.
+
+Run the following command to format the code:
 
 ```bash
-npm run reset-project
+npm run format
 ```
+
+## 🤝 Contributing
+
+We welcome contributions to the Sea-Saw app! If you want to contribute:
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature/your-feature`.
+3. Make your changes and commit them.
+4. Push to your fork: `git push origin feature/your-feature`.
+5. Open a pull request with a detailed explanation of your changes.
+
+Please follow the code style and write tests for your code.
+
+## 🧪 Testing
+
+Make sure you write tests for your new features. We use [Jest](https://jestjs.io/) for unit and integration testing in the app.
+
+Run the following command to run tests:
 
 ```bash
-rm -rf node_modules package-lock.json yarn.lock
-npm install
-sudo chown -R $(whoami) ~/.expo
+npm run test
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🔑 License
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
