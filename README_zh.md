@@ -5,7 +5,7 @@
 
 👉 [English Version](./README.md) | [中文版](./README_zh.md)
 
-这是 Sea-Saw CRM 系统的前端应用，使用 [Expo](https://expo.dev) 和 [`create-expo-app`](https://www.npmjs.com/package/create-expo-app) 构建。它提供了一个灵活且可扩展的移动端和 Web 解决方案，用于高效管理 CRM 任务。这个项目可以被用作 CRM 前端开发的模板。[后端仓库](https://github.com/Coolister-Ye/sea-saw-server) | [前端仓库](https://github.com/Coolister-Ye/sea-saw-app)
+这是 Sea-Saw CRM 系统的前端应用，使用 [Expo](https://expo.dev) 和 [`create-expo-app`](https://www.npmjs.com/package/create-expo-app) 构建。它提供了一个灵活且可扩展的移动端和 Web 解决方案，用于高效管理 CRM 任务。为了使事情简单，这个项目在进行数据管理和展示时主要是以表格或树状表格来进行。 这个项目可以被用作 CRM 前端开发的模板。[后端仓库](https://github.com/Coolister-Ye/sea-saw-server) | [前端仓库](https://github.com/Coolister-Ye/sea-saw-app)
 
 ## 🚀 功能
 

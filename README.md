@@ -5,7 +5,7 @@
 
 👉 [English Version](./README.md) | [中文版](./README_zh.md)
 
-This is the frontend application for the Sea-Saw CRM system, built with [Expo](https://expo.dev) using [`create-expo-app`](https://www.npmjs.com/package/create-expo-app). It provides a flexible and scalable mobile and web solution for managing CRM tasks efficiently. This project can be used as a tmplate for CRM frontend development. [Backend Repository](https://github.com/Coolister-Ye/sea-saw-server) | [Frontend Repository](https://github.com/Coolister-Ye/sea-saw-app)
+This is the frontend application for the Sea-Saw CRM system, built with [Expo](https://expo.dev) using [`create-expo-app`](https://www.npmjs.com/package/create-expo-app). It provides a flexible and scalable mobile and web solution for managing CRM tasks efficiently. To make thing simple, this application is mainly based on table and tree-like table to manage data. This project can be used as a tmplate for CRM frontend development. [Backend Repository](https://github.com/Coolister-Ye/sea-saw-server) | [Frontend Repository](https://github.com/Coolister-Ye/sea-saw-app)
 
 ## 🚀 Features
 
