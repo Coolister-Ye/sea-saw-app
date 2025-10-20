@@ -87,5 +87,12 @@
     "Settings": "设置",
     "Change password": "更新密码", 
     "Update your password associated with your account": "更新与你账户关联的密码",
-    "account": "账号"
+    "account": "账号",
+    "apply": "确定",
+    "selected": "已选",
+    "clear": "清空",
+    "Select Contact": "选择联系人",
+    "This action cannot be undone. Deleting this record will move it to the Recycle Bin.": "此操作不可撤销. 删除的数据将移动到回收站.",
+    "Create Contract": "新建合同",
+    "No email": "无邮箱"
 }

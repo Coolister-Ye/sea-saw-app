@@ -31,6 +31,14 @@ module.exports = {
           dark: "#7b1fa2",
           contrastText: "#fff",
         },
+        accent: {
+          DEFAULT: "hsl(240 4.8% 95.9%)",
+          contrastText: "hsl(240 5.9% 10%)",
+        },
+        destructive: {
+          DEFAULT: "hsl(0 84.2% 60.2%)",
+          contrastText: "hsl(0 0% 98%)",
+        },
         error: {
           DEFAULT: colors.red[500],
           light: colors.red[300],
@@ -81,6 +89,14 @@ module.exports = {
             light: "#f3e5f5",
             dark: "#ba68c8",
             contrastText: "#000",
+          },
+          accent: {
+            DEFAULT: "hsl(240 3.7% 15.9%)",
+            contrastText: "hsl(0 0% 98%)",
+          },
+          destructive: {
+            DEFAULT: "hsl(0 72% 51%)",
+            contrastText: "hsl(0 0% 98%)",
           },
           error: {
             DEFAULT: "#ef5350",

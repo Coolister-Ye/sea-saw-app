@@ -1,0 +1,13 @@
+.ag-input-field-input {
+  padding: 5px;
+}
+.not-editing-cell {
+  pointer-events: none;
+}
+.editing-cell {
+  pointer-events: auto;
+}
+.not-editing-action-cell {
+  pointer-events: none;
+  opacity: 30%;
+}

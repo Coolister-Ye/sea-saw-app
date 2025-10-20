@@ -70,7 +70,7 @@ export function BasicFrame({
           className="px-3.5 py-2.5 text-sm font-semibold rounded-2xl"
           onPress={handleSubmit}
         >
-          {i18n.t("Comfirm")}
+          {i18n.t("Confirm")}
         </Button>
       </View>
     </View>

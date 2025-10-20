@@ -13,6 +13,8 @@ import { WebSplashScreen } from "@/components/sea-saw-design/splash/WebSplashScr
 import { Asset } from "expo-asset";
 import { AppProvider } from "@/context/App";
 import { DrawerHeader } from "@/components/sea-saw-design/header";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { PortalProvider } from "@gorhom/portal";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -52,22 +54,26 @@ export default function RootLayout() {
 
   return (
     <AppProvider>
-      {isWeb && <DrawerHeader title="Sea saw" />}
-      <Stack>
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="user"
-          options={{
-            presentation: "transparentModal",
-            animation: "fade",
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <PortalHost />
+      <PortalProvider>
+        <BottomSheetModalProvider>
+          {isWeb && <DrawerHeader title="Sea saw" />}
+          <Stack>
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+            <Stack.Screen name="(setting)" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="user"
+              options={{
+                presentation: "transparentModal",
+                animation: "fade",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <PortalHost />
+        </BottomSheetModalProvider>
+      </PortalProvider>
     </AppProvider>
   );
 }

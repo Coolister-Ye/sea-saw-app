@@ -87,5 +87,12 @@
     "Settings": "Settings",
     "Change password": "Change password", 
     "Update your password associated with your account": "Update your password associated with your account",
-    "account": "account"
+    "account": "account",
+    "apply": "apply",
+    "selected": "selected",
+    "clear": "clear",
+    "Select Contact": "select Contact",
+    "This action cannot be undone. Deleting this record will move it to the Recycle Bin.": "This action cannot be undone. Deleting this record will move it to the Recycle Bin.",
+    "Create Contract": "Create Contract",
+    "No email": "No email"
 }

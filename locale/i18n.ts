@@ -12,6 +12,7 @@ const i18n = new I18n({
 
 i18n.defaultLocale = "zh";
 i18n.enableFallback = true;
+i18n.defaultSeparator = "`";
 
 // Set the locale once at the beginning of your app.
 i18n.locale = getLocales()[0]?.languageCode ?? "zh";
