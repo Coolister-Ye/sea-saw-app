@@ -1,3 +1,5 @@
+import { create } from "lodash";
+
 export const constants = {
   localhost: {
     // apiDomain: "http://192.168.0.88:8000",
@@ -31,6 +33,7 @@ export const constants = {
     updateOrders: "/api/sea-saw-crm/orders/{id}/",
     deleteOrders: "/api/sea-saw-crm/orders/{id}/",
     createOrders: "/api/sea-saw-crm/orders/",
+    retrieveOrders: "/api/sea-saw-crm/orders/{id}/",
 
     listCompanies: "/api/sea-saw-crm/companies/",
     updateCompanies: "/api/sea-saw-crm/companies/{id}/",
@@ -39,9 +42,18 @@ export const constants = {
 
     deleteProducts: "/api/sea-saw-crm/products/{id}/",
 
+    listPayments: "/api/sea-saw-crm/payments/",
+    updatePayments: "/api/sea-saw-crm/payments/{id}/",
+    deletePayments: "/api/sea-saw-crm/payments/{id}/",
+    createPayments: "/api/sea-saw-crm/payments/",
+
     listOrdersStats: "/api/sea-saw-crm/orders-stats/",
     listOrdersByMonth: "/api/sea-saw-crm/orders-stats/s2/",
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",
+
+    createProductionOrder: "/api/sea-saw-crm/orders/{id}/create_production/",
+    createOutboundOrder: "/api/sea-saw-crm/orders/{id}/create_outbound/",
+    orderStatusTransition: "/api/sea-saw-crm/orders/{id}/transition/",
 
     login: "/api/token/",
     tokenVerify: "/api/token/verify/",

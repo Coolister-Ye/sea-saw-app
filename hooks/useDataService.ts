@@ -1,39 +1,17 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   DataService,
   ViewsetRequestParams,
   RequestConfig,
 } from "@/services/DataService";
 import { AuthError } from "@/services/AuthService";
-import { FetchError } from "@/utlis/webHelper";
 import { useLocale } from "@/context/Locale";
 import { usePathname, useRouter } from "expo-router";
-
-// API Response structure
-interface ApiResponse {
-  status: boolean;
-  data?: any;
-  error?: ErrorState;
-}
-
-// Error state structure
-interface ErrorState {
-  message: string;
-  status?: string | number;
-}
-
-// Success state structure
-interface SuccState {
-  message: string;
-}
 
 export default function useDataService() {
   const router = useRouter();
   const pathname = usePathname();
   const { locale, i18n } = useLocale();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ErrorState | null>(null);
-  const [success, setSuccess] = useState<SuccState | null>(null);
 
   const commonHeader = { "Accept-Language": locale };
 
@@ -46,147 +24,147 @@ export default function useDataService() {
     [locale]
   );
 
-  // Clear both error and success states
-  const clearStates = useCallback(() => {
-    setError(null);
-    setSuccess(null);
-  }, []);
+  // 统一请求错误处理
+  const handleError = useCallback(
+    async (err: any) => {
+      if (err instanceof AuthError) {
+        router.replace(`/login?next=${pathname}`);
+        throw err;
+      }
 
-  // Unified API call handler
-  const handleApiCall = useCallback(
-    async (
-      apiCall: () => Promise<any>,
-      successMessage?: string
-    ): Promise<ApiResponse> => {
-      setLoading(true);
-      clearStates();
-
-      try {
-        const data = await apiCall();
-        if (successMessage) {
-          setSuccess({ message: i18n.t(successMessage) });
+      // 如果是 FetchError 或普通 Error
+      if (err.response) {
+        // 尝试解析返回的 JSON
+        let msg: string;
+        try {
+          const data = await err.response.json();
+          msg = JSON.stringify(data);
+        } catch {
+          msg = err.response.statusText || "Request failed";
         }
-        return { status: true, data };
-      } catch (err) {
-        const errorState = handleError(err);
-        setError(errorState);
-        return { status: false, error: errorState };
-      } finally {
-        setLoading(false);
+        const error = new Error(msg);
+        (error as any).status = err.response.status;
+        throw error;
+      } else if (err instanceof Error) {
+        throw err;
+      } else {
+        throw new Error(i18n.t("An unknown error occurred"));
       }
     },
-    [clearStates, i18n]
+    [i18n, pathname, router]
   );
 
-  // Error handler
-  const handleError = (err: any): ErrorState => {
-    if (err instanceof FetchError) {
-      return { message: err.message, status: err.status };
-    } else if (err instanceof AuthError) {
-      router.replace(`/login?next=${pathname}`);
-      return { message: err.message, status: "auth-error" };
-    } else {
-      return {
-        message:
-          err instanceof Error
-            ? err.message
-            : i18n.t("An unknown error occurred"),
-        status: "unknown-error",
-      };
-    }
-  };
+  // 封装请求，统一处理非 2xx 状态码
+  const requestWrapper = useCallback(
+    async (apiCall: () => Promise<any>) => {
+      try {
+        const res = await apiCall();
 
-  // Generic CRUD API operations
+        // DataService 的请求可能返回 { ok, status, json() } 等
+        // 这里假设 DataService 已经封装 fetch，如果有非 2xx，抛出异常
+        if ("ok" in res && !res.ok) {
+          let errMsg: string;
+          try {
+            const data = await res.json();
+            errMsg = JSON.stringify(data);
+          } catch {
+            errMsg = res.statusText || "Request failed";
+          }
+          const error = new Error(errMsg);
+          (error as any).status = res.status;
+          throw error;
+        }
+
+        return res;
+      } catch (err) {
+        await handleError(err);
+      }
+    },
+    [handleError]
+  );
+
+  // CRUD API
   const create = useCallback(
-    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
-      return handleApiCall(
-        () =>
-          DataService.createView({
-            ...props,
-            headers: mergeHeaders(props.headers),
-          }),
-        i18n.t("Create successfully")
-      );
-    },
-    [handleApiCall, mergeHeaders]
-  );
-
-  const update = useCallback(
-    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
-      return handleApiCall(
-        () =>
-          DataService.updateView({
-            ...props,
-            headers: mergeHeaders(props.headers),
-          }),
-        i18n.t("Update successfully")
-      );
-    },
-    [handleApiCall, mergeHeaders]
-  );
-
-  const list = useCallback(
-    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
-      return handleApiCall(() =>
-        DataService.listView({
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
+        DataService.createView({
           ...props,
           headers: mergeHeaders(props.headers),
         })
-      );
-    },
-    [handleApiCall, mergeHeaders]
+      ),
+    [mergeHeaders, requestWrapper]
+  );
+
+  const update = useCallback(
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
+        DataService.updateView({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      ),
+    [mergeHeaders, requestWrapper]
+  );
+
+  const list = useCallback(
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
+        DataService.listView({ ...props, headers: mergeHeaders(props.headers) })
+      ),
+    [mergeHeaders, requestWrapper]
+  );
+
+  const retrieve = useCallback(
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
+        DataService.retrieveView({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      ),
+    [mergeHeaders, requestWrapper]
   );
 
   const deleteItem = useCallback(
-    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
-      return handleApiCall(
-        () =>
-          DataService.deleteView({
-            ...props,
-            headers: mergeHeaders(props.headers),
-          }),
-        i18n.t("Delete successfully")
-      );
-    },
-    [handleApiCall, mergeHeaders]
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
+        DataService.deleteView({
+          ...props,
+          headers: mergeHeaders(props.headers),
+        })
+      ),
+    [mergeHeaders, requestWrapper]
   );
 
   const options = useCallback(
-    async (props: ViewsetRequestParams): Promise<ApiResponse> => {
-      return handleApiCall(() =>
+    (props: ViewsetRequestParams) =>
+      requestWrapper(() =>
         DataService.optionView({
           ...props,
           headers: mergeHeaders(props.headers),
         })
-      );
-    },
-    [handleApiCall, mergeHeaders]
+      ),
+    [mergeHeaders, requestWrapper]
   );
 
-  // Generic request handler
   const request = useCallback(
-    async (props: RequestConfig): Promise<ApiResponse> => {
-      return handleApiCall(() =>
+    (props: RequestConfig) =>
+      requestWrapper(() =>
         DataService.genericRequest({
           ...props,
           headers: mergeHeaders(props.headers),
         })
-      );
-    },
-    [handleApiCall, mergeHeaders]
+      ),
+    [mergeHeaders, requestWrapper]
   );
 
-  // Expose functions and state
   return {
     create,
     update,
     list,
     deleteItem,
     options,
+    retrieve,
     request,
-    loading,
-    error,
-    success,
-    clearStates,
   };
 }

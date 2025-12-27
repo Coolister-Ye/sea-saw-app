@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback } from "react";
 import useDataService from "@/hooks/useDataService";
 import { HeaderMetaProps } from "@/components/sea-saw-design/form/interface";
+import { normalizeBoolean } from "@/utlis/commonUtils";
 
-export type FormDef = HeaderMetaProps & { field: string };
+export type FormDef = HeaderMetaProps & { field: string; read_only?: boolean };
 
 interface UseFormDefsProps {
   table?: string;
@@ -22,6 +23,8 @@ export function useFormDefs({ table, def }: UseFormDefsProps) {
       Object.entries(meta).map(([field, definitions]) => ({
         field,
         ...definitions,
+        required: normalizeBoolean(definitions.required),
+        read_only: normalizeBoolean(definitions.read_only),
       })),
     []
   );

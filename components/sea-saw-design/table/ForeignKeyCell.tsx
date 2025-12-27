@@ -16,8 +16,14 @@ function ForeignKeyCell({
       ? dataType.display_fields
       : ["pk"];
     return displayFields
-      .map((key) => item[key])
-      .filter(Boolean)
+      .map((key) => {
+        const val = item[key];
+        if (val == null) return "-";
+        if (typeof val === "object") {
+          return val?.pk ?? val?.name ?? JSON.stringify(val);
+        }
+        return String(val);
+      })
       .join(", ");
   };
 
@@ -61,7 +67,11 @@ function ForeignKeyCell({
                 <View key={key} className="flex flex-row items-center">
                   <Text className="text-sm/6">{value.label || key}</Text>
                   <View className="flex-1 border border-dashed border-gray-300 mx-3" />
-                  <Text className="text-sm/6">{data[key]}</Text>
+                  <Text className="text-sm/6">
+                    {typeof data[key] === "object"
+                      ? data[key]?.pk || JSON.stringify(data[key])
+                      : String(data[key] ?? "-")}
+                  </Text>
                 </View>
               ))}
             </View>

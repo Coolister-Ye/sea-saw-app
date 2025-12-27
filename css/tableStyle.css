@@ -1,0 +1,5 @@
+/* 去掉左右外边框，仅保留内部 columnBorder */
+.ag-root-wrapper {
+  border-left: none !important;
+  border-right: none !important;
+}

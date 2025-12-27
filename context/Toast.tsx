@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Toast, ToastProps } from "@/components/themed/Toast";
+import { Toast, ToastProps } from "@/components/sea-saw-design/toast";
 
 // Toast Context 类型定义
 type ToastContextType = {

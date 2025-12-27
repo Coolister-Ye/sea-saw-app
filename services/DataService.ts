@@ -11,6 +11,7 @@ export interface RequestConfig {
   headers?: Record<string, any>;
   suffix?: string;
   signal?: AbortSignal;
+  id?: any;
 }
 
 // API-specific request parameters
@@ -59,12 +60,14 @@ class DataService {
     headers,
     suffix = "",
     signal,
+    id,
   }: RequestConfig) {
     const baseApiUrl = this.checkAndGetUrl(uri);
+    const urlWithId = id ? baseApiUrl.replace("{id}", id) : baseApiUrl;
     const queryString = params
       ? `?${new URLSearchParams(params).toString()}`
       : "";
-    const url = `${baseApiUrl}${suffix}${queryString}`;
+    const url = `${urlWithId}${suffix}${queryString}`;
 
     return fetchJson({ url, method, body, headers, signal });
   }
@@ -94,41 +97,49 @@ class DataService {
 
   static listView(params: Omit<ViewsetRequestParams, "method" | "action">) {
     return this.viewsetRequest({
-      ...params,
       method: "GET",
       action: "list",
+      ...params,
+    });
+  }
+
+  static retrieveView(params: Omit<ViewsetRequestParams, "method" | "action">) {
+    return this.viewsetRequest({
+      method: "GET",
+      action: "retrieve",
+      ...params,
     });
   }
 
   static createView(params: Omit<ViewsetRequestParams, "method" | "action">) {
     return this.viewsetRequest({
-      ...params,
       method: "POST",
       action: "create",
+      ...params,
     });
   }
 
   static updateView(params: Omit<ViewsetRequestParams, "method" | "action">) {
     return this.viewsetRequest({
-      ...params,
       method: "PATCH",
       action: "update",
+      ...params,
     });
   }
 
   static deleteView(params: Omit<ViewsetRequestParams, "method" | "action">) {
     return this.viewsetRequest({
-      ...params,
       method: "DELETE",
       action: "delete",
+      ...params,
     });
   }
 
   static optionView(params: Omit<ViewsetRequestParams, "method" | "action">) {
     return this.viewsetRequest({
-      ...params,
       method: "OPTIONS",
       action: "list",
+      ...params,
     });
   }
 }

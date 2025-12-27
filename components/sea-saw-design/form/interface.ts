@@ -58,11 +58,12 @@ type TableProps = {
   suppressDelete?: boolean;
 } & AgGridReactProps;
 
-type InputFormProps = {
+type InputFormProps = FormProps & {
   table?: string;
   def?: Record<string, HeaderMetaProps>;
   config?: Record<string, any>;
-} & FormProps;
+  form: any;
+};
 
 // Props for the HeaderMeta component
 type HeaderMetaProps = {
@@ -80,7 +81,7 @@ type HeaderMetaProps = {
     | "field";
   required: boolean;
   display_fields?: string[];
-  read_only: boolean;
+  read_only: boolean | string;
   label: string;
   help_text?: string;
   max_length?: number;

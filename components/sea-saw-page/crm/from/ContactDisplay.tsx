@@ -1,61 +1,112 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { UserIcon } from "react-native-heroicons/outline";
-import { EnvelopeIcon } from "@heroicons/react/20/solid";
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
+import { Text } from "@/components/ui/text";
+import { Popover } from "antd";
+import clsx from "clsx";
 
 interface Contact {
   key?: string | number;
   full_name: string;
   email?: string;
+  [key: string]: any; // 允许扩展字段
 }
 
 interface ContactDisplayProps {
   def?: FormDef;
   value?: Contact | null;
   className?: string;
+  parentNode?: HTMLElement;
 }
 
 export default function ContactDisplay({
+  def,
   value,
   className,
+  parentNode,
 }: ContactDisplayProps) {
-  const { i18n } = useLocale();
+  const key2name = Object.fromEntries(
+    Object.entries(def?.children || {}).map(([k, v]) => [k, v.label])
+  );
 
+  const renderCompany = (v: any) => {
+    if (v === null || v === undefined || v === "null") return "-";
+    return <Text>{v.company_name ?? "-"}</Text>;
+  };
+
+  // 无联系人信息时
   if (!value) {
-    return (
-      <View className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
-        <Text className="text-gray-400">
-          {i18n.t("No contact information")}
-        </Text>
-      </View>
-    );
+    return <Text>-</Text>;
   }
 
-  return (
-    <View
-      className={`flex-row items-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
-    >
-      {/* 头像 */}
-      <View className="w-12 h-12 bg-gray-200 rounded-full items-center justify-center mr-3 overflow-hidden">
-        <UserIcon color="gray" className="w-6 h-6" />
+  // 联系人详情
+  const contactDetails = (
+    <View className="space-y-3 p-2 w-[220px]">
+      {/* 顶部：头像 + 姓名 */}
+      <View className="flex flex-row items-center gap-2">
+        <UserIcon size={18} className="text-gray-500" />
+        <Text className="text-base font-semibold text-gray-800">
+          {value.name}
+        </Text>
       </View>
 
-      {/* 联系人信息 */}
-      <View className="flex-1">
-        <Text className="text-base font-semibold text-gray-800">
-          {value.full_name}
-        </Text>
-        {value.email ? (
-          <View className="flex-row items-center mt-1">
-            <EnvelopeIcon className="w-4 h-4 text-gray-400 mr-1" />
-            <Text className="text-gray-500 text-sm">{value.email}</Text>
-          </View>
-        ) : (
-          <Text className="text-gray-400 text-sm">{i18n.t("No email")}</Text>
-        )}
+      {/* 分隔线 */}
+      <View className="h-[1px] bg-gray-200 my-1" />
+
+      {/* 详细信息：key-value 对齐 */}
+      <View className="flex flex-col space-y-1">
+        {Object.entries(value)
+          .filter(([k]) => k !== "full_name" && value[k] !== undefined)
+          .map(([k, v]) => (
+            <View
+              key={k}
+              className="flex flex-row items-center rounded px-1 py-0.5"
+            >
+              {/* key 列 */}
+              <View className="w-[70px] items-end pr-2">
+                <Text className="text-gray-500 text-xs capitalize">
+                  {key2name[k]}
+                </Text>
+              </View>
+
+              {/* value 列 */}
+              {k === "company" ? (
+                renderCompany(v)
+              ) : (
+                <View className="flex-1">
+                  <Text
+                    className="text-gray-800 text-sm font-medium"
+                    numberOfLines={1}
+                  >
+                    {v === null || String(v) === "" ? "-" : String(v)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
       </View>
     </View>
+  );
+
+  // 主显示：Popover 触发区
+  return (
+    <Popover
+      content={contactDetails}
+      title={false}
+      trigger="hover"
+      getPopupContainer={(trigger) => {
+        return parentNode ?? trigger;
+      }}
+    >
+      <Text
+        className={clsx(
+          "text-blue-600 underline underline-offset-2 cursor-pointer hover:text-blue-800 index-99",
+          className
+        )}
+      >
+        {value.name}
+      </Text>
+    </Popover>
   );
 }

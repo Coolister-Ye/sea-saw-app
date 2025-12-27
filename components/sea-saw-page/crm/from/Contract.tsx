@@ -1,25 +1,42 @@
 import { useState, useMemo } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { Pressable, ScrollView, Text } from "react-native";
 import { Form } from "antd";
-import InputForm from "@/components/sea-saw-design/form/InputForm";
-import Order from "./Order";
-import Contact from "./Contact";
 import { useLocale } from "@/context/Locale";
-import { Button } from "@/components/sea-saw-design/button";
 import useDataService from "@/hooks/useDataService";
 
+import Drawer from "./base/Drawer";
+import InputHeader from "./base/InputHeader";
+import InputFooter from "./base/InputFooter";
+import InputForm from "@/components/sea-saw-design/form/InputForm";
+
+import Order from "./Order";
+import Contact from "./Contact";
+import { useToast } from "@/context/Toast";
+
 interface ContractProps {
-  onClose?: () => void;
+  isOpen: boolean;
+  onClose: (res?: any) => void;
+  onCreate?: (res?: any) => void;
+  onUpdate?: (res?: any) => void;
   def?: any;
+  data?: any;
 }
 
-export default function Contract({ onClose, def }: ContractProps) {
+export default function Contract({
+  isOpen,
+  onClose,
+  onCreate,
+  onUpdate,
+  def,
+  data,
+}: ContractProps) {
   const { i18n } = useLocale();
+  const { showToast } = useToast();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const { create } = useDataService();
+  const { create, update } = useDataService();
 
-  /** 模块渲染配置 */
+  /** 配置模块渲染器 */
   const config = useMemo(
     () => ({
       orders: { render: (def: any) => <Order def={def} /> },
@@ -28,52 +45,65 @@ export default function Contract({ onClose, def }: ContractProps) {
     []
   );
 
-  /** 保存逻辑 */
-  const onSave = async () => {
+  /** 保存数据 */
+  const handleSave = async () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
+      const id = values.pk;
 
-      // contact 取第一个元素
-      if (Array.isArray(values.contact)) {
-        values.contact = values.contact[0];
+      const payload = {
+        ...values,
+        contact: Array.isArray(values.contact)
+          ? values.contact[0]
+          : values.contact,
+      };
+
+      showToast({ message: `${i18n.t("saving")} ...` });
+
+      let res;
+      if (id) {
+        res = await update({ contentType: "contract", id, body: payload });
+        onUpdate?.(res);
+      } else {
+        res = await create({ contentType: "contract", body: payload });
+        onCreate?.(res);
       }
 
-      console.log("Contract 提交数据:", values);
-
-      await create({
-        contentType: "contract",
-        body: values,
+      console.log("表单提交成功:", res);
+      showToast({
+        message: i18n.t("save successfully"),
+        variant: "success",
       });
 
-      onClose && onClose();
-    } catch (err) {
-      console.error("表单验证或提交失败:", err);
+      onClose(res);
+    } catch (err: any) {
+      console.error("表单提交失败:", err);
+
+      const errorMsg =
+        err?.message ||
+        err?.response?.data?.message ||
+        i18n.t("Save failed, please try again");
+
+      showToast({
+        message: errorMsg,
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  /** 取消逻辑 */
-  const onCancel = () => {
-    form.resetFields();
-    onClose && onClose();
-  };
-
   return (
-    <View className="flex-1 bg-gray-100">
-      {/* Header */}
-      <View className="flex flex-row justify-between items-center p-5 border-b border-gray-200 bg-white">
-        <Text className="text-lg font-semibold">{i18n.t("contract")}</Text>
-      </View>
+    <Drawer isOpen={isOpen} onClose={onClose}>
+      <InputHeader title={i18n.t("contract")} />
 
-      {/* Content */}
       <ScrollView
         className="flex-1 p-4"
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
       >
         <InputForm
+          data={data}
           form={form}
           table="contract"
           def={def}
@@ -82,23 +112,7 @@ export default function Contract({ onClose, def }: ContractProps) {
         />
       </ScrollView>
 
-      {/* Footer */}
-      <View className="flex flex-row gap-3 p-5 border-t border-gray-200 bg-white">
-        <Button
-          className="w-fit h-fit py-1"
-          onPress={onSave}
-          disabled={loading}
-        >
-          {i18n.t("Save")}
-        </Button>
-        <Button
-          variant="outline"
-          className="w-fit h-fit py-1 bg-white"
-          onPress={onCancel}
-        >
-          {i18n.t("Cancel")}
-        </Button>
-      </View>
-    </View>
+      <InputFooter onSave={handleSave} onCancel={onClose} loading={loading} />
+    </Drawer>
   );
 }

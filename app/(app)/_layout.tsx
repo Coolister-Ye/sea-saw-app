@@ -44,7 +44,6 @@ export default function AppLayout() {
         <Drawer.Screen name="index" options={{ drawerLabel: i18n.t("Home") }} />
 
         {[
-          { name: "contract", label: "contract", groups: ["Sale"] },
           { name: "contact", label: "customer", groups: ["Sale"] },
           { name: "company", label: "company", groups: ["Sale"] },
         ].map(({ name, label, groups }) => (
@@ -77,7 +76,11 @@ export default function AppLayout() {
           options={{ drawerLabel: i18n.t("download") }}
         />
 
-        {["(playground)/playground", "(playground)/example"].map((name) => (
+        {[
+          "(playground)/playground",
+          "(playground)/example",
+          "(playground)/hoverCardExample",
+        ].map((name) => (
           <Drawer.Screen
             key={name}
             name={name}

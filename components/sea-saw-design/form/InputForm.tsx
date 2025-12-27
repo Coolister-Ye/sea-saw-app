@@ -2,97 +2,137 @@ import { View, ScrollView } from "react-native";
 import { DatePicker, Form, Input, InputNumber, Select } from "antd";
 import clsx from "clsx";
 import dayjs from "dayjs";
-import ForeignKeyForm from "./ForeignKeyForm";
+import { useEffect } from "react";
+
 import { InputFormProps } from "./interface";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
 
-const NUMERICAL_TYPES = ["integer", "float", "double", "decimal"];
+/* ========================
+ * 常量
+ * ======================== */
+const NUMERIC_TYPES = ["integer", "float", "double", "decimal"];
 const DATE_TYPES = ["date", "datetime"];
 
-const layout = {
-  labelCol: { xs: { span: 24 }, sm: { span: 6 } },
-};
+const FORM_LAYOUT = { labelCol: { xs: 24, sm: 6 } };
 
-function InputForm({ table, def, config, form, className }: InputFormProps) {
-  const [innerForm] = Form.useForm();
-  const usedForm = form ?? innerForm;
+/* ========================
+ * Component
+ * ======================== */
+export default function InputForm({
+  table,
+  def,
+  config,
+  form,
+  className,
+  data,
+}: InputFormProps & { data?: Record<string, any> }) {
+  const usedForm = form;
+
+  /* ========================
+   * 字段定义
+   * ======================== */
   const formDefs = useFormDefs({ table, def });
 
-  const renderInput = (def: FormDef) => {
-    if (config?.[def.field]?.render) return config[def.field].render(def);
+  /* ========================
+   * 同步外部数据
+   * ======================== */
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      // Edit / Copy
+      usedForm.setFieldsValue(data);
+    } else {
+      // Create
+      usedForm.resetFields();
+    }
+  }, [data, usedForm]);
 
-    if (def.choices)
+  /* ========================
+   * 输入组件选择
+   * ======================== */
+  const renderInput = (col: FormDef) => {
+    /** 自定义渲染优先 */
+    if (config?.[col.field]?.render) {
+      return config[col.field].render(col);
+    }
+
+    if (col.choices) {
       return (
         <Select
-          options={def.choices}
+          options={col.choices}
+          disabled={col.read_only}
           getPopupContainer={(node) => node.parentNode as HTMLElement}
         />
       );
+    }
 
-    if (NUMERICAL_TYPES.includes(def.type))
-      return <InputNumber style={{ width: "100%" }} />;
+    if (NUMERIC_TYPES.includes(col.type)) {
+      return <InputNumber style={{ width: "100%" }} disabled={col.read_only} />;
+    }
 
-    if (DATE_TYPES.includes(def.type))
+    if (DATE_TYPES.includes(col.type)) {
       return (
         <DatePicker
           style={{ width: "100%" }}
+          disabled={col.read_only}
           getPopupContainer={(node) => node.parentNode as HTMLElement}
         />
       );
+    }
 
-    if (["nested object", "field"].includes(def.type))
-      return (
-        <ForeignKeyForm
-          dataType={def}
-          field={def.field}
-          onChange={(val) => usedForm.setFieldsValue({ [def.field]: val })}
-        />
-      );
-
-    return <Input />;
+    return <Input disabled={col.read_only} />;
   };
 
-  const normalizeDate = (value: any, def: FormDef) => {
-    if (!DATE_TYPES.includes(def.type) || !value) return value;
-    const parsed = dayjs(value);
-    return parsed.isValid() ? parsed.format("YYYY-MM-DD") : undefined;
+  /* ========================
+   * 值归一化（提交前）
+   * ======================== */
+  const normalizeValue = (val: any, col: FormDef) => {
+    if (!DATE_TYPES.includes(col.type) || !val) return val;
+    const date = dayjs(val);
+    return date.isValid() ? date.format("YYYY-MM-DD") : undefined;
   };
 
-  const getDateValueProps = (value: any, def: FormDef) => {
-    if (!DATE_TYPES.includes(def.type)) return { value };
-    if (!value) return { value: null };
-    const parsed = dayjs(value);
-    return { value: parsed.isValid() ? parsed : null };
+  /* ========================
+   * 值展示（回显）
+   * ======================== */
+  const getValueProps = (val: any, col: FormDef) => {
+    if (!DATE_TYPES.includes(col.type)) return { value: val };
+    if (!val) return { value: null };
+
+    const date = dayjs(val);
+    return { value: date.isValid() ? date : null };
   };
 
+  /* ========================
+   * Render
+   * ======================== */
   return (
-    <View className={clsx("w-full h-full", className)}>
-      <ScrollView className="w-full h-full p-2">
+    <View className={clsx("w-full flex-1", className)}>
+      <ScrollView className="w-full flex-1 p-2">
         <Form
           form={usedForm}
-          name={`dynamic_form_${table}`}
-          {...layout}
+          name={`form_${table}`}
           layout="vertical"
-          onValuesChange={(changed, all) => console.log("Form Values:", all)}
+          preserve={false}
+          {...FORM_LAYOUT}
         >
-          {formDefs
-            .filter((col) => !col.read_only)
-            .map((def) => (
-              <Form.Item
-                key={def.field}
-                label={def.label}
-                name={def.field}
-                rules={[{ required: def.required }]}
-                normalize={(val) => normalizeDate(val, def)}
-                getValueProps={(val) => getDateValueProps(val, def)}
-              >
-                {renderInput(def)}
-              </Form.Item>
-            ))}
+          {formDefs.map((col) => (
+            <Form.Item
+              key={col.field}
+              name={col.field}
+              label={col.label}
+              rules={col.required ? [{ required: true }] : undefined}
+              normalize={(val) => normalizeValue(val, col)}
+              getValueProps={(val) => getValueProps(val, col)}
+              hidden={config?.[col.field]?.hidden}
+            >
+              {renderInput(col)}
+            </Form.Item>
+          ))}
         </Form>
       </ScrollView>
     </View>
   );
 }
 
-export default InputForm;
+export { InputForm };
+export type { InputFormProps };

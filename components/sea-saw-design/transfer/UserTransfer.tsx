@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useLocale } from "@/context/Locale";
 import { debounce } from "lodash";
 
 interface UserSelectorProps {
+  idName?: string;
   dataSource: any[];
   value: any[];
   onChange: (items: any[]) => void;
@@ -26,9 +27,11 @@ interface UserSelectorProps {
     item: any,
     onRemove: () => void
   ) => React.ReactElement | null;
+  loading?: boolean; // 新增可控 loading
 }
 
 export default function UserSelector({
+  idName = "key",
   dataSource,
   value,
   onChange,
@@ -37,55 +40,55 @@ export default function UserSelector({
   returnKeyOnly = false,
   renderItem,
   renderSelectedItem,
+  loading = false,
 }: UserSelectorProps) {
   const { i18n } = useLocale();
   const [search, setSearch] = useState("");
-  const [isLoading, setLoading] = useState(false);
 
-  const isSelected = (key: string | number) =>
-    returnKeyOnly ? value.includes(key) : value.some((v: any) => v.key === key);
+  // 判断是否被选中
+  const isSelected = (id: string | number) =>
+    returnKeyOnly
+      ? value.includes(id)
+      : value.some((v: any) => v[idName] === id);
 
+  // 防抖搜索
   const debouncedSearch = useMemo(
     () =>
-      debounce(async (t: string) => {
-        if (onSearch) {
-          setLoading(true);
-          await onSearch(t);
-          setLoading(false);
-        }
+      debounce((t: string) => {
+        onSearch?.(t);
       }, 500),
     [onSearch]
   );
 
   const handleTextChange = (text: string) => {
     setSearch(text);
-    setLoading(true);
     debouncedSearch(text);
-    setLoading(false);
   };
 
+  // 更新选中值
   const updateValue = (items: any[]) => {
     if (returnKeyOnly) {
-      onChange(items.map((i) => i.key));
+      onChange(items.map((i) => i[idName]));
     } else {
       onChange(items);
     }
   };
 
+  // 切换选中状态
   const toggleSelect = (item: any) => {
     let selectedItems: any[];
     if (returnKeyOnly) {
-      const currentItems = dataSource.filter((d) => value.includes(d.key));
-      const exists = value.includes(item.key);
+      const currentItems = dataSource.filter((d) => value.includes(d[idName]));
+      const exists = value.includes(item[idName]);
       selectedItems = exists
-        ? currentItems.filter((v) => v.key !== item.key)
+        ? currentItems.filter((v) => v[idName] !== item[idName])
         : multiple
         ? [...currentItems, item]
         : [item];
     } else {
-      const exists = value.some((v: any) => v.key === item.key);
+      const exists = value.some((v: any) => v[idName] === item[idName]);
       selectedItems = exists
-        ? value.filter((v: any) => v.key !== item.key)
+        ? value.filter((v: any) => v[idName] !== item[idName])
         : multiple
         ? [...value, item]
         : [item];
@@ -93,55 +96,49 @@ export default function UserSelector({
     updateValue(selectedItems);
   };
 
-  const renderSelector = (selected: boolean): React.ReactElement => {
-    if (multiple) {
-      return (
-        <View
-          className={`w-5 h-5 mr-2 border rounded-md items-center justify-center ${
-            selected ? "bg-blue-500 border-blue-500" : "border-gray-400"
-          }`}
-        >
-          {selected && <Text className="text-white text-xs">✓</Text>}
-        </View>
-      );
-    } else {
-      return (
-        <View
-          className={`w-5 h-5 mr-2 rounded-full border items-center justify-center ${
-            selected ? "border-blue-500" : "border-gray-400"
-          }`}
-        >
-          {selected && (
-            <View className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-          )}
-        </View>
-      );
-    }
+  // 渲染选择框
+  const renderSelector = (selected: boolean) => {
+    return multiple ? (
+      <View
+        className={`w-5 h-5 mr-2 border rounded items-center justify-center ${
+          selected ? "bg-blue-500 border-blue-500" : "border-gray-400"
+        }`}
+      >
+        {selected && <Text className="text-white text-xs">✓</Text>}
+      </View>
+    ) : (
+      <View
+        className={`w-5 h-5 mr-2 rounded-full border items-center justify-center ${
+          selected ? "border-blue-500" : "border-gray-400"
+        }`}
+      >
+        {selected && <View className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+      </View>
+    );
   };
 
+  // 默认列表项
   const defaultRenderItem = (
     item: any,
     selected: boolean,
     onToggle: () => void
-  ): React.ReactElement => (
+  ) => (
     <Pressable
       onPress={onToggle}
-      className="flex-row items-center p-2 rounded-lg active:bg-gray-100"
+      className="flex-row items-center p-2 rounded active:bg-gray-100"
     >
       {renderSelector(selected)}
       <Text className="text-base font-medium">
-        {item.full_name || item.key}
+        {item.full_name || item[idName]}
       </Text>
     </Pressable>
   );
 
-  const defaultRenderSelectedItem = (
-    item: any,
-    onRemove: () => void
-  ): React.ReactElement => (
+  // 默认已选项
+  const defaultRenderSelectedItem = (item: any, onRemove: () => void) => (
     <View className="flex-row items-center justify-between p-2">
       <Text className="text-base font-medium">
-        {item.full_name || item.key}
+        {item.full_name || item[idName]}
       </Text>
       <Pressable onPress={onRemove}>
         <Text className="text-gray-400 text-lg">×</Text>
@@ -150,33 +147,27 @@ export default function UserSelector({
   );
 
   const selectedData = returnKeyOnly
-    ? dataSource.filter((d) => value.includes(d.key))
+    ? dataSource.filter((d) => value.includes(d[idName]))
     : value;
 
   return (
-    <View className="flex-row h-[500px] border border-gray-200 rounded-xl overflow-hidden">
-      {/* 左边选择列表 */}
+    <View className="flex-row h-[500px] border border-gray-200 rounded overflow-hidden">
+      {/* 左侧选择列表 */}
       <View className="flex-1 border-r border-gray-200 p-2">
         <TextInput
           placeholder={i18n.t("search")}
           value={search}
-          onChangeText={setSearch}
-          onEndEditing={(e) => handleTextChange(e.nativeEvent.text)}
-          className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
+          onChangeText={handleTextChange}
+          className="border border-gray-300 rounded px-3 py-2 mb-2 placeholder:text-gray-400"
         />
 
-        {/* Loading spinner */}
-        {isLoading && (
-          <View className="flex-row justify-center my-2">
-            <ActivityIndicator size="small" color="#1890ff" />
-          </View>
-        )}
+        {loading && <ActivityIndicator className="mt-5" />}
 
         <FlatList
           data={dataSource}
-          keyExtractor={(item) => String(item.key)}
+          keyExtractor={(item) => String(item[idName])}
           renderItem={({ item }) => {
-            const selected = isSelected(item.key);
+            const selected = isSelected(item[idName]);
             const onToggle = () => toggleSelect(item);
             return (
               renderItem?.(item, selected, onToggle) ||
@@ -186,7 +177,7 @@ export default function UserSelector({
         />
       </View>
 
-      {/* 右边已选列表 */}
+      {/* 右侧已选列表 */}
       <View className="flex-1 p-2">
         <View className="flex-row justify-between items-center mb-2">
           <Text>
@@ -198,7 +189,7 @@ export default function UserSelector({
         </View>
         <FlatList
           data={selectedData}
-          keyExtractor={(item) => String(item.key)}
+          keyExtractor={(item) => String(item[idName])}
           renderItem={({ item }) => {
             const onRemove = () => toggleSelect(item);
             return (

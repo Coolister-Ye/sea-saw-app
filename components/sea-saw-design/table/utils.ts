@@ -10,18 +10,18 @@ import {
   GridApi,
   RowPinnedType,
 } from "ag-grid-community";
-import { ForeignKeyFilter } from "./ForeignKeyFilter";
+// import { ForeignKeyFilter } from "./ForeignKeyFilter";
 import dayjs from "dayjs";
-import ForeignKeyEditor from "./ForeignKeyEditor";
-import ForeignKeyCell from "./ForeignKeyCell";
-import { HeaderMetaProps } from "./interface";
+// import ForeignKeyEditor from "./ForeignKeyEditor";
 
 // Filter type used in Django query
 type FilterType =
+  | "exact"
   | "iexact"
   | "iexact_ex"
   | "icontains"
   | "icontains_ex"
+  | "startswith"
   | "istartswith"
   | "iendswith"
   | "isnull"
@@ -69,16 +69,18 @@ const agFilterMap: Record<string, any> = {
   datetime: "agDateColumnFilter",
   string: "agTextColumnFilter",
   choice: "agSetColumnFilter",
-  ["nested object"]: ForeignKeyFilter,
-  field: ForeignKeyFilter,
+  // ["nested object"]: ForeignKeyFilter,
+  // field: ForeignKeyFilter,
 };
 
 // Django-to-ag-Grid filter operator mapping
 const filterOptionMapper: Record<FilterType, AgFilterType | "within"> = {
+  exact: "equals",
   iexact: "equals",
   iexact_ex: "notEqual",
   icontains: "contains",
   icontains_ex: "notContains",
+  startswith: "startsWith",
   istartswith: "startsWith",
   iendswith: "endsWith",
   isnull: "blank",
@@ -105,8 +107,8 @@ const cellDataTypeMapper: Record<string, string> = {
 };
 
 const cellEditorMapper: Record<string, any> = {
-  field: ForeignKeyEditor,
-  ["nested object"]: ForeignKeyEditor,
+  // field: ForeignKeyEditor,
+  // ["nested object"]: ForeignKeyEditor,
   text: "agTextCellEditor",
   integer: "agNumberCellEditor",
   float: "agNumberCellEditor",
@@ -118,8 +120,8 @@ const cellEditorMapper: Record<string, any> = {
 };
 
 const formEditorMapper: Record<string, any> = {
-  field: ForeignKeyEditor,
-  ["nested object"]: ForeignKeyEditor,
+  // field: ForeignKeyEditor,
+  // ["nested object"]: ForeignKeyEditor,
   text: "agTextCellEditor",
   integer: "agNumberCellEditor",
   float: "agNumberCellEditor",
@@ -152,6 +154,7 @@ const getAgFilterType = (
 const getFilterParams = (operations: FilterType[]) => {
   return {
     filterOptions: operations.map((op) => filterOptionMapper[op]),
+    caseSensitive: false,
     debounceMs: 1000,
     trimInput: true,
     maxNumConditions: 1,
@@ -320,22 +323,17 @@ const convertAgGridSorterToDjangoParams = (
   const ordering = sortModel
     .map(({ colId, sort }) => (sort === "asc" ? colId : `-${colId}`))
     .join(",");
-  console.log("sortModel", sortModel, ordering);
 
   return ordering ? { ordering } : {};
 };
 
-const getValueFormatter = (type: string, displayFields: string[] = ["pk"]) => {
-  console.log("getValueFormatter", type, displayFields);
+const getValueFormatter = (type: string, displayFields: string[] = ["id"]) => {
   const objectFormatter = ({ value }: ValueFormatterParams) => {
     if (!value || typeof value !== "object") return "";
-    return (
-      displayFields ||
-      ["pk"]
-        .map((key) => value[key])
-        .filter((v) => v !== undefined && v !== null) // 保留 0 等 falsy 有意义的值
-        .join(", ")
-    );
+    return displayFields
+      .map((key) => value[key])
+      .filter((v) => v !== undefined && v !== null) // 保留 0 等 falsy 有意义的值
+      .join(", ");
   };
 
   const defaultFormatter = (params: ValueFormatterParams) => {

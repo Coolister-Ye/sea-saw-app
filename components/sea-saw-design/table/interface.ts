@@ -51,7 +51,7 @@ type AgGridFilterModel = Record<string, FilterModel>;
 // Props for the Table component
 type TableProps = {
   table: string;
-  colDefinitions?: Record<string, ColDef>;
+  colDefinitions?: Record<string, any>;
   headerMeta?: HeaderMetaProps | Record<string, HeaderMetaProps>;
   suppressUpdate?: boolean;
   suppressDelete?: boolean;
@@ -78,7 +78,7 @@ type HeaderMetaProps = {
     | "field";
   required: boolean;
   display_fields?: string[];
-  read_only: boolean;
+  read_only: boolean | string;
   label: string;
   help_text?: string;
   max_length?: number;

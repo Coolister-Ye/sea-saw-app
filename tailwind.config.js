@@ -1,5 +1,6 @@
 /** @type {import("tailwindcss").Config} */
 const colors = require("tailwindcss/colors");
+const { hairlineWidth } = require("nativewind/theme");
 
 module.exports = {
   // NOTE: Update this to include the paths to all of your component files.
@@ -18,125 +19,66 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light mode colors
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: colors.indigo[600],
-          light: "#42a5f5",
-          dark: "#1565c0",
-          contrastText: "#fff",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "#9c27b0",
-          light: "#ba68c8",
-          dark: "#7b1fa2",
-          contrastText: "#fff",
-        },
-        accent: {
-          DEFAULT: "hsl(240 4.8% 95.9%)",
-          contrastText: "hsl(240 5.9% 10%)",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "hsl(0 84.2% 60.2%)",
-          contrastText: "hsl(0 0% 98%)",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
-        error: {
-          DEFAULT: colors.red[500],
-          light: colors.red[300],
-          dark: colors.red[700],
-          contrastText: "#fff",
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
-        warning: {
-          DEFAULT: "#ed6c02",
-          light: "#ff9800",
-          dark: "#e65100",
-          contrastText: "#fff",
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
-        info: {
-          DEFAULT: "#0288d1",
-          light: "#03a9f4",
-          dark: "#01579b",
-          contrastText: "#fff",
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
-        success: {
-          DEFAULT: "#2e7d32",
-          light: "#4caf50",
-          dark: "#1b5e20",
-          contrastText: "#fff",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
-        background: {
-          DEFAULT: "#fff",
-          paper: "#fff",
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      borderWidth: {
+        hairline: hairlineWidth(),
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
-        text: {
-          primary: "rgba(0, 0, 0, 0.87)",
-          secondary: "rgba(0, 0, 0, 0.6)",
-          disabled: "rgba(0, 0, 0, 0.38)",
-          divider: "rgba(0, 0, 0, 0.12)",
-          error: colors.red[500],
-          success: colors.green[500],
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
-
-        // Dark mode colors
-        dark: {
-          primary: {
-            DEFAULT: "#90caf9",
-            light: "#e3f2fd",
-            dark: "#42a5f5",
-            contrastText: "#000",
-          },
-          secondary: {
-            DEFAULT: "#ce93d8",
-            light: "#f3e5f5",
-            dark: "#ba68c8",
-            contrastText: "#000",
-          },
-          accent: {
-            DEFAULT: "hsl(240 3.7% 15.9%)",
-            contrastText: "hsl(0 0% 98%)",
-          },
-          destructive: {
-            DEFAULT: "hsl(0 72% 51%)",
-            contrastText: "hsl(0 0% 98%)",
-          },
-          error: {
-            DEFAULT: "#ef5350",
-            light: "#e57373",
-            dark: "#d32f2f",
-            contrastText: "#000",
-          },
-          warning: {
-            DEFAULT: "#ffb74d",
-            light: "#ffe0b2",
-            dark: "#ffa726",
-            contrastText: "#000",
-          },
-          info: {
-            DEFAULT: "#29b6f6",
-            light: "#81d4fa",
-            dark: "#0288d1",
-            contrastText: "#000",
-          },
-          success: {
-            DEFAULT: "#66bb6a",
-            light: "#81c784",
-            dark: "#388e3c",
-            contrastText: "#000",
-          },
-          background: {
-            DEFAULT: "#121212",
-            paper: "#424242",
-          },
-          text: {
-            primary: "#fff",
-            secondary: "rgba(255, 255, 255, 0.7)",
-            disabled: "rgba(255, 255, 255, 0.5)",
-            divider: "rgba(255, 255, 255, 0.12)",
-            error: colors.red[500],
-            success: colors.green[500],
-          },
-        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-  plugins: [],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
+  plugins: [require("tailwindcss-animate")],
 };

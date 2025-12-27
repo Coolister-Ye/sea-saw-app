@@ -204,6 +204,14 @@ function formatPercentage(value: number, decimals: number = 2): string {
   return `${(value * 100).toFixed(decimals)}%`;
 }
 
+function normalizeBoolean(val: any): boolean {
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string") {
+    return val.toLowerCase() === "true";
+  }
+  return false;
+}
+
 export {
   splitAndUpperCaseString,
   capitalizeString,
@@ -217,4 +225,5 @@ export {
   formatCurrency,
   formatPercentage,
   isObejctEmpty,
+  normalizeBoolean,
 };

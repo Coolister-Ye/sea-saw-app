@@ -1,39 +1,83 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text } from "react-native";
+import { AgGridReact } from "ag-grid-react";
+import type { AgGridReactProps } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+
 import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
-import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
+import { myTableTheme } from "@/components/sea-saw-design/table/tableTheme";
+import EmptySlot from "./base/EmptySlot";
 
-interface Product {
-  pk: number;
-  product_name: string;
-  size?: string | null;
-  packaging?: string | null;
-  total_price?: string | null;
-  total_net_weight?: string | null;
-}
+type ProductDisplayProps = {
+  def?: FormDef;
+  value?: any[];
+  className?: string;
+  agGridReactProps?: AgGridReactProps;
+};
 
-interface ProductDisplayProps {
-  def: FormDef;
-  value?: Product[];
-}
-
-export default function ProductDisplay({ def, value }: ProductDisplayProps) {
+export default function ProductDisplay({
+  def,
+  value = [],
+  className = "",
+  agGridReactProps,
+}: ProductDisplayProps) {
   const { i18n } = useLocale();
 
-  if (!value) {
-    return (
-      <View className="p-3 border border-dashed border-gray-300 rounded-lg bg-gray-50">
-        <Text className="text-gray-400">
-          {i18n.t("No product information")}
-        </Text>
-      </View>
-    );
+  /** 默认列定义 */
+  const defaultColDef = useMemo<ColDef>(
+    () => ({
+      editable: false,
+      filter: false,
+      flex: 1,
+      minWidth: 100,
+    }),
+    []
+  );
+
+  /** 生成列定义 */
+  const columnDefs = useMemo<ColDef[]>(() => {
+    const headerMeta: Record<string, HeaderMetaProps> =
+      def?.child?.children ?? {};
+
+    return Object.entries(headerMeta).map(([field, meta]) => ({
+      field,
+      headerName: meta.label || field,
+      flex: 1,
+      valueFormatter: ({ value }) => value ?? "-",
+    }));
+  }, [def]);
+
+  /** 空状态 */
+  if (!value?.length) {
+    return <EmptySlot message={i18n.t("No product information")} />;
   }
 
   return (
-    <View className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 mb-3">
-      <DisplayForm def={def} data={value} />
+    <View className={`w-full ${className}`} style={{ overflow: "hidden" }}>
+      {/* Header */}
+      <View className="mb-3 flex-row items-center justify-between pr-2">
+        <Text className="text-md font-semibold text-gray-800">
+          {i18n.t("Product List")}
+        </Text>
+        <Text className="text-xs text-gray-400">
+          {i18n.t("Total")}: {value.length}
+        </Text>
+      </View>
+
+      {/* Table */}
+      <View style={{ width: "100%", height: 150 }}>
+        <AgGridReact
+          theme={myTableTheme}
+          rowData={value}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          pagination={false}
+          suppressMovableColumns={true} // 防止拖动列乱布局
+          {...agGridReactProps}
+        />
+      </View>
     </View>
   );
 }
