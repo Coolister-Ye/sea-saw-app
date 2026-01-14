@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useReducer, useState } from "react";
+import { useCallback, useEffect, useRef, useReducer, useState, useMemo } from "react";
 import useDataService from "./useDataService";
 import { debounce, isEqual } from "lodash";
 import { router } from "expo-router";
@@ -8,13 +8,13 @@ import {
   flattenHeaderMeta,
   mergeData,
   unFlattenData,
-} from "@/utlis/serializer";
+} from "@/utils";
 import { EllipsisTooltip } from "@/components/table/EllipsisTooltip";
 import {
   changeToPlural,
   formatCurrency,
   formatPercentage,
-} from "@/utlis/commonUtils";
+} from "@/utils";
 import { ActionCell } from "@/components/table/ActionCell";
 import React from "react";
 import { useAppContext } from "@/context/App";
@@ -89,16 +89,11 @@ export function useTable({
   ordering,
 }: TableConfigType) {
   const {
-    list,
-    create,
-    update,
-    deleteItem,
-    options,
-    error,
-    success,
-    clearStates,
+    getViewSet,
     request,
   } = useDataService();
+
+  const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
 
   const [loading, setLoading] = useState(false);
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -421,11 +416,8 @@ export function useTable({
     await Promise.all(
       deleteItems.map(([item, pk]: [string, any]) => {
         const contentType = item.split(".");
-        return deleteItem({
-          id: pk,
-          contentType:
-            item === "pk" ? table : contentType[contentType.length - 2],
-        });
+        const tableName = item === "pk" ? table : contentType[contentType.length - 2];
+        return getViewSet(tableName).delete({ id: pk });
       })
     );
     refreshData();
@@ -436,12 +428,11 @@ export function useTable({
     const unflattenedData = unFlattenData(newRecord, columnsRef.current);
 
     const response = newRecord.pk
-      ? await update({
+      ? await viewSet.update({
           id: newRecord.pk,
-          contentType: table,
           body: unflattenedData,
         })
-      : await create({ contentType: table, body: unflattenedData });
+      : await viewSet.create({ body: unflattenedData });
 
     if (response?.status) {
       refreshData();
@@ -469,9 +460,8 @@ export function useTable({
     try {
       const [{ data: columnsMeta }, { data: rows }, { data: userPref }] =
         await Promise.all([
-          options({ contentType: table }),
-          list({
-            contentType: table,
+          viewSet.options(),
+          viewSet.list({
             params: { ordering, ...paginationModelRef.current },
           }),
           loadUserPreference(),
@@ -523,8 +513,7 @@ export function useTable({
       }: RefreshDataProps = {}) => {
         setLoading(true);
         try {
-          const { data: rows } = await list({
-            contentType: table,
+          const { data: rows } = await viewSet.list({
             params: {
               ordering,
               ...pagination,
@@ -580,7 +569,7 @@ export function useTable({
   const handleLocaleChange = async (locale: string) => {
     setLoading(true);
     try {
-      const { data: columnsMeta } = await options({ contentType: table });
+      const { data: columnsMeta } = await viewSet.options();
       const processedColumns = processColumns(
         columnsMeta.actions.POST || columnsMeta.actions.OPTIONS,
         columnsPref.current || []
@@ -596,8 +585,6 @@ export function useTable({
   };
 
   const debouncedLoadData = useCallback(debounce(loadTableData, 300), [
-    list,
-    options,
     table,
   ]);
 
@@ -655,9 +642,6 @@ export function useTable({
     dataCount,
     paginationModel,
     loading,
-    error,
-    success,
-    clearStates,
     handleAdd,
     loadTableData,
     handleColsRerange,

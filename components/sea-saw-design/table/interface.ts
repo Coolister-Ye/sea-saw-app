@@ -5,12 +5,18 @@ import {
   CustomCellRendererProps,
 } from "ag-grid-react";
 
-// Filter type used in Django query
+/* ═══════════════════════════════════════════════════════════════════════════
+   FILTER TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Django REST Framework filter operations */
 type FilterType =
+  | "exact"
   | "iexact"
   | "iexact_ex"
   | "icontains"
   | "icontains_ex"
+  | "startswith"
   | "istartswith"
   | "iendswith"
   | "isnull"
@@ -22,7 +28,7 @@ type FilterType =
   | "range"
   | "in";
 
-// Filter types used by ag-Grid
+/** AG Grid filter operation types */
 type AgFilterType =
   | "equals"
   | "notEqual"
@@ -39,48 +45,46 @@ type AgFilterType =
   | "inRange"
   | "within";
 
-// Represents a single ag-Grid filter item
+/** Single AG Grid filter item */
 type AgGridFilterItem = {
   filter: string;
   type: AgFilterType;
 };
 
-// Represents all filters applied by ag-Grid (simple model)
+/** AG Grid filter model (all applied filters) */
 type AgGridFilterModel = Record<string, FilterModel>;
 
-// Props for the Table component
-type TableProps = {
-  table: string;
-  colDefinitions?: Record<string, any>;
-  headerMeta?: HeaderMetaProps | Record<string, HeaderMetaProps>;
-  suppressUpdate?: boolean;
-  suppressDelete?: boolean;
-} & AgGridReactProps;
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIELD TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-type InputFormProps = {
-  table: string;
-  headerMeta?: Record<string, HeaderMetaProps>;
-};
+/** Supported field types from Django REST Framework */
+type FieldType =
+  | "string"
+  | "integer"
+  | "float"
+  | "double"
+  | "decimal"
+  | "boolean"
+  | "date"
+  | "datetime"
+  | "choice"
+  | "nested object"
+  | "field"
+  | "file upload";
 
-// Props for the HeaderMeta component
+/* ═══════════════════════════════════════════════════════════════════════════
+   METADATA TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Field metadata from Django REST Framework OPTIONS response */
 type HeaderMetaProps = {
-  type:
-    | "string"
-    | "integer"
-    | "float"
-    | "double"
-    | "decimal"
-    | "boolean"
-    | "date"
-    | "datetime"
-    | "choice"
-    | "nested object"
-    | "field";
+  type: FieldType;
   required: boolean;
-  display_fields?: string[];
   read_only: boolean | string;
   label: string;
   help_text?: string;
+  display_fields?: string[];
   max_length?: number;
   min_value?: number;
   max_value?: number;
@@ -92,7 +96,34 @@ type HeaderMetaProps = {
   child?: HeaderMetaProps;
 };
 
-// Props for the ForeignKeyCell component
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT PROPS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Extended column definition with skip option */
+type ColDefinition = ColDef & { skip?: boolean };
+
+/** Main Table component props */
+type TableProps = {
+  /** API endpoint key (maps to Constants.ts) */
+  table: string;
+  /** Custom column definitions override */
+  colDefinitions?: Record<string, ColDefinition>;
+  /** Pre-loaded header metadata (skips OPTIONS call if provided) */
+  headerMeta?: HeaderMetaProps | Record<string, HeaderMetaProps>;
+  /** Hide edit button in action column */
+  suppressUpdate?: boolean;
+  /** Hide delete button in action column */
+  suppressDelete?: boolean;
+} & AgGridReactProps;
+
+/** InputForm component props */
+type InputFormProps = {
+  table: string;
+  headerMeta?: Record<string, HeaderMetaProps>;
+};
+
+/** ForeignKeyCell component props */
 type ForeignKeyCellProps = {
   dataType: HeaderMetaProps;
   data: Record<string, any> | Array<Record<string, any>> | null | undefined;
@@ -100,11 +131,15 @@ type ForeignKeyCellProps = {
   usePopover?: boolean;
 };
 
-// Props for the ForeignKeyEitor component
-type ForeignKeyEitorProps = CustomCellEditorProps & {
+/** ForeignKeyEditor component props */
+type ForeignKeyEditorProps = CustomCellEditorProps & {
   dataType: HeaderMetaProps;
 };
 
+/** @deprecated Use ForeignKeyEditorProps instead */
+type ForeignKeyEitorProps = ForeignKeyEditorProps;
+
+/** ForeignKeyInput component props */
 type ForeignKeyInputProps = {
   dataType: HeaderMetaProps;
   field: string;
@@ -113,22 +148,30 @@ type ForeignKeyInputProps = {
   onChange: (value: any) => void;
 };
 
+/** ActionCell component props */
 type ActionCellProps = CustomCellRendererProps & {
   suppressUpdate?: boolean;
   suppressDelete?: boolean;
   table: string;
 };
 
-export {
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPORTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type {
   FilterType,
   AgFilterType,
   AgGridFilterItem,
   AgGridFilterModel,
+  FieldType,
+  ColDefinition,
   TableProps,
   InputFormProps,
-  ForeignKeyInputProps,
   HeaderMetaProps,
   ForeignKeyCellProps,
+  ForeignKeyEditorProps,
   ForeignKeyEitorProps,
+  ForeignKeyInputProps,
   ActionCellProps,
 };

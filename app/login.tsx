@@ -14,7 +14,7 @@ import {
   getLocalData,
   setLocalData,
   removeLocalData,
-} from "@/utlis/storageHelper";
+} from "@/utils";
 import { useToast } from "@/context/Toast";
 
 // Define constants

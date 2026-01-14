@@ -7,7 +7,7 @@ import { ColDef } from "ag-grid-community";
 import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
-import { myTableTheme } from "@/components/sea-saw-design/table/tableTheme";
+import { myTableTheme } from "@/components/sea-saw-design/table/theme";
 import EmptySlot from "./base/EmptySlot";
 
 type ProductDisplayProps = {

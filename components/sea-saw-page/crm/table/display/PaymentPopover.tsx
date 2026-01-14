@@ -17,7 +17,7 @@ interface PaymentPopoverProps {
 export default function PaymentPopover({ value, def }: PaymentPopoverProps) {
   if (!value) return <Text>-</Text>;
 
-  const titleField = "payment_type";
+  const titleField = "payment_code";
 
   const content = useMemo(() => {
     if (!def) return null;
@@ -25,7 +25,7 @@ export default function PaymentPopover({ value, def }: PaymentPopoverProps) {
     return (
       <View className="p-3 w-[300px] space-y-2">
         {Object.entries(def).map(([key, fieldDef]) => {
-          if (key === titleField) return null;
+          if (key === titleField || key === "attachments" || key === "attachment") return null;
 
           const rawVal = value[key];
           const displayValue =

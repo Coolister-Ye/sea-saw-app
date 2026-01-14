@@ -1,5 +1,15 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { GridApi } from "ag-grid-community";
+import {
+  PencilSquareIcon,
+  EllipsisVerticalIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from "react-native-heroicons/outline";
+
+import useDataService from "@/hooks/useDataService";
+import { devError, devWarn } from "@/utils/logger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,34 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 import { DeleteActionCell } from "./DeleteActionCell";
-import { ActionCellProps } from "./interface";
-import { ColDef, ColGroupDef, GridApi } from "ag-grid-community";
-import {
-  PencilSquareIcon,
-  EllipsisVerticalIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-} from "react-native-heroicons/outline";
-import useDataService from "@/hooks/useDataService";
+import { focusFirstEditableCol } from "./utils";
+import type { ActionCellProps } from "./interface";
 
-// 类型守卫：区分 ColDef 和 ColGroupDef
-function isColDef(
-  col: ColDef<any, any> | ColGroupDef<any>
-): col is ColDef<any, any> {
-  return !("children" in col);
-}
-
-// 聚焦第一个 editable 的列
-function focusFirstEditableCol(api: GridApi, rowIndex: number) {
-  const columnDefs = api.getColumnDefs() ?? [];
-  const firstEditableCol = columnDefs.find(
-    (col) => isColDef(col) && col.editable !== false && !!col.field
-  );
-  if (firstEditableCol && isColDef(firstEditableCol)) {
-    api.setFocusedCell(rowIndex, firstEditableCol.field!);
-    api.startEditingCell({ rowIndex, colKey: firstEditableCol.field! });
-  }
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACTION CELL COMPONENT
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 function ActionCell({
   suppressUpdate = false,
@@ -44,12 +32,17 @@ function ActionCell({
   data,
   table,
 }: ActionCellProps) {
+  const { getViewSet } = useDataService();
+  const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
   const menuTriggerRef = useRef<any>(null);
-  const { deleteItem } = useDataService();
 
-  if (suppressUpdate && suppressDelete) return null;
+  if (suppressUpdate && suppressDelete) {
+    return null;
+  }
 
-  const handleUpdate = () => {
+  const isEditing = data?.actions === "update";
+
+  const handleStartEdit = () => {
     const editingCells = api.getEditingCells();
     if (node.rowIndex != null && editingCells.length === 0) {
       node.setDataValue("actions", "update");
@@ -58,32 +51,35 @@ function ActionCell({
   };
 
   const handleDelete = async () => {
+    const id = data?.pk ?? data?.id;
+    if (!id) {
+      devWarn("Cannot delete: no ID found in row data");
+      return;
+    }
+
     try {
-      const response = await deleteItem({
-        id: data.pk || data.id,
-        contentType: table,
-      });
+      const response = await viewSet.delete({ id });
       if (response.status) {
         api.applyServerSideTransaction({ remove: [data] });
       } else {
-        console.warn("delete fail: ", response);
+        devWarn("Delete failed:", response);
       }
     } catch (error) {
-      console.error("update fail: ", error);
+      devError("Delete error:", error);
     }
   };
 
   return (
-    <View className="flex-row h-full items-center justify-end space-x-1">
-      {data.actions === "update" ? (
-        <EditingButtonSet api={api} node={node} />
+    <View className="flex-row h-full items-center justify-end gap-1">
+      {isEditing ? (
+        <EditingActions api={api} node={node} />
       ) : (
         <>
-          {!suppressUpdate && <UpdateButton onPress={handleUpdate} />}
+          {!suppressUpdate && <EditButton onPress={handleStartEdit} />}
           {!suppressDelete && (
             <DeleteDropdown
               triggerRef={menuTriggerRef}
-              handleDelete={handleDelete}
+              onDelete={handleDelete}
             />
           )}
         </>
@@ -92,25 +88,31 @@ function ActionCell({
   );
 }
 
-function UpdateButton({ onPress }: { onPress: () => void }) {
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUB-COMPONENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function EditButton({ onPress }: { onPress: () => void }) {
   return (
-    <Pressable onPress={onPress}>
-      <PencilSquareIcon className="h-5 text-zinc-500 active:text-zinc-400" />
+    <Pressable
+      onPress={onPress}
+      className="p-1 rounded hover:bg-gray-100 active:bg-gray-200 transition-colors"
+    >
+      <PencilSquareIcon size={18} className="text-zinc-500" />
     </Pressable>
   );
 }
 
-type EditingButtonSetProps = {
+type EditingActionsProps = {
   api: GridApi;
   node: any;
 };
 
-function EditingButtonSet({ api, node }: EditingButtonSetProps) {
+function EditingActions({ api, node }: EditingActionsProps) {
   const [originalData, setOriginalData] = useState<any>(null);
 
-  // 开始编辑时，保存一份原数据
   useEffect(() => {
-    if (node && node.data) {
+    if (node?.data) {
       setOriginalData({ ...node.data });
     }
   }, [node]);
@@ -129,43 +131,45 @@ function EditingButtonSet({ api, node }: EditingButtonSetProps) {
   };
 
   return (
-    <View className="flex-row h-full items-center justify-end">
-      <Pressable onPress={handleSave}>
-        <CheckCircleIcon className="h-5 text-green-500 active:text-green-400" />
+    <View className="flex-row h-full items-center justify-end gap-1">
+      <Pressable
+        onPress={handleSave}
+        className="p-1 rounded hover:bg-green-50 active:bg-green-100 transition-colors"
+      >
+        <CheckCircleIcon size={18} className="text-green-600" />
       </Pressable>
-      <Pressable onPress={handleCancel}>
-        <XCircleIcon className="h-5 text-red-500 active:text-red-400" />
+      <Pressable
+        onPress={handleCancel}
+        className="p-1 rounded hover:bg-red-50 active:bg-red-100 transition-colors"
+      >
+        <XCircleIcon size={18} className="text-red-500" />
       </Pressable>
     </View>
   );
 }
 
-function DeleteDropdown({
-  triggerRef,
-  handleDelete,
-}: {
+type DeleteDropdownProps = {
   triggerRef: React.RefObject<any>;
-  handleDelete?: () => void;
-}) {
+  onDelete: () => void;
+};
+
+function DeleteDropdown({ triggerRef, onDelete }: DeleteDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild ref={triggerRef}>
-        <Pressable>
-          <EllipsisVerticalIcon
-            size={20}
-            className="text-zinc-500 active:text-zinc-400"
-          />
+        <Pressable className="p-1 rounded hover:bg-gray-100 active:bg-gray-200 transition-colors">
+          <EllipsisVerticalIcon size={18} className="text-zinc-500" />
         </Pressable>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="start"
-        sideOffset={2}
-        className="border-gray-100 bg-white min-w-5"
+        align="end"
+        sideOffset={4}
+        className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[120px]"
       >
-        <DropdownMenuItem className="active:bg-gray-100 p-0 items-center justify-center">
+        <DropdownMenuItem className="p-0">
           <DeleteActionCell
             handleCancel={() => triggerRef.current?.close()}
-            handleDelete={handleDelete}
+            handleDelete={onDelete}
           />
         </DropdownMenuItem>
       </DropdownMenuContent>

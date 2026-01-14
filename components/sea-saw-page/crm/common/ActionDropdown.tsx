@@ -7,13 +7,17 @@ import { useLocale } from "@/context/Locale";
 interface Props {
   openCreate: () => void;
   openCopy: () => void;
+  openDelete?: () => void;
   copyDisabled: boolean;
+  deleteDisabled?: boolean;
 }
 
 export default function ActionDropdown({
   openCreate,
   openCopy,
+  openDelete,
   copyDisabled,
+  deleteDisabled = true,
 }: Props) {
   const { i18n } = useLocale();
 
@@ -24,10 +28,21 @@ export default function ActionDropdown({
         key: "copy",
         disabled: copyDisabled,
       },
+      {
+        type: "divider",
+      },
+      {
+        label: i18n.t("Delete"),
+        key: "delete",
+        disabled: deleteDisabled,
+        danger: true,
+      },
     ],
     onClick: ({ key }) => {
       if (key === "copy" && !copyDisabled) {
         openCopy();
+      } else if (key === "delete" && !deleteDisabled && openDelete) {
+        openDelete();
       }
     },
   };
@@ -42,7 +57,7 @@ export default function ActionDropdown({
         <Button
           type="primary"
           icon={<EllipsisOutlined />}
-          disabled={copyDisabled}
+          disabled={copyDisabled && deleteDisabled}
         />
       </Dropdown>
     </Space.Compact>

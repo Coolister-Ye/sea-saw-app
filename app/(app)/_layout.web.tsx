@@ -60,10 +60,16 @@ export default function AppLayout() {
   const crmScreens = [
     { name: "(crm)/contact", label: i18n.t("customer"), groups: ["Sale"] },
     { name: "(crm)/company", label: i18n.t("company"), groups: ["Sale"] },
+    { name: "(crm)/order", label: i18n.t("order"), groups: ["Sale"] },
     {
       name: "(crm)/production",
       label: i18n.t("production"),
       groups: ["Production"],
+    },
+    {
+      name: "(crm)/pipeline",
+      label: i18n.t("pipeline"),
+      groups: ["Sale"],
     },
     {
       name: "(crm)/download",

@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Linking,
 } from "react-native";
-import { getBaseUrl } from "@/utlis/webHelper";
+import { getBaseUrl } from "@/utils";
 import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import Divider from "@/components/sea-saw-design/divider";

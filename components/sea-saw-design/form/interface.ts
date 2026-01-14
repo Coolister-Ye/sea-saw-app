@@ -1,63 +1,28 @@
-import { ColDef, FilterModel } from "ag-grid-community";
-import {
-  AgGridReactProps,
-  CustomCellEditorProps,
-  CustomCellRendererProps,
-} from "ag-grid-react";
 import { FormProps } from "antd";
 
-// Filter type used in Django query
-type FilterType =
-  | "iexact"
-  | "iexact_ex"
-  | "icontains"
-  | "icontains_ex"
-  | "istartswith"
-  | "iendswith"
-  | "isnull"
-  | "isnull_ex"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "range"
-  | "in";
+// Re-export shared types from table interface to avoid duplication
+export type {
+  FilterType,
+  AgFilterType,
+  AgGridFilterItem,
+  AgGridFilterModel,
+  FieldType,
+  HeaderMetaProps,
+  ForeignKeyCellProps,
+  ForeignKeyEditorProps,
+  ForeignKeyEitorProps,
+  ForeignKeyInputProps as BaseForeignKeyInputProps,
+  ActionCellProps,
+} from "../table/interface";
 
-// Filter types used by ag-Grid
-type AgFilterType =
-  | "equals"
-  | "notEqual"
-  | "contains"
-  | "notContains"
-  | "startsWith"
-  | "endsWith"
-  | "blank"
-  | "notBlank"
-  | "greaterThan"
-  | "greaterThanOrEqual"
-  | "lessThan"
-  | "lessThanOrEqual"
-  | "inRange"
-  | "within";
+// Import for local use
+import type { HeaderMetaProps } from "../table/interface";
 
-// Represents a single ag-Grid filter item
-type AgGridFilterItem = {
-  filter: string;
-  type: AgFilterType;
-};
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORM-SPECIFIC TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-// Represents all filters applied by ag-Grid (simple model)
-type AgGridFilterModel = Record<string, FilterModel>;
-
-// Props for the Table component
-type TableProps = {
-  table: string;
-  colDefinitions?: Record<string, ColDef>;
-  headerMeta?: HeaderMetaProps | Record<string, HeaderMetaProps>;
-  suppressUpdate?: boolean;
-  suppressDelete?: boolean;
-} & AgGridReactProps;
-
+/** InputForm component props (Ant Design form wrapper) */
 type InputFormProps = FormProps & {
   table?: string;
   def?: Record<string, HeaderMetaProps>;
@@ -65,49 +30,7 @@ type InputFormProps = FormProps & {
   form: any;
 };
 
-// Props for the HeaderMeta component
-type HeaderMetaProps = {
-  type:
-    | "string"
-    | "integer"
-    | "float"
-    | "double"
-    | "decimal"
-    | "boolean"
-    | "date"
-    | "datetime"
-    | "choice"
-    | "nested object"
-    | "field";
-  required: boolean;
-  display_fields?: string[];
-  read_only: boolean | string;
-  label: string;
-  help_text?: string;
-  max_length?: number;
-  min_value?: number;
-  max_value?: number;
-  max_digits?: number;
-  decimal_places?: number;
-  operations?: FilterType[];
-  choices?: { value: string; label: string }[];
-  children?: Record<string, HeaderMetaProps>;
-  child?: HeaderMetaProps;
-};
-
-// Props for the ForeignKeyCell component
-type ForeignKeyCellProps = {
-  dataType: HeaderMetaProps;
-  data: Record<string, any> | Array<Record<string, any>> | null | undefined;
-  displayContent?: (data: Record<string, any>) => JSX.Element;
-  usePopover?: boolean;
-};
-
-// Props for the ForeignKeyEitor component
-type ForeignKeyEitorProps = CustomCellEditorProps & {
-  dataType: HeaderMetaProps;
-};
-
+/** Extended ForeignKeyInput props with render option */
 type ForeignKeyInputProps = {
   dataType: HeaderMetaProps;
   field: string;
@@ -117,22 +40,22 @@ type ForeignKeyInputProps = {
   render?: (value: any) => JSX.Element;
 };
 
-type ActionCellProps = CustomCellRendererProps & {
-  suppressUpdate?: boolean;
-  suppressDelete?: boolean;
-  table: string;
+/** Form definition with field name (read_only normalized to boolean) */
+type FormDef = Omit<HeaderMetaProps, "read_only"> & {
+  field: string;
+  read_only: boolean;
 };
 
-export {
-  FilterType,
-  AgFilterType,
-  AgGridFilterItem,
-  AgGridFilterModel,
-  TableProps,
+/** Display form field configuration */
+type DisplayFormConfig = {
+  render?: (value: any, record: any) => React.ReactNode;
+  skip?: boolean;
+  span?: number;
+};
+
+export type {
   InputFormProps,
   ForeignKeyInputProps,
-  HeaderMetaProps,
-  ForeignKeyCellProps,
-  ForeignKeyEitorProps,
-  ActionCellProps,
+  FormDef,
+  DisplayFormConfig,
 };

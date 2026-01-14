@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { AgGridReact } from "ag-grid-react";
 import {
   ColDef,
@@ -17,6 +17,8 @@ import {
 } from "ag-grid-community";
 
 import useDataService from "@/hooks/useDataService";
+import { useLocale } from "@/context/Locale";
+import { devError } from "@/utils/logger";
 import {
   convertAgGridFilterToDjangoParams,
   convertAgGridSorterToDjangoParams,
@@ -25,157 +27,263 @@ import {
   getCellDataType,
   getValueFormatter,
 } from "./utils";
-import { HeaderMetaProps, TableProps } from "./interface";
+import type { HeaderMetaProps, TableProps, ColDefinition } from "./interface";
 
-const PAGE_SIZE = 10;
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+const DEFAULT_COL_WIDTH = 120;
 
-/* ================= Utils ================= */
-function normalizeHeaderMeta(meta: any): Record<string, HeaderMetaProps> {
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Type guard to check if meta is HeaderMetaProps (has 'type' field) */
+function isHeaderMetaProps(
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps>
+): meta is HeaderMetaProps {
+  return "type" in meta && typeof meta.type === "string";
+}
+
+/** Normalize header metadata from various response formats */
+function normalizeHeaderMeta(
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined
+): Record<string, HeaderMetaProps> {
   if (!meta) return {};
-  if (meta.children) return meta.children;
-  if (meta.child?.children) return meta.child.children;
+
+  if (isHeaderMetaProps(meta)) {
+    if (meta.children) return meta.children;
+    if (meta.child?.children) return meta.child.children;
+    return {};
+  }
+
   return meta;
 }
 
-/* ================= Component ================= */
-const Table = forwardRef<AgGridReact, TableProps>(
-  ({ table, colDefinitions, headerMeta, onGridReady, ...props }, ref) => {
-    const { list, options } = useDataService();
+/** Get row ID from data object */
+function getRowId(params: GetRowIdParams): string {
+  return String(params.data.pk ?? params.data.id ?? Math.random());
+}
 
-    const gridRef = useRef<AgGridReact>(null);
-    const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-    useImperativeHandle(ref, () => gridRef.current as AgGridReact, []);
+const Table = forwardRef<AgGridReact, TableProps>(function Table(
+  {
+    table,
+    colDefinitions,
+    headerMeta: initialHeaderMeta,
+    onGridReady,
+    ...gridProps
+  },
+  ref
+) {
+  const { getViewSet } = useDataService();
+  const { i18n } = useLocale();
 
-    /* ================= DataSource ================= */
-    const fetchData = useCallback(
-      async (params: IServerSideGetRowsParams<any>) => {
-        const {
-          startRow = 0,
-          endRow = PAGE_SIZE,
-          filterModel,
-          sortModel,
-        } = params.request;
+  const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
+  const gridRef = useRef<AgGridReact>(null);
 
-        const filters = convertAgGridFilterToDjangoParams(filterModel);
-        const sorter = convertAgGridSorterToDjangoParams(sortModel);
+  const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-        try {
-          const res = await list({
-            contentType: table,
-            params: {
-              limit: endRow - startRow,
-              offset: startRow,
-              pager: "limit_offset",
-              ...filters,
-              ...sorter,
-            },
-          });
+  useImperativeHandle(ref, () => gridRef.current as AgGridReact, []);
 
-          params.success({ rowData: res.results });
-        } catch (err) {
-          console.error("Fetch rows failed:", err);
-          params.fail();
-        }
-      },
-      [list, table]
-    );
+  /* ─────────────────────────────────────────────────────────────────────────
+     DATA SOURCE
+     ───────────────────────────────────────────────────────────────────────── */
 
-    const datasource = useMemo(() => ({ getRows: fetchData }), [fetchData]);
+  const fetchData = useCallback(
+    async (params: IServerSideGetRowsParams<any>) => {
+      const {
+        startRow = 0,
+        endRow = DEFAULT_PAGE_SIZE,
+        filterModel,
+        sortModel,
+      } = params.request;
 
-    /* ================= ColumnDefs ================= */
-    const buildColumnDefs = useCallback(
-      (meta: Record<string, HeaderMetaProps>): ColDef[] => {
-        const used = new Set<string>();
+      const filters = convertAgGridFilterToDjangoParams(filterModel);
+      const sorter = convertAgGridSorterToDjangoParams(sortModel);
 
-        const baseCols = Object.entries(meta)
-          .filter(([k]) => !colDefinitions?.[k]?.skip)
-          .map(([key, def]) => {
-            used.add(key);
+      try {
+        const response = await viewSet.list({
+          params: {
+            limit: endRow - startRow,
+            offset: startRow,
+            pager: "limit_offset",
+            ...filters,
+            ...sorter,
+          },
+        });
 
-            return {
-              field: key,
-              headerName: def.label,
-              filter: getAgFilterType(def.type, def.operations ?? []),
-              filterParams: getFilterParams(def.operations ?? []),
-              cellDataType: getCellDataType(def.type),
-              valueFormatter: getValueFormatter(def.type, def.display_fields),
-              sortable: true,
-              resizable: true,
-              minWidth: 120,
-              ...colDefinitions?.[key],
-            } as ColDef;
-          });
+        params.success({
+          rowData: response.results ?? [],
+          rowCount: response.count,
+        });
+      } catch (err) {
+        devError("Table fetch failed:", err);
+        params.fail();
+      }
+    },
+    [viewSet]
+  );
 
-        const extraCols =
-          Object.entries(colDefinitions || {})
-            .filter(([k, v]) => !used.has(k) && !v?.skip)
-            .map(([k, v]) => ({
-              field: k,
-              minWidth: 120,
-              ...v,
-            })) ?? [];
+  const datasource = useMemo(() => ({ getRows: fetchData }), [fetchData]);
 
-        return [...baseCols, ...extraCols];
-      },
-      [colDefinitions]
-    );
+  /* ─────────────────────────────────────────────────────────────────────────
+     COLUMN DEFINITIONS
+     ───────────────────────────────────────────────────────────────────────── */
 
-    /* ================= HeaderMeta ================= */
-    useEffect(() => {
-      const load = async () => {
-        try {
-          if (headerMeta) {
-            setColumnDefs(buildColumnDefs(normalizeHeaderMeta(headerMeta)));
-            return;
-          }
+  const buildColumnDefs = useCallback(
+    (meta: Record<string, HeaderMetaProps>): ColDef[] => {
+      const processedFields = new Set<string>();
 
-          const res = await options({ contentType: table });
-          setColumnDefs(
-            buildColumnDefs(normalizeHeaderMeta(res.actions?.POST))
-          );
-        } catch (err) {
-          console.error("Load header meta failed:", err);
-        }
-      };
+      // Build columns from metadata
+      const metaColumns = Object.entries(meta)
+        .filter(([key]) => !colDefinitions?.[key]?.skip)
+        .map(([field, fieldMeta]) => {
+          processedFields.add(field);
+          const customDef = colDefinitions?.[field] ?? {};
 
-      load();
-    }, [headerMeta, options, table, buildColumnDefs]);
-
-    /* ================= GridReady ================= */
-    const handleGridReady = useCallback(
-      (params: GridReadyEvent) => {
-        params.api.setGridOption("serverSideDatasource", datasource);
-        onGridReady?.(params);
-      },
-      [datasource, onGridReady]
-    );
-
-    /* ================= Render ================= */
-    return (
-      <View className="flex-1 h-full">
-        <AgGridReact
-          ref={gridRef}
-          rowModelType="serverSide"
-          columnDefs={columnDefs}
-          defaultColDef={{
+          return {
+            field,
+            headerName: fieldMeta.label,
+            filter: getAgFilterType(fieldMeta.type, fieldMeta.operations ?? []),
+            filterParams: getFilterParams(fieldMeta.operations ?? []),
+            cellDataType: getCellDataType(fieldMeta.type),
+            valueFormatter: getValueFormatter(
+              fieldMeta.type,
+              fieldMeta.display_fields
+            ),
             sortable: true,
             resizable: true,
-            width: 100,
-          }}
-          getRowId={(p: GetRowIdParams) => String(p.data.pk || p.data.id)}
-          pagination
-          paginationPageSize={PAGE_SIZE}
-          paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
-          onGridReady={handleGridReady}
-          {...props}
-        />
+            minWidth: DEFAULT_COL_WIDTH,
+            ...customDef,
+          } as ColDef;
+        });
+
+      // Add extra columns from colDefinitions not in metadata
+      const extraColumns = Object.entries(colDefinitions ?? {})
+        .filter(([key, def]) => !processedFields.has(key) && !def?.skip)
+        .map(([field, def]) => ({
+          field,
+          minWidth: DEFAULT_COL_WIDTH,
+          sortable: true,
+          resizable: true,
+          ...def,
+        }));
+
+      return [...metaColumns, ...extraColumns];
+    },
+    [colDefinitions]
+  );
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     METADATA LOADING
+     ───────────────────────────────────────────────────────────────────────── */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMetadata() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        let meta: Record<string, HeaderMetaProps>;
+
+        if (initialHeaderMeta) {
+          meta = normalizeHeaderMeta(initialHeaderMeta);
+        } else {
+          const response = await viewSet.options();
+          meta = normalizeHeaderMeta(response.actions?.POST);
+        }
+
+        if (isMounted) {
+          setColumnDefs(buildColumnDefs(meta));
+        }
+      } catch (err) {
+        devError("Failed to load table metadata:", err);
+        if (isMounted) {
+          setError(i18n.t("Failed to load table configuration"));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadMetadata();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialHeaderMeta, viewSet, buildColumnDefs, i18n]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     EVENT HANDLERS
+     ───────────────────────────────────────────────────────────────────────── */
+
+  const handleGridReady = useCallback(
+    (event: GridReadyEvent) => {
+      event.api.setGridOption("serverSideDatasource", datasource);
+      onGridReady?.(event);
+    },
+    [datasource, onGridReady]
+  );
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     RENDER
+     ───────────────────────────────────────────────────────────────────────── */
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }
-);
+
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center p-4">
+        <View className="text-red-500 text-center">{error}</View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 h-full">
+      <AgGridReact
+        ref={gridRef}
+        rowModelType="serverSide"
+        columnDefs={columnDefs}
+        defaultColDef={{
+          sortable: true,
+          resizable: true,
+          width: DEFAULT_COL_WIDTH,
+        }}
+        getRowId={getRowId}
+        pagination
+        paginationPageSize={DEFAULT_PAGE_SIZE}
+        paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
+        onGridReady={handleGridReady}
+        {...gridProps}
+      />
+    </View>
+  );
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPORTS
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 export default Table;
-export type { TableProps };
 export { Table };
+export type { TableProps, ColDefinition };

@@ -1,8 +1,7 @@
-import { fetchJson, getUrl } from "@/utlis/webHelper";
-import { capitalizeString, changeToPlural } from "@/utlis/commonUtils";
+// services/DataService.ts
+import { fetchJson, getUrl } from "@/utils";
 import { constants } from "@/constants/Constants";
 
-// Base request configuration
 export interface RequestConfig {
   uri: string;
   method: "POST" | "GET" | "DELETE" | "PUT" | "PATCH" | "OPTIONS";
@@ -11,137 +10,127 @@ export interface RequestConfig {
   headers?: Record<string, any>;
   suffix?: string;
   signal?: AbortSignal;
-  id?: any;
+  id?: string | number;
 }
 
-// API-specific request parameters
-export interface ViewsetRequestParams extends Partial<RequestConfig> {
-  contentType: string;
-  action?: string;
-  id?: any;
+/**
+ * ViewSet-style interface for CRUD operations on a resource
+ * Similar to Django REST Framework ViewSets
+ */
+export interface ViewSet {
+  list: (props?: Omit<RequestConfig, "uri" | "method" | "id">) => Promise<any>;
+  create: (props?: Omit<RequestConfig, "uri" | "method" | "id">) => Promise<any>;
+  retrieve: (props: Omit<RequestConfig, "uri" | "method"> & { id: string | number }) => Promise<any>;
+  update: (props: Omit<RequestConfig, "uri" | "method"> & { id: string | number }) => Promise<any>;
+  delete: (props: { id: string | number } & Pick<RequestConfig, "headers" | "signal">) => Promise<any>;
+  options: (props?: Omit<RequestConfig, "uri" | "method">) => Promise<any>;
 }
 
-class DataService {
-  // Validate if action exists in constants.api
-  private static validateApiAction(action: string): void {
-    if (!(action in constants.api)) {
-      throw new Error(`Invalid API action: ${action}`);
+export class DataService {
+  /**
+   * Generic HTTP request handler
+   * Constructs URL with optional ID, suffix, and query parameters
+   */
+  static async genericRequest(props: RequestConfig) {
+    const { uri, method, body, params, headers, suffix, signal, id } = props;
+    let baseUrl = getUrl(uri as keyof typeof constants.api);
+
+    // Replace {id} placeholder if it exists in the URL
+    if (baseUrl.includes("{id}")) {
+      if (!id) {
+        throw new Error(`URL template '${uri}' requires an 'id' parameter`);
+      }
+      baseUrl = baseUrl.replace("{id}", String(id));
     }
-  }
+    // Otherwise, append ID in traditional REST style if provided
+    else if (id) {
+      baseUrl = `${baseUrl}${id}/`;
+    }
 
-  // Construct URL from action, contentType, id, and params
-  private static constructUrl({
-    contentType,
-    action = "",
-    id,
-    params,
-    suffix = "",
-  }: Omit<ViewsetRequestParams, "method" | "headers" | "body">): string {
-    const constructedUrl = `${action}${changeToPlural(
-      capitalizeString(contentType)
-    )}`;
-    this.validateApiAction(constructedUrl);
-
-    const baseUrl = getUrl(constructedUrl as keyof typeof constants.api);
-    const urlWithId = id ? baseUrl.replace("{id}", id) : baseUrl;
+    // Add query parameters if provided
     const queryString = params
       ? `?${new URLSearchParams(params).toString()}`
       : "";
 
-    return `${urlWithId}${suffix}${queryString}`;
+    const finalUrl = `${baseUrl}${suffix || ""}${queryString}`;
+
+    return fetchJson({ url: finalUrl, method, body, headers, signal });
   }
 
-  // Generic request method for any custom API calls
-  static async genericRequest({
-    uri,
-    method,
-    body,
-    params,
-    headers,
-    suffix = "",
-    signal,
-    id,
-  }: RequestConfig) {
-    const baseApiUrl = this.checkAndGetUrl(uri);
-    const urlWithId = id ? baseApiUrl.replace("{id}", id) : baseApiUrl;
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const url = `${urlWithId}${suffix}${queryString}`;
+  /**
+   * Get a ViewSet instance for a specific resource
+   * Returns an object with CRUD methods (list, create, retrieve, update, delete, options)
+   *
+   * @example
+   * ```typescript
+   * const orderViewSet = DataService.getViewSet('order');
+   * await orderViewSet.list({ params: { status: 'pending' } });
+   * await orderViewSet.retrieve({ id: 5 });
+   * await orderViewSet.update({ id: 5, body: { status: 'completed' } });
+   * await orderViewSet.delete({ id: 5 });
+   * ```
+   */
+  static getViewSet(uri: string): ViewSet {
+    return {
+      list: (props = {}) =>
+        DataService.genericRequest({ ...props, uri, method: "GET" }),
 
-    return fetchJson({ url, method, body, headers, signal });
+      create: (props = {}) =>
+        DataService.genericRequest({ ...props, uri, method: "POST" }),
+
+      retrieve: (props) =>
+        DataService.genericRequest({ ...props, uri, method: "GET" }),
+
+      update: (props) =>
+        DataService.genericRequest({ ...props, uri, method: "PATCH" }),
+
+      delete: (props) =>
+        DataService.genericRequest({ ...props, uri, method: "DELETE" }),
+
+      options: (props = {}) =>
+        DataService.genericRequest({ ...props, uri, method: "OPTIONS" }),
+    };
   }
 
-  // Main request handler for viewset-based requests
-  static async viewsetRequest({
-    method,
-    contentType,
-    action = "",
-    id,
-    body,
-    params,
-    headers,
-    suffix = "",
-  }: ViewsetRequestParams) {
-    const url = this.constructUrl({ contentType, action, id, params, suffix });
-    return fetchJson({ url, method, body, headers });
+  /**
+   * List resources (GET without ID)
+   */
+  static async list(props: Omit<RequestConfig, "method" | "id">) {
+    return DataService.genericRequest({ ...props, method: "GET" });
   }
 
-  // Validate if URI exists in constants.api
-  private static checkAndGetUrl(uri: string): string {
-    this.validateApiAction(uri);
-    return getUrl(uri as keyof typeof constants.api);
+  /**
+   * Create resource (POST without ID)
+   */
+  static async create(props: Omit<RequestConfig, "method" | "id">) {
+    return DataService.genericRequest({ ...props, method: "POST" });
   }
 
-  // ====== Simplified CRUD Operations ======
-
-  static listView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "GET",
-      action: "list",
-      ...params,
-    });
+  /**
+   * Retrieve single resource (GET with ID)
+   */
+  static async retrieve(props: Omit<RequestConfig, "method"> & { id: string | number }) {
+    return DataService.genericRequest({ ...props, method: "GET" });
   }
 
-  static retrieveView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "GET",
-      action: "retrieve",
-      ...params,
-    });
+  /**
+   * Update resource (PATCH with ID)
+   */
+  static async update(props: Omit<RequestConfig, "method"> & { id: string | number }) {
+    return DataService.genericRequest({ ...props, method: "PATCH" });
   }
 
-  static createView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "POST",
-      action: "create",
-      ...params,
-    });
+  /**
+   * Delete resource (DELETE with ID)
+   */
+  static async delete(props: Omit<RequestConfig, "method"> & { id: string | number }) {
+    return DataService.genericRequest({ ...props, method: "DELETE" });
   }
 
-  static updateView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "PATCH",
-      action: "update",
-      ...params,
-    });
-  }
-
-  static deleteView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "DELETE",
-      action: "delete",
-      ...params,
-    });
-  }
-
-  static optionView(params: Omit<ViewsetRequestParams, "method" | "action">) {
-    return this.viewsetRequest({
-      method: "OPTIONS",
-      action: "list",
-      ...params,
-    });
+  /**
+   * Get resource options (OPTIONS)
+   */
+  static async options(props: Omit<RequestConfig, "method">) {
+    return DataService.genericRequest({ ...props, method: "OPTIONS" });
   }
 }
-
-export { DataService };

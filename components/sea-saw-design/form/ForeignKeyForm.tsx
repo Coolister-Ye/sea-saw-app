@@ -18,7 +18,7 @@ import {
   AccordionTrigger,
 } from "../accordion";
 import Table from "../table";
-import { myTableTheme } from "../table/tableTheme";
+import { myTableTheme } from "../table/theme";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/20/solid";
 
 function ForeignKeyInput({

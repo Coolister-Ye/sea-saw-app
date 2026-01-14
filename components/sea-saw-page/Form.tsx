@@ -1,11 +1,11 @@
 import View from "@/components/themed/View";
 import { Formik } from "formik";
-import { splitAndUpperCaseString, toCamelCase } from "@/utlis/commonUtils";
+import { splitAndUpperCaseString, toCamelCase } from "@/utils";
 import Button from "@/components/themed/Button";
 import Text from "@/components/themed/Text";
 import clsx from "clsx";
 import { ScrollView } from "react-native-gesture-handler";
-import { validator } from "@/utlis/validator";
+import { validator } from "@/utils/validator";
 import InputGroup, { InputGroupProps } from "./InputGroup";
 
 export type FormProps = {

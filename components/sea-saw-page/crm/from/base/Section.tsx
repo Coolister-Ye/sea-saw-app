@@ -8,12 +8,12 @@ function Section({
   title,
   children,
 }: {
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }) {
   return (
     <View className="mb-6">
-      <Text className="text-sm font-semibold mb-2">{title}</Text>
+      {title && <Text className="text-sm font-semibold mb-2">{title}</Text>}
       <View className="mb-4 border border-gray-100 rounded-lg overflow-hidden">
         {children}
       </View>

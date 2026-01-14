@@ -1,13 +1,142 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SEA-SAW TABLE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Input Fields */
 .ag-input-field-input {
-  padding: 5px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
+.ag-input-field-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+/* Cell States */
 .not-editing-cell {
   pointer-events: none;
 }
+
 .editing-cell {
   pointer-events: auto;
+  background-color: #fefce8;
 }
+
+/* Action Cell States */
 .not-editing-action-cell {
   pointer-events: none;
-  opacity: 30%;
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+.editing-action-cell {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Header Enhancements */
+.ag-header-cell {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ag-header-cell-label {
+  gap: 6px;
+}
+
+/* Row Transitions */
+.ag-row {
+  transition: background-color 0.1s ease;
+}
+
+/* Pagination */
+.ag-paging-panel {
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  gap: 16px;
+}
+
+.ag-paging-button {
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.ag-paging-button:hover:not(.ag-disabled) {
+  background-color: #f3f4f6;
+}
+
+/* Filter Panel */
+.ag-filter {
+  padding: 12px;
+}
+
+.ag-filter-body-wrapper {
+  gap: 8px;
+}
+
+/* Menu Styling */
+.ag-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.ag-menu-option {
+  padding: 8px 12px;
+  transition: background-color 0.1s ease;
+}
+
+.ag-menu-option:hover {
+  background-color: #f3f4f6;
+}
+
+/* Selection Checkbox */
+.ag-checkbox-input-wrapper {
+  border-radius: 4px;
+}
+
+.ag-checkbox-input-wrapper.ag-checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+/* Loading Overlay */
+.ag-overlay-loading-center {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 24px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* No Rows Overlay */
+.ag-overlay-no-rows-center {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Scrollbar Styling */
+.ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
+.ag-body-vertical-scroll-viewport::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+.ag-body-vertical-scroll-viewport::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

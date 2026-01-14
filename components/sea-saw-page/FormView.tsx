@@ -24,13 +24,14 @@ export default function FormView({
   onSuccess,
 }: FormViewProps) {
 
-  const { create, update, error, clearError } = useDataService();
+  const { getViewSet } = useDataService();
 
   const handleSubmit = async (formData: Record<string, any>) => {
     const id = initialData ? initialData.id : null;
-    const response = id 
-      ? await update(id, contentType, formData) 
-      : await create(contentType, formData);
+    const viewSet = getViewSet(contentType);
+    const response = id
+      ? await viewSet.update({ id, body: formData })
+      : await viewSet.create({ body: formData });
 
     if (response.status) {
       // Create or update successfully, close modal
@@ -53,12 +54,7 @@ export default function FormView({
       className="m-0"
       style={{ margin: 0, alignItems: "flex-end" }}
     >
-      <Toast
-        variant="error"
-        message={error?.message}
-        info={error?.details}
-        onClose={clearError} // Close the toast after showing it
-      />
+      {/* Error handling removed - ViewSet API throws errors that need to be caught */}
 
       <View className="h-full w-full sm:w-[550px] rounded-lg" variant="paper">
         <Form

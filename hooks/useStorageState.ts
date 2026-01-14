@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getLocalData, setLocalData } from "@/utlis/storageHelper";
+import { getLocalData, setLocalData } from "@/utils";
 
 function useStorageState<T>(key: string) {
   const [loading, setLoading] = useState(true);

@@ -1,66 +1,27 @@
 import {
   FilterModel,
   AdvancedFilterModel,
-  JoinAdvancedFilterModel,
   ValueFormatterParams,
   SortModelItem,
-  GetRowIdParams,
   ColDef,
   ColGroupDef,
   GridApi,
   RowPinnedType,
 } from "ag-grid-community";
-// import { ForeignKeyFilter } from "./ForeignKeyFilter";
 import dayjs from "dayjs";
-// import ForeignKeyEditor from "./ForeignKeyEditor";
+import type {
+  FilterType,
+  AgFilterType,
+  AgGridFilterModel,
+  FieldType,
+} from "./interface";
 
-// Filter type used in Django query
-type FilterType =
-  | "exact"
-  | "iexact"
-  | "iexact_ex"
-  | "icontains"
-  | "icontains_ex"
-  | "startswith"
-  | "istartswith"
-  | "iendswith"
-  | "isnull"
-  | "isnull_ex"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "range"
-  | "in";
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPE MAPPERS
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-// Filter types used by ag-Grid
-type AgFilterType =
-  | "equals"
-  | "notEqual"
-  | "contains"
-  | "notContains"
-  | "startsWith"
-  | "endsWith"
-  | "blank"
-  | "notBlank"
-  | "greaterThan"
-  | "greaterThanOrEqual"
-  | "lessThan"
-  | "lessThanOrEqual"
-  | "inRange"
-  | "within";
-
-// Represents a single ag-Grid filter item
-type AgGridFilterItem = {
-  filter: string;
-  type: AgFilterType;
-};
-
-// Represents all filters applied by ag-Grid (simple model)
-type AgGridFilterModel = Record<string, FilterModel>;
-
-// Mapping from field types to ag-Grid filter components
-const agFilterMap: Record<string, any> = {
+/** Maps field types to AG Grid filter components */
+const AG_FILTER_MAP: Record<string, string | false> = {
   integer: "agNumberColumnFilter",
   float: "agNumberColumnFilter",
   double: "agNumberColumnFilter",
@@ -69,12 +30,11 @@ const agFilterMap: Record<string, any> = {
   datetime: "agDateColumnFilter",
   string: "agTextColumnFilter",
   choice: "agSetColumnFilter",
-  // ["nested object"]: ForeignKeyFilter,
-  // field: ForeignKeyFilter,
+  boolean: "agSetColumnFilter",
 };
 
-// Django-to-ag-Grid filter operator mapping
-const filterOptionMapper: Record<FilterType, AgFilterType | "within"> = {
+/** Maps Django filter operations to AG Grid filter types */
+const DJANGO_TO_AG_FILTER: Record<FilterType, AgFilterType> = {
   exact: "equals",
   iexact: "equals",
   iexact_ex: "notEqual",
@@ -93,7 +53,17 @@ const filterOptionMapper: Record<FilterType, AgFilterType | "within"> = {
   in: "within",
 };
 
-const cellDataTypeMapper: Record<string, string> = {
+/** Reverse mapping: AG Grid filter types to Django operations */
+const AG_TO_DJANGO_FILTER = Object.entries(DJANGO_TO_AG_FILTER).reduce(
+  (acc, [django, ag]) => {
+    acc[ag as AgFilterType] = django as FilterType;
+    return acc;
+  },
+  {} as Record<AgFilterType, FilterType>
+);
+
+/** Maps field types to AG Grid cell data types */
+const CELL_DATA_TYPE_MAP: Record<string, string> = {
   integer: "number",
   float: "number",
   double: "number",
@@ -102,13 +72,13 @@ const cellDataTypeMapper: Record<string, string> = {
   datetime: "date",
   string: "text",
   choice: "object",
-  ["nested object"]: "object",
+  "nested object": "object",
   field: "object",
 };
 
-const cellEditorMapper: Record<string, any> = {
-  // field: ForeignKeyEditor,
-  // ["nested object"]: ForeignKeyEditor,
+/** Maps field types to AG Grid cell editors */
+const CELL_EDITOR_MAP: Record<string, string> = {
+  string: "agTextCellEditor",
   text: "agTextCellEditor",
   integer: "agNumberCellEditor",
   float: "agNumberCellEditor",
@@ -119,63 +89,78 @@ const cellEditorMapper: Record<string, any> = {
   choice: "agSelectCellEditor",
 };
 
-const formEditorMapper: Record<string, any> = {
-  // field: ForeignKeyEditor,
-  // ["nested object"]: ForeignKeyEditor,
-  text: "agTextCellEditor",
-  integer: "agNumberCellEditor",
-  float: "agNumberCellEditor",
-  double: "agNumberCellEditor",
-  decimal: "agNumberCellEditor",
-  date: "agDateCellEditor",
-  datetime: "agDateCellEditor",
-  choice: "agSelectCellEditor",
-};
+/* ═══════════════════════════════════════════════════════════════════════════
+   COLUMN UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-// ag-Grid-to-Django filter operator mapping
-const filter2paramsMapper: Record<AgFilterType, FilterType> = Object.entries(
-  filterOptionMapper
-).reduce((acc, [key, value]) => {
-  acc[value as AgFilterType] = key as FilterType;
-  return acc;
-}, {} as Record<AgFilterType, FilterType>);
-
-// Returns the ag-Grid filter component type for a given field type and allowed operations
-const getAgFilterType = (
+/** Get AG Grid filter component for a field type */
+function getAgFilterType(
   type: string,
   operations: FilterType[]
-): string | false => {
-  if (operations.length === 0 && type !== "nested object" && type !== "field")
+): string | false {
+  if (operations.length === 0 && type !== "nested object" && type !== "field") {
     return false;
-  return agFilterMap[type] || false;
-};
+  }
+  return AG_FILTER_MAP[type] ?? false;
+}
 
-// Returns ag-Grid filterParams from a list of supported operations
-const getFilterParams = (operations: FilterType[]) => {
+/** Build filter params from supported operations */
+function getFilterParams(operations: FilterType[]) {
   return {
-    filterOptions: operations.map((op) => filterOptionMapper[op]),
+    filterOptions: operations.map((op) => DJANGO_TO_AG_FILTER[op]),
     caseSensitive: false,
-    debounceMs: 1000,
+    debounceMs: 800,
     trimInput: true,
     maxNumConditions: 1,
-    buttons: ["apply", "reset"],
+    buttons: ["apply", "reset"] as const,
     closeOnApply: true,
   };
-};
+}
 
-const getCellDataType = (type: string) => {
-  return cellDataTypeMapper[type] || true;
-};
+/** Get AG Grid cell data type for a field */
+function getCellDataType(type: string): string | true {
+  return CELL_DATA_TYPE_MAP[type] ?? true;
+}
 
-const getCellEditor = (type: string) => {
-  return cellEditorMapper[type] || "agTextCellEditor";
-};
+/** Get AG Grid cell editor for a field */
+function getCellEditor(type: string): string {
+  return CELL_EDITOR_MAP[type] ?? "agTextCellEditor";
+}
 
-const filterValueMapper = (item: FilterModel): string | boolean | null => {
+/** Build value formatter for displaying field data */
+function getValueFormatter(
+  type: string,
+  displayFields: string[] = ["id"]
+): (params: ValueFormatterParams) => string {
+  const objectTypes = ["nested object", "field"];
+
+  if (objectTypes.includes(type)) {
+    return ({ value }: ValueFormatterParams) => {
+      if (!value || typeof value !== "object") return "";
+      return displayFields
+        .map((key) => value[key])
+        .filter((v) => v !== undefined && v !== null)
+        .join(", ");
+    };
+  }
+
+  return ({ value }: ValueFormatterParams) => {
+    return value !== undefined && value !== null ? String(value) : "";
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FILTER CONVERSION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Extract filter value from AG Grid filter model */
+function extractFilterValue(item: FilterModel): string | boolean | null {
   const cleanJoin = (values: (string | number | null | undefined)[]) =>
-    values.filter((v) => v !== null && v !== undefined).join(",");
+    values.filter((v) => v != null).join(",");
 
-  if (item.type === "blank" || item.type === "notBlank") return true;
+  if (item.type === "blank" || item.type === "notBlank") {
+    return true;
+  }
 
   switch (item.filterType) {
     case "text":
@@ -185,7 +170,7 @@ const filterValueMapper = (item: FilterModel): string | boolean | null => {
       }
       return item.filter != null ? String(item.filter) : null;
 
-    case "date":
+    case "date": {
       const parseDate = (d: string | undefined | null) =>
         d ? dayjs(d).format("YYYY-MM-DD") : null;
 
@@ -193,13 +178,9 @@ const filterValueMapper = (item: FilterModel): string | boolean | null => {
         return cleanJoin([parseDate(item.dateFrom), parseDate(item.dateTo)]);
       }
       return parseDate(item.dateFrom ?? item.filter ?? null);
+    }
 
     case "set":
-      if ("values" in item && Array.isArray(item.values)) {
-        return cleanJoin(item.values);
-      }
-      return null;
-
     case "object":
       if ("values" in item && Array.isArray(item.values)) {
         return cleanJoin(item.values);
@@ -207,186 +188,171 @@ const filterValueMapper = (item: FilterModel): string | boolean | null => {
       return null;
 
     default:
-      console.warn("Unsupported filter type in filterValueMapper:", item);
       return null;
   }
-};
+}
 
-// Converts a single ag-Grid filter item to a Django query param
-const filterMapper = (
+/** Convert single AG Grid filter to Django query param */
+function convertSingleFilter(
   key: string,
   item: FilterModel
-): Record<string, string | boolean> | null => {
+): Record<string, string | boolean> | null {
   const agType = item.type as AgFilterType;
-  const filterType = filter2paramsMapper[agType];
+  const djangoType = AG_TO_DJANGO_FILTER[agType];
 
-  if (!filterType) {
-    console.warn("Unknown ag-Grid filter type:", item.type);
+  if (!djangoType) {
     return null;
   }
 
-  const value = filterValueMapper(item);
+  const value = extractFilterValue(item);
   if (value == null) {
-    console.warn("Empty or unsupported filter value for:", item);
     return null;
   }
 
-  const filterKey = filterType === "iexact" ? key : `${key}__${filterType}`;
+  const filterKey = djangoType === "iexact" ? key : `${key}__${djangoType}`;
   return { [filterKey]: value };
-};
+}
 
-// Converts a simple ag-Grid filter model to Django query parameters
-const agGridFiltersToDjangoParams = (
+/** Convert simple AG Grid filter model to Django params */
+function convertSimpleFilters(
   filterModel: AgGridFilterModel
-): Record<string, string> => {
-  return Object.entries(filterModel).reduce((params, [field, item]) => {
-    const mapped = filterMapper(field, item);
-    if (mapped) {
-      Object.assign(params, mapped);
-    }
-    return params;
-  }, {} as Record<string, string>);
-};
+): Record<string, string> {
+  return Object.entries(filterModel).reduce(
+    (params, [field, item]) => {
+      const mapped = convertSingleFilter(field, item);
+      if (mapped) {
+        Object.assign(params, mapped);
+      }
+      return params;
+    },
+    {} as Record<string, string>
+  );
+}
 
-// Type guard for simple filter model
-const isSimpleFilterModel = (
-  model: FilterModel | AdvancedFilterModel
-): model is AgGridFilterModel => {
-  return model && typeof model === "object" && !("filterType" in model);
-};
-
-// Type guard for advanced filter model
-const isAdvancedFilterModel = (
-  model: FilterModel | AdvancedFilterModel
-): model is AdvancedFilterModel => {
-  return model && typeof model === "object" && "filterType" in model;
-};
-
-const parseAdvancedFilter = (
+/** Parse advanced filter model recursively */
+function parseAdvancedFilter(
   model: AdvancedFilterModel
-): Record<string, string> => {
+): Record<string, string> {
   const result: Record<string, string> = {};
 
   if (model.filterType === "join") {
     for (const sub of model.conditions) {
-      const subParams = parseAdvancedFilter(sub);
-      Object.assign(result, subParams);
+      Object.assign(result, parseAdvancedFilter(sub));
     }
   } else if ("columnId" in model) {
     const field = model.columnId;
     const agType = model.type as AgFilterType;
 
-    // Handle null/blank filters (like "isnull", "notBlank", etc.)
     if (agType === "blank" || agType === "notBlank") {
-      const djangoType = filter2paramsMapper[agType];
-      const key = `${field}__${djangoType}`;
-      result[key] = "true"; // convention for isnull=True in Django
-    }
-
-    // Handle filters with values (most common)
-    else if ("filter" in model) {
-      // Ensure `model.filter` is of type `string` (if it's not, we handle it here)
-      const value = model.filter as string; // Add `as string` here to resolve the issue
-      const djangoType = filter2paramsMapper[agType];
+      const djangoType = AG_TO_DJANGO_FILTER[agType];
+      result[`${field}__${djangoType}`] = "true";
+    } else if ("filter" in model) {
+      const djangoType = AG_TO_DJANGO_FILTER[agType];
       if (djangoType) {
-        const key = djangoType === "iexact" ? field : `${field}__${djangoType}`;
-        result[key as string] = value;
+        const key =
+          djangoType === "iexact" ? field : `${field}__${djangoType}`;
+        result[key] = String(model.filter);
       }
-    }
-
-    // You can also add more "range" / "inRange" support here
-    else {
-      console.warn("Unsupported filter item:", model);
     }
   }
 
   return result;
-};
+}
 
-// Unified converter that handles both simple and advanced filter models
-const convertAgGridFilterToDjangoParams = (
+/** Type guard for simple filter model */
+function isSimpleFilterModel(
+  model: FilterModel | AdvancedFilterModel
+): model is AgGridFilterModel {
+  return model && typeof model === "object" && !("filterType" in model);
+}
+
+/** Type guard for advanced filter model */
+function isAdvancedFilterModel(
+  model: FilterModel | AdvancedFilterModel
+): model is AdvancedFilterModel {
+  return model && typeof model === "object" && "filterType" in model;
+}
+
+/** Convert any AG Grid filter model to Django query params */
+function convertAgGridFilterToDjangoParams(
   model: FilterModel | AdvancedFilterModel | null
-): Record<string, string> => {
+): Record<string, string> {
   if (!model) {
     return {};
-  } else if (isSimpleFilterModel(model)) {
-    return agGridFiltersToDjangoParams(model);
-  } else if (isAdvancedFilterModel(model)) {
+  }
+  if (isSimpleFilterModel(model)) {
+    return convertSimpleFilters(model);
+  }
+  if (isAdvancedFilterModel(model)) {
     return parseAdvancedFilter(model);
   }
   return {};
-};
+}
 
-const convertAgGridSorterToDjangoParams = (
+/** Convert AG Grid sort model to Django ordering param */
+function convertAgGridSorterToDjangoParams(
   sortModel: SortModelItem[]
-): Record<string, string> => {
+): Record<string, string> {
   const ordering = sortModel
     .map(({ colId, sort }) => (sort === "asc" ? colId : `-${colId}`))
     .join(",");
 
   return ordering ? { ordering } : {};
-};
+}
 
-const getValueFormatter = (type: string, displayFields: string[] = ["id"]) => {
-  const objectFormatter = ({ value }: ValueFormatterParams) => {
-    if (!value || typeof value !== "object") return "";
-    return displayFields
-      .map((key) => value[key])
-      .filter((v) => v !== undefined && v !== null) // 保留 0 等 falsy 有意义的值
-      .join(", ");
-  };
+/* ═══════════════════════════════════════════════════════════════════════════
+   GRID UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-  const defaultFormatter = (params: ValueFormatterParams) => {
-    const value = params.value;
-    return value !== undefined && value !== null ? value.toString() : "";
-  };
-
-  const objectTypes = ["nested object", "field"];
-
-  return objectTypes.includes(type) ? objectFormatter : defaultFormatter;
-};
-
+/** Type guard for ColDef */
 function isColDef(
   col: ColDef<any, any> | ColGroupDef<any>
 ): col is ColDef<any, any> {
   return !("children" in col);
 }
 
+/** Focus and start editing the first editable cell in a row */
 function focusFirstEditableCol(
   api: GridApi,
   rowIndex: number,
   rowPinned?: RowPinnedType
 ) {
   const columnDefs = api.getColumnDefs() ?? [];
-  const firstEditableCol = columnDefs.find(
+  const editableCol = columnDefs.find(
     (col) => isColDef(col) && col.editable !== false && !!col.field
   );
-  if (firstEditableCol && isColDef(firstEditableCol)) {
-    api.setFocusedCell(rowIndex, firstEditableCol.field!, rowPinned);
+
+  if (editableCol && isColDef(editableCol) && editableCol.field) {
+    api.setFocusedCell(rowIndex, editableCol.field, rowPinned);
     api.startEditingCell({
       rowIndex,
-      colKey: firstEditableCol.field!,
+      colKey: editableCol.field,
       rowPinned,
     });
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPORTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 export {
-  FilterType,
-  AgFilterType,
-  AgGridFilterItem,
-  AgGridFilterModel,
+  // Type mappers (for advanced use cases)
+  AG_FILTER_MAP,
+  DJANGO_TO_AG_FILTER,
+  AG_TO_DJANGO_FILTER,
+  CELL_DATA_TYPE_MAP,
+  CELL_EDITOR_MAP,
+  // Column utilities
   getAgFilterType,
   getFilterParams,
   getCellDataType,
   getCellEditor,
   getValueFormatter,
-  agGridFiltersToDjangoParams,
+  // Filter conversion
   convertAgGridFilterToDjangoParams,
   convertAgGridSorterToDjangoParams,
-  filterMapper,
-  filterOptionMapper,
-  filter2paramsMapper,
+  // Grid utilities
+  isColDef,
   focusFirstEditableCol,
-  formEditorMapper,
 };

@@ -1,98 +1,243 @@
-import { Table } from "@/components/table/AntdTable";
-import { EllipsisTooltip } from "@/components/table/EllipsisTooltip";
-import { Progress, Tag } from "antd";
-import React from "react";
-import { View, Text } from "react-native";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import "@/css/tableStyle.css";
+import { View, ActivityIndicator } from "react-native";
 
-function ProgressQuantityCell({ val, record }: { val: any; record: any }) {
-  const { ["products.quantity"]: quantity } = record;
-  const progress = (val / quantity) * 100;
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
+import { useLocale } from "@/context/Locale";
+import useDataService from "@/hooks/useDataService";
+import { FormDef } from "@/hooks/useFormDefs";
+import { normalizeBoolean } from "@/utils";
+
+import { Text } from "@/components/ui/text";
+import Table from "@/components/sea-saw-design/table";
+import { myTableTheme } from "@/components/sea-saw-design/table/theme";
+
+import { ProductionOrderInput } from "@/components/sea-saw-page/crm/from/input/production";
+import {
+  ProductionOrderDisplay,
+  ProductionItemsCell,
+} from "@/components/sea-saw-page/crm/from/display/production";
+import { OrderPopover } from "@/components/sea-saw-page/crm/from/display/order";
+import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
+import { stripIdsDeep } from "@/utils";
+import ProductionStatusRender from "@/components/sea-saw-page/crm/table/render/ProductionStatusRender";
+import AttachmentsRender from "@/components/sea-saw-page/crm/table/render/AttachmentsRender";
+
+function buildCopyBase(productionOrder: any) {
+  if (!productionOrder) return null;
+  const { id, pk, production_code, created_at, updated_at, ...rest } =
+    productionOrder;
+  return stripIdsDeep(rest);
+}
+
+/* ========================
+ * Component
+ * ======================== */
+
+export default function ProductionScreen() {
+  const { i18n } = useLocale();
+  const { getViewSet } = useDataService();
+  const productionOrderViewSet = useMemo(
+    () => getViewSet("productionOrder"),
+    [getViewSet]
+  );
+
+  const tableRef = useRef<any>(null);
+  const gridApiRef = useRef<any>(null);
+
+  /* ================= UI State ================= */
+  const [isEditOpen, setEditOpen] = useState(false);
+  const [isViewOpen, setViewOpen] = useState(false);
+  const [viewRow, setViewRow] = useState<any>(null);
+  const [editData, setEditData] = useState<any>(null);
+  const [copyDisabled, setCopyDisabled] = useState(true);
+  const [loadingMeta, setLoadingMeta] = useState(false);
+  const [metaError, setMetaError] = useState<string | null>(null);
+
+  /* ================= Meta ================= */
+  const [headerMeta, setHeaderMeta] = useState<Record<string, HeaderMetaProps>>(
+    {}
+  );
+
+  /* ================= Form Def ================= */
+  const formDefs = useMemo<FormDef[]>(
+    () =>
+      Object.entries(headerMeta).map(([field, meta]) => ({
+        field,
+        ...meta,
+        read_only: normalizeBoolean(meta.read_only),
+      })),
+    [headerMeta]
+  );
+
+  /* ================= Column Renderers ================= */
+  const colRenderers = useMemo(
+    () => ({
+      status: { cellRenderer: ProductionStatusRender },
+      related_order: {
+        cellRenderer: (params: any) => {
+          return <OrderPopover value={params.value} />;
+        },
+      },
+      production_items: {
+        cellRenderer: (params: any) => {
+          return <ProductionItemsCell value={params.value} />;
+        },
+      },
+      attachments: { cellRenderer: AttachmentsRender },
+    }),
+    []
+  );
+
+  /* ================= Fetch Meta ================= */
+  const fetchHeaderMeta = useCallback(async () => {
+    setLoadingMeta(true);
+    setMetaError(null);
+    try {
+      const res = await productionOrderViewSet.options();
+      setHeaderMeta(res?.actions?.POST ?? {});
+    } catch (err: any) {
+      console.error("Failed to load Production Order Meta:", err);
+      setMetaError(err?.message || i18n.t("Failed to load metadata"));
+    } finally {
+      setLoadingMeta(false);
+    }
+  }, [productionOrderViewSet, i18n]);
+
+  useEffect(() => {
+    fetchHeaderMeta();
+  }, [fetchHeaderMeta]);
+
+  /* ================= Actions ================= */
+  const openCreate = () => {
+    setEditData(null);
+    setEditOpen(true);
+  };
+
+  const openView = (row: any) => {
+    setViewRow(row);
+    setViewOpen(true);
+  };
+
+  const openCopy = () => {
+    const node = gridApiRef.current?.getSelectedNodes?.()[0];
+    if (!node?.data) return;
+
+    setEditData(buildCopyBase(node.data));
+    setEditOpen(true);
+  };
+
+  /* ================= Close ================= */
+  const closeView = () => {
+    setViewOpen(false);
+    setViewRow(null);
+  };
+
+  const closeEdit = (res?: any) => {
+    setEditOpen(false);
+    setEditData(null);
+
+    if (res?.data) setViewRow(res.data);
+  };
+
+  /* ================= Success ================= */
+  const handleCreateSuccess = (res?: any) => {
+    if (!res?.status) return;
+
+    tableRef.current?.api?.refreshServerSide();
+    setViewRow(res.data);
+  };
+
+  const handleUpdateSuccess = (res?: any) => {
+    const api = tableRef.current?.api;
+    if (!api) return;
+
+    const updated = res;
+    const node = api.getRowNode(String(updated.id));
+
+    setViewRow(updated);
+
+    if (node) {
+      node.updateData(updated);
+      api.ensureNodeVisible(node, "middle");
+    } else {
+      api.refreshServerSide({ route: [], purge: false });
+    }
+  };
+
+  /* ================= Loading ================= */
+  if (loadingMeta) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (metaError) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-red-500">{metaError}</Text>
+      </View>
+    );
+  }
+
+  /* ================= Render ================= */
   return (
-    <View className="flex flex-row items-center justify-between">
-      <EllipsisTooltip title={val}>
-        <Text className="text-xs">{val}</Text>
-      </EllipsisTooltip>
-      <Progress type="circle" percent={progress} size={20} format={(precent) => `${precent?.toFixed(2)}%`}/>
+    <View className="flex-1 bg-white">
+      {/* Top Actions */}
+      <View className="flex-row justify-end gap-1 p-1 py-1.5">
+        <ActionDropdown
+          openCreate={openCreate}
+          openCopy={openCopy}
+          copyDisabled={copyDisabled}
+        />
+      </View>
+
+      {/* Create / Copy Drawer */}
+      <ProductionOrderInput
+        mode="standalone"
+        isOpen={isEditOpen}
+        def={formDefs}
+        data={editData}
+        onClose={closeEdit}
+        onCreate={handleCreateSuccess}
+        onUpdate={handleUpdateSuccess}
+      />
+
+      {/* View Drawer */}
+      <ProductionOrderDisplay
+        isOpen={isViewOpen}
+        def={formDefs}
+        data={viewRow}
+        onClose={closeView}
+        onUpdate={handleUpdateSuccess}
+      />
+
+      {/* Table */}
+      <Table
+        ref={tableRef}
+        table="productionOrder"
+        headerMeta={headerMeta}
+        colDefinitions={colRenderers}
+        theme={myTableTheme}
+        context={{ meta: headerMeta }}
+        rowSelection={{ mode: "singleRow" }}
+        onRowClicked={(e) => openView(e.data)}
+        onGridReady={(params) => {
+          gridApiRef.current = params.api;
+        }}
+        onSelectionChanged={(e) => {
+          const selected = e.api.getSelectedNodes();
+          setCopyDisabled(selected.length === 0);
+        }}
+      />
     </View>
-  );
-}
-
-type OrderStage =
-  | "生产中"
-  | "已完成生产"
-  | "运输中"
-  | "支付中"
-  | "完成"
-  | "已取消"
-  | "延迟中"
-  | "问题单";
-function OrderStageCell({ val }: { val: OrderStage }) {
-  const colorMap = {
-    生产中: "blue",
-    已完成生产: "green",
-    运输中: "orange",
-    支付中: "yellow",
-    完成: "green",
-    已取消: "#ff4d4f",
-    延迟中: "orange",
-    问题单: "red",
-  };
-
-  return (
-    <EllipsisTooltip title={val}>
-      {val ? <Tag color={colorMap[val] || ""}>{val}</Tag> : ""}
-    </EllipsisTooltip>
-  );
-}
-
-export default function OrderScreen() {
-  const colConfig = {
-    pk: { width: 30 },
-    order_code: { width: 150 },
-    destination_port: { width: 150 },
-    owner: { hidden: true }, // Hide the owner column
-    created_at: { hidden: true }, // Hide the created_at column
-    updated_at: { hidden: true }, // Hide the updated_at column
-    created_by: { hidden: true },
-    updated_by: { hidden: true },
-    stage: {
-      width: 100,
-      render: (text: any) => <OrderStageCell val={text} />,
-    },
-    "products.pk": { hidden: true, width: 30 },
-    "products.price": { variant: "currency" },
-    "products.total_price": { variant: "currency" },
-    "products.progress_quantity": {
-      width: 120,
-      render: (text: any, record: any) => (
-        <ProgressQuantityCell val={text} record={record} />
-      ),
-    },
-  };
-
-  const fixedCols = {
-    left: ["order_code"], // Fix the contract code column on the left
-  };
-
-  const formula = {
-    "products.progress_weight": (inputs: Record<string, any>) => {
-      let quantity = parseFloat(inputs["products.progress_quantity"]);
-      let weight = parseFloat(inputs["products.weight"]);
-      if (isNaN(quantity) || isNaN(weight)) {
-        return null;
-      }
-      return quantity * weight;
-    },
-  };
-
-  return (
-    <Table
-      table="order"
-      fixedCols={fixedCols}
-      colConfig={colConfig}
-      formula={formula}
-      actionConfig={{ allowAdd: false, allowDelete: false, allowCreate: false }}
-      ordering="-created_at"
-    />
   );
 }

@@ -1,10 +1,13 @@
 // 文件路径：@/hooks/useFormDefs.ts
 import { useState, useEffect, useCallback } from "react";
 import useDataService from "@/hooks/useDataService";
-import { HeaderMetaProps } from "@/components/sea-saw-design/form/interface";
-import { normalizeBoolean } from "@/utlis/commonUtils";
+import type {
+  HeaderMetaProps,
+  FormDef,
+} from "@/components/sea-saw-design/form/interface";
+import { normalizeBoolean } from "@/utils";
 
-export type FormDef = HeaderMetaProps & { field: string; read_only?: boolean };
+export type { FormDef };
 
 interface UseFormDefsProps {
   table?: string;
@@ -12,7 +15,7 @@ interface UseFormDefsProps {
 }
 
 export function useFormDefs({ table, def }: UseFormDefsProps) {
-  const { options } = useDataService();
+  const { getViewSet } = useDataService();
   const [formDefs, setFormDefs] = useState<FormDef[]>([]);
 
   /** -----------------------------
@@ -35,7 +38,8 @@ export function useFormDefs({ table, def }: UseFormDefsProps) {
   const fetchFormDefsFromNetwork = useCallback(async () => {
     if (!table) return [];
     try {
-      const response = await options({ contentType: table });
+      const viewSet = getViewSet(table);
+      const response = await viewSet.options();
       if (!response.status) return [];
       const meta: Record<string, HeaderMetaProps> =
         response.data.actions?.POST ?? {};
@@ -44,7 +48,7 @@ export function useFormDefs({ table, def }: UseFormDefsProps) {
       console.error("Error fetching form definitions:", error);
       return [];
     }
-  }, [options, table, getFormDefFromHeaderMeta]);
+  }, [getViewSet, table, getFormDefFromHeaderMeta]);
 
   /** -----------------------------
    * 从本地 def 获取字段定义

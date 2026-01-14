@@ -1,30 +1,38 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import {
-  type IAfterGuiAttachedParams,
-  type IDoesFilterPassParams,
-  type RowSelectionOptions,
-} from "ag-grid-community";
-import type { CustomFilterProps } from "ag-grid-react";
-import { useGridFilter, AgGridReact } from "ag-grid-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View, TouchableWithoutFeedback } from "react-native";
-import Table from ".";
 import { Portal } from "@gorhom/portal";
+import {
+  IAfterGuiAttachedParams,
+  IDoesFilterPassParams,
+  RowSelectionOptions,
+} from "ag-grid-community";
+import { useGridFilter, AgGridReact, CustomFilterProps } from "ag-grid-react";
+
 import { useLocale } from "@/context/Locale";
-import { myTableTheme } from "./tableTheme";
+import Table from "./index";
+import { seaSawTableTheme } from "./theme";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOREIGN KEY FILTER
+   Custom AG Grid filter for selecting related records
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+type ForeignKeyFilterProps = CustomFilterProps & {
+  table?: string;
+};
 
 function ForeignKeyFilter({
   model,
   onModelChange,
   getValue,
-}: CustomFilterProps) {
+  table = "company",
+}: ForeignKeyFilterProps) {
   const gridRef = useRef<AgGridReact>(null);
   const { i18n } = useLocale();
   const [isOpen, setIsOpen] = useState(true);
 
   const rowSelection = useMemo<RowSelectionOptions>(
-    () => ({
-      mode: "multiRow",
-    }),
+    () => ({ mode: "multiRow" }),
     []
   );
 
@@ -32,8 +40,12 @@ function ForeignKeyFilter({
     (params: IDoesFilterPassParams) => {
       const { node } = params;
       const filterText = model?.toLowerCase() ?? "";
-      const value = getValue(node).map(({ pk, id }: any) => pk || id);
-      return filterText.split(" ").every((word: any) => value.includes(word));
+      const value = getValue(node).map(
+        ({ pk, id }: { pk?: string; id?: string }) => pk || id
+      );
+      return filterText
+        .split(" ")
+        .every((word: string) => value.includes(word));
     },
     [model, getValue]
   );
@@ -53,7 +65,7 @@ function ForeignKeyFilter({
     const gridApi = gridRef.current?.api;
     if (!gridApi) return;
 
-    const selectedRows = gridApi.getSelectedRows() || [];
+    const selectedRows = gridApi.getSelectedRows() ?? [];
     const selectedIds = selectedRows
       .map((row: Record<string, any>) => row.id ?? row.pk)
       .filter(Boolean);
@@ -73,9 +85,9 @@ function ForeignKeyFilter({
 
   const handleReset = () => {
     const gridApi = gridRef.current?.api;
-    if (!gridApi) return;
-
-    gridApi.deselectAll();
+    if (gridApi) {
+      gridApi.deselectAll();
+    }
     onModelChange(null);
     setIsOpen(false);
   };
@@ -84,56 +96,63 @@ function ForeignKeyFilter({
     setIsOpen(false);
   };
 
-  const MemoizedTable = useMemo(() => {
-    return (
-      <Table
-        table="company"
-        ref={gridRef}
-        rowSelection={rowSelection}
-        theme={myTableTheme}
-      />
-    );
-  }, []);
-
   return (
     <View className="flex-1 p-4">
-      <Text className="text-xl font-semibold mb-4">Filter</Text>
+      <Text className="text-lg font-semibold mb-4 text-gray-900">
+        {i18n.t("Filter")}
+      </Text>
+
       <Portal>
-        <View
-          className="relative"
-          style={{ display: isOpen ? "flex" : "none" }}
-        >
+        {isOpen && (
           <TouchableWithoutFeedback onPress={handleCancel}>
-            <View className="fixed top-0 bottom-0 left-0 bg-black/50 justify-center items-center h-screen w-screen p-10">
-              <Pressable className="flex-1 bg-white w-full rounded-lg">
-                <View className="flex-1 rounded-lg shadow-xl p-3">
-                  {MemoizedTable}
-                  <View className="py-1 flex-row">
+            <View className="absolute inset-0 bg-black/50 justify-center items-center p-6">
+              <TouchableWithoutFeedback>
+                <View className="flex-1 bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[80vh]">
+                  {/* Header */}
+                  <View className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <Text className="text-lg font-semibold text-gray-900">
+                      {i18n.t("Select Records")}
+                    </Text>
+                  </View>
+
+                  {/* Table */}
+                  <View className="flex-1 p-4">
+                    <Table
+                      table={table}
+                      ref={gridRef}
+                      rowSelection={rowSelection}
+                      theme={seaSawTableTheme}
+                    />
+                  </View>
+
+                  {/* Footer */}
+                  <View className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex-row justify-end gap-3">
                     <Pressable
-                      className="bg-blue-500 rounded-md py-2 px-6 mt-4 items-center flex-1 mx-1"
-                      onPress={handleConfirm}
+                      className="px-5 py-2.5 rounded-lg bg-gray-200 hover:bg-gray-300 active:bg-gray-400"
+                      onPress={handleReset}
                     >
-                      <Text className="text-white font-bold text-base">
-                        {i18n.t("apply")}
+                      <Text className="font-medium text-gray-700">
+                        {i18n.t("Reset")}
                       </Text>
                     </Pressable>
                     <Pressable
-                      className="bg-gray-300 rounded-md py-2 px-6 mt-4 items-center flex-1 mx-1"
-                      onPress={handleReset}
+                      className="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700"
+                      onPress={handleConfirm}
                     >
-                      <Text className="font-bold text-base">
-                        {i18n.t("reset")}
+                      <Text className="font-medium text-white">
+                        {i18n.t("Apply")}
                       </Text>
                     </Pressable>
                   </View>
                 </View>
-              </Pressable>
+              </TouchableWithoutFeedback>
             </View>
           </TouchableWithoutFeedback>
-        </View>
+        )}
       </Portal>
     </View>
   );
 }
 
 export { ForeignKeyFilter };
+export type { ForeignKeyFilterProps };

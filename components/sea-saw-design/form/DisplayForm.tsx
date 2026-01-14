@@ -4,9 +4,7 @@ import dayjs from "dayjs";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
 import { Button } from "@/components/ui/button";
 import { PencilSquareIcon } from "react-native-heroicons/outline";
-import { on } from "events";
-
-const DATE_TYPES = ["date", "datetime"];
+import FileDisplay from "./FileDisplay";
 
 interface DisplayFormProps {
   table?: string;
@@ -57,10 +55,22 @@ function DisplayForm({
       return "-";
     }
 
-    // 日期
-    if (DATE_TYPES.includes(def.type)) {
+    // 文件类型
+    if (def.type === "file upload") {
+      return <FileDisplay value={value} />;
+    }
+
+    // 日期时间类型
+    if (def.type === "datetime") {
       return dayjs(value).isValid()
-        ? dayjs(value).format("YYYY-MM-DD HH:mm")
+        ? dayjs(value).format("YYYY-MM-DD HH:mm:ss")
+        : String(value);
+    }
+
+    // 仅日期类型
+    if (def.type === "date") {
+      return dayjs(value).isValid()
+        ? dayjs(value).format("YYYY-MM-DD")
         : String(value);
     }
 
@@ -91,23 +101,30 @@ function DisplayForm({
 
       {/* 表单模块 */}
       <View className="flex-row flex-wrap justify-between">
-        {formDefs.map((def) => (
-          <View
-            key={def.field}
-            className={clsx("mb-3", getFieldWidthClass(def))}
-          >
-            <Text className="text-gray-500 text-xs mb-1">{def.label}</Text>
+        {formDefs.map((def) => {
+          // Skip hidden fields
+          if (config?.[def.field]?.hidden) {
+            return null;
+          }
 
-            <Text
-              className={clsx(
-                "text-gray-900 text-sm font-medium",
-                "break-words"
-              )}
+          return (
+            <View
+              key={def.field}
+              className={clsx("mb-3", getFieldWidthClass(def))}
             >
-              {renderValue(data?.[def.field], def)}
-            </Text>
-          </View>
-        ))}
+              <Text className="text-gray-500 text-xs mb-1">{def.label}</Text>
+
+              <Text
+                className={clsx(
+                  "text-gray-900 text-sm font-medium",
+                  "break-words"
+                )}
+              >
+                {renderValue(data?.[def.field], def)}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );

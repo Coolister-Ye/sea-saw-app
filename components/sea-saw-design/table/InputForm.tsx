@@ -12,7 +12,7 @@ type FormDef = HeaderMetaProps & {
 function InputForm({ table, headerMeta }: InputFormProps) {
   const [formDefs, setFormDefs] = useState<FormDef[]>([]);
   const [form] = Form.useForm();
-  const { options } = useDataService();
+  const { getViewSet } = useDataService();
   const NUMERICAL_TYPES = ["integer", "float", "double", "decimal"];
   const DATE_TYPES = ["date", "datetime"];
 
@@ -38,7 +38,8 @@ function InputForm({ table, headerMeta }: InputFormProps) {
 
   const fetchFormDefsFromNetwork = useCallback(async () => {
     try {
-      const response = await options({ contentType: table });
+      const viewSet = getViewSet(table);
+      const response = await viewSet.options();
       if (!response.status) return [];
 
       const headerMeta: Record<string, HeaderMetaProps> =
@@ -48,7 +49,7 @@ function InputForm({ table, headerMeta }: InputFormProps) {
       console.error("Error fetching column definitions:", error);
       return [];
     }
-  }, [options, table]);
+  }, [getViewSet, table]);
 
   const fetchFormDefsFromLocal = useCallback(() => {
     function isHeaderMetaProps(obj: any): obj is HeaderMetaProps {

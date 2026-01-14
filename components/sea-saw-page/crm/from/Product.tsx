@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
@@ -25,17 +25,18 @@ function ProductInput({ def, value = [], onChange }: ProductProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [list, setList] = useState<any[]>(value);
   const [gridApi, setGridApi] = useState<any>(null);
-  const prevValueRef = useRef<any[]>([]);
   const [form] = Form.useForm();
 
   /** 当外部 value 更新时同步内部 list */
   useEffect(() => {
-    // 如果 value 内容相同，不更新
-    if (JSON.stringify(prevValueRef.current) === JSON.stringify(value)) return;
+    if (!isOpen) return;
 
-    prevValueRef.current = value;
-    setList(value);
-  }, [value]);
+    form.resetFields();
+
+    if (editingIndex !== null && list[editingIndex]) {
+      form.setFieldsValue(list[editingIndex]);
+    }
+  }, [isOpen, editingIndex, list, form]);
 
   /** 工具：获取当前选中行 index */
   const getSelectedIndex = useCallback(() => {
@@ -45,13 +46,11 @@ function ProductInput({ def, value = [], onChange }: ProductProps) {
 
   /** 通用打开 Drawer：用于新增或编辑 */
   const openDrawer = useCallback(
-    (index: number | null = null, data: any = null) => {
+    (index: number | null = null) => {
       setEditingIndex(index);
-      form.resetFields();
-      if (data) form.setFieldsValue(data);
       setIsOpen(true);
     },
-    [form]
+    []
   );
 
   const closeDrawer = useCallback(() => {

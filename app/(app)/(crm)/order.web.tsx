@@ -12,40 +12,25 @@ import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { FormDef } from "@/hooks/useFormDefs";
-import { normalizeBoolean } from "@/utlis/commonUtils";
+import { normalizeBoolean } from "@/utils";
 
 import { Text } from "@/components/ui/text";
 import Table from "@/components/sea-saw-design/table";
-import { myTableTheme } from "@/components/sea-saw-design/table/tableTheme";
+import { theme } from "@/components/sea-saw-design/table/theme";
 
 import ContactRender from "@/components/sea-saw-page/crm/table/render/ContactRender";
 import OrderItemsRender from "@/components/sea-saw-page/crm/table/render/OrderItemsRender";
 import ProductionOrderRender from "@/components/sea-saw-page/crm/table/render/ProductionOrderRender";
+import PurchaseOrderRender from "@/components/sea-saw-page/crm/table/render/PurchaseOrderRender";
 import OutboundOrdersRender from "@/components/sea-saw-page/crm/table/render/OutboundOrdersRender";
 import PaymentsRender from "@/components/sea-saw-page/crm/table/render/PaymentsRender";
+import AttachmentsRender from "@/components/sea-saw-page/crm/table/render/AttachmentsRender";
 
-import OrderInput from "@/components/sea-saw-page/crm/from/input/OrderInput";
-import OrderDisplay from "@/components/sea-saw-page/crm/from/display/OrderDisplay";
+import { OrderInput } from "@/components/sea-saw-page/crm/from/input/order";
+import { OrderDisplay } from "@/components/sea-saw-page/crm/from/display/order";
 import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
 import OrderStatusRender from "@/components/sea-saw-page/crm/table/render/OrderStatusRender";
-
-/* ========================
- * Utils
- * ======================== */
-
-/** 深度移除 id / pk（用于 copy -> create） */
-function stripIdsDeep(value: any): any {
-  if (Array.isArray(value)) return value.map(stripIdsDeep);
-  if (value && typeof value === "object") {
-    const result: any = {};
-    Object.entries(value).forEach(([key, val]) => {
-      if (key === "id" || key === "pk") return;
-      result[key] = stripIdsDeep(val);
-    });
-    return result;
-  }
-  return value;
-}
+import { stripIdsDeep } from "@/utils";
 
 function buildCopyBase(order: any) {
   if (!order) return null;
@@ -55,6 +40,7 @@ function buildCopyBase(order: any) {
     created_at,
     updated_at,
     production_orders,
+    purchase_orders,
     outbound_orders,
     payments,
     ...rest
@@ -68,7 +54,8 @@ function buildCopyBase(order: any) {
 
 export default function OrderScreen() {
   const { i18n } = useLocale();
-  const { options } = useDataService();
+  const { getViewSet } = useDataService();
+  const orderViewSet = useMemo(() => getViewSet("order"), [getViewSet]);
 
   const tableRef = useRef<any>(null);
   const gridApiRef = useRef<any>(null);
@@ -105,11 +92,16 @@ export default function OrderScreen() {
     return {
       base: formDefs.filter(
         (d) =>
-          !["production_orders", "outbound_orders", "payments"].includes(
-            d.field
-          )
+          ![
+            "production_orders",
+            "purchase_orders",
+            "outbound_orders",
+            "payments",
+            "allowed_actions",
+          ].includes(d.field)
       ),
       productionOrders: pick("production_orders"),
+      purchaseOrders: pick("purchase_orders"),
       outboundOrders: pick("outbound_orders"),
       payments: pick("payments"),
     };
@@ -119,10 +111,13 @@ export default function OrderScreen() {
   const colRenderers = useMemo(
     () => ({
       contact: { cellRenderer: ContactRender },
+      contact_id: { hide: true }, // Hidden - only used for write operations
       order_items: { cellRenderer: OrderItemsRender },
       production_orders: { cellRenderer: ProductionOrderRender },
+      purchase_orders: { cellRenderer: PurchaseOrderRender },
       outbound_orders: { cellRenderer: OutboundOrdersRender },
       payments: { cellRenderer: PaymentsRender },
+      attachments: { cellRenderer: AttachmentsRender },
       status: { cellRenderer: OrderStatusRender },
     }),
     []
@@ -133,15 +128,20 @@ export default function OrderScreen() {
     setLoadingMeta(true);
     setMetaError(null);
     try {
-      const res = await options({ contentType: "order" });
-      setHeaderMeta(res?.actions?.POST ?? {});
+      const res = await orderViewSet.options();
+      const meta = res?.actions?.POST ?? {};
+
+      // 过滤掉 allowed_actions，它是元数据不需要在表格中显示
+      const { allowed_actions, ...filteredMeta } = meta;
+
+      setHeaderMeta(filteredMeta);
     } catch (err: any) {
       console.error("加载 Order Meta 失败:", err);
       setMetaError(err?.message || i18n.t("Failed to load metadata"));
     } finally {
       setLoadingMeta(false);
     }
-  }, [options, i18n]);
+  }, [orderViewSet, i18n]);
 
   useEffect(() => {
     fetchHeaderMeta();
@@ -181,6 +181,7 @@ export default function OrderScreen() {
 
   /* ================= Success ================= */
   const handleCreateSuccess = (res?: any) => {
+    console.log("handleCreateSuccess", res);
     if (!res?.status) return;
 
     tableRef.current?.api?.refreshServerSide();
@@ -188,13 +189,16 @@ export default function OrderScreen() {
   };
 
   const handleUpdateSuccess = (res?: any) => {
+    const updated = res;
+
+    // Always update the view row to ensure OrderDisplay shows latest data
+    setViewRow(updated);
+
+    // Update table if API is available
     const api = tableRef.current?.api;
     if (!api) return;
 
-    const updated = res;
     const node = api.getRowNode(String(updated.id));
-
-    setViewRow(updated);
 
     if (node) {
       node.updateData(updated);
@@ -249,6 +253,7 @@ export default function OrderScreen() {
         def={formDefs}
         data={viewRow}
         onClose={closeView}
+        onCreate={handleCreateSuccess}
         onUpdate={handleUpdateSuccess}
       />
 
@@ -257,7 +262,7 @@ export default function OrderScreen() {
         ref={tableRef}
         table="order"
         headerMeta={headerMeta}
-        theme={myTableTheme}
+        theme={theme}
         colDefinitions={colRenderers}
         context={{ meta: headerMeta }}
         rowSelection={{ mode: "singleRow" }}

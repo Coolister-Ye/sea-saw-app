@@ -34,7 +34,8 @@ export default function Contract({
   const { showToast } = useToast();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const { create, update } = useDataService();
+  const { getViewSet } = useDataService();
+  const contractViewSet = useMemo(() => getViewSet("contract"), [getViewSet]);
 
   /** 配置模块渲染器 */
   const config = useMemo(
@@ -63,10 +64,10 @@ export default function Contract({
 
       let res;
       if (id) {
-        res = await update({ contentType: "contract", id, body: payload });
+        res = await contractViewSet.update({ id, body: payload });
         onUpdate?.(res);
       } else {
-        res = await create({ contentType: "contract", body: payload });
+        res = await contractViewSet.create({ body: payload });
         onCreate?.(res);
       }
 

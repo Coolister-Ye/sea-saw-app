@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
 import { UserIcon } from "react-native-heroicons/outline";
@@ -28,7 +28,8 @@ export default function ContactInput({
   multiple = false,
 }: ContactInputProps) {
   const { i18n } = useLocale();
-  const { list } = useDataService();
+  const { getViewSet } = useDataService();
+  const contactViewSet = useMemo(() => getViewSet("contact"), [getViewSet]);
   const [isOpen, setIsOpen] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
@@ -46,8 +47,7 @@ export default function ContactInput({
     async (keyword?: string) => {
       setLoading(true);
       try {
-        const response = await list({
-          contentType: entityType,
+        const response = await contactViewSet.list({
           params: { page: 1, page_size: 20, search: keyword || "" },
         });
         const results: Contact[] = response.data.results.map((item: any) => ({
@@ -60,7 +60,7 @@ export default function ContactInput({
         setLoading(false);
       }
     },
-    [list]
+    [contactViewSet]
   );
 
   useEffect(() => {

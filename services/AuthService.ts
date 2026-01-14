@@ -1,9 +1,9 @@
-import { fetchJson, getUrl } from "@/utlis/webHelper";
+import { fetchJson, getUrl } from "@/utils";
 import {
   getLocalData,
   setLocalData,
   removeLocalData,
-} from "@/utlis/storageHelper";
+} from "@/utils";
 
 // 自定义认证错误
 class AuthError extends Error {

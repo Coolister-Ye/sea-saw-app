@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Transfer, Table } from "antd";
 import type { TableColumnsType, TransferProps } from "antd";
 import type { TableRowSelection } from "antd/es/table/interface";
@@ -40,14 +40,14 @@ function TableTransfer<T extends Record<string, any>>({
   });
   const [dataSource, setDataSource] = useState<T[]>([]);
   const [totalDataSource, setTotalDataSource] = useState<T[]>([]);
-  const { list } = useDataService();
+  const { getViewSet } = useDataService();
+  const viewSet = useMemo(() => getViewSet(entityType), [getViewSet, entityType]);
 
   /** fetchData 接收可选分页参数 */
   const fetchData = async (pager = pagination) => {
     setLoading(true);
     try {
-      const response = await list({
-        contentType: entityType,
+      const response = await viewSet.list({
         params: pagerToUrlParams(pager),
       });
       setDataSource(response.data.results);

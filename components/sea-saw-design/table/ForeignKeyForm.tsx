@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/context/Locale";
 import Table from ".";
 import { RowSelectionOptions } from "ag-grid-community";
-import { myTableTheme } from "./tableTheme";
+import { myTableTheme } from "./theme";
 import { ForeignKeyInputProps } from "./interface";
 import { Button } from "../button";
 import { PlusIcon, XMarkIcon } from "react-native-heroicons/outline";

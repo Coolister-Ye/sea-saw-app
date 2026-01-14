@@ -33,7 +33,8 @@ export default function OutboundOrderPopover({
           if (
             key === titleField ||
             key === "remark" ||
-            key === "outbound_items"
+            key === "outbound_items" ||
+            key === "attachments"
           )
             return null;
 

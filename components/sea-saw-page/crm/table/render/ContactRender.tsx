@@ -1,6 +1,6 @@
 import React from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import ContactPopover from "@/components/sea-saw-page/crm/from/display/ContactPopover";
+import { ContactPopover } from "@/components/sea-saw-page/crm/from/display/contact";
 
 interface Contact {
   id?: string | number;

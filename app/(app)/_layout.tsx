@@ -72,6 +72,17 @@ export default function AppLayout() {
         />
 
         <Drawer.Screen
+          name="pipeline"
+          options={{
+            drawerLabel: i18n.t("pipeline"),
+            drawerItemStyle: {
+              display: getDrawerVisibility(["Sale"]),
+              borderRadius: 8,
+            },
+          }}
+        />
+
+        <Drawer.Screen
           name="download"
           options={{ drawerLabel: i18n.t("download") }}
         />
