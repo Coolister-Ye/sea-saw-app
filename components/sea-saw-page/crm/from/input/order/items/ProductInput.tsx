@@ -17,9 +17,16 @@ interface ProductProps {
   value?: any[];
   onChange?: (v: any[]) => void;
   onTotalsChange?: (totals: { total_amount: number }) => void;
+  showToolbar?: boolean;
 }
 
-function Product({ def, value = [], onChange, onTotalsChange }: ProductProps) {
+function Product({
+  def,
+  value = [],
+  onChange,
+  onTotalsChange,
+  showToolbar = true,
+}: ProductProps) {
   const { i18n } = useLocale();
   const [form] = Form.useForm();
 
@@ -245,12 +252,14 @@ function Product({ def, value = [], onChange, onTotalsChange }: ProductProps) {
 
   return (
     <View className="gap-3">
-      <TableToolbar
-        hasSelection={hasSelection}
-        onAdd={handleAdd}
-        onCopy={handleCopy}
-        onDelete={handleDelete}
-      />
+      {showToolbar && (
+        <TableToolbar
+          hasSelection={hasSelection}
+          onAdd={handleAdd}
+          onCopy={handleCopy}
+          onDelete={handleDelete}
+        />
+      )}
 
       <ProductItemsTable
         def={def}

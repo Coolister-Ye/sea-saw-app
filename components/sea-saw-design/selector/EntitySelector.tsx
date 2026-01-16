@@ -1,18 +1,58 @@
-import React, { useState, useEffect, useCallback, useMemo, forwardRef } from "react";
-import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  forwardRef,
+} from "react";
+import {
+  View,
+  Pressable,
+  Modal,
+  TouchableWithoutFeedback,
+  TextInput,
+  ScrollView,
+} from "react-native";
 import { AgGridReact } from "ag-grid-react";
-import { ColDef } from "ag-grid-community";
-import { Input } from "antd";
+import type { ColDef, GridApi } from "ag-grid-community";
+import {
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  Squares2X2Icon,
+  XCircleIcon,
+} from "react-native-heroicons/outline";
 
 import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
-import { FormDef } from "@/hooks/useFormDefs";
+import type { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { theme } from "@/components/sea-saw-design/table/theme";
+import {
+  getAgFilterType,
+  getFilterParams,
+  getCellDataType,
+  getValueFormatter,
+} from "@/components/sea-saw-design/table/utils";
+import type {
+  HeaderMetaProps,
+  ColDefinition,
+} from "@/components/sea-saw-design/table/interface";
+import { devError } from "@/utils/logger";
 
-/* ========================
- * Types
- * ======================== */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const DEFAULT_COL_WIDTH = 120;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 export interface EntityItem {
   id: string | number;
   [key: string]: any;
@@ -24,33 +64,70 @@ export interface EntitySelectorProps<T extends EntityItem> {
   onChange?: (v: T | T[] | null) => void;
   multiple?: boolean;
 
-  // Entity-specific config
-  contentType: string; // e.g., "company", "contact"
-  columns: ColDef[]; // AG Grid column definitions
-  displayField: string; // Field to display in the input (e.g., "company_name")
+  /** API endpoint key (maps to Constants.ts) */
+  contentType: string;
+
+  /** Field to display in the trigger input (e.g., "company_name") */
+  displayField: string;
+
+  /** Custom column definitions to override auto-generated columns */
+  colDefinitions?: Record<string, ColDefinition>;
+
+  /** Column display order (fields not listed will be appended at the end) */
+  columnOrder?: string[];
+
   searchPlaceholder?: string;
   title?: string;
 
-  // Optional customization
+  /** Custom response mapper */
   mapResponseToItems?: (response: any) => T[];
+
+  /** Custom chip renderer for selected items */
   renderSelectedChip?: (item: T, onRemove: () => void) => React.ReactNode;
 }
 
-/* ========================
- * Utils
- * ======================== */
-const normalizeValue = <T extends EntityItem>(
-  value?: T | T[] | null,
-  multiple?: boolean
-): T[] => {
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Type guard to check if meta is HeaderMetaProps (has 'type' field) */
+function isHeaderMetaProps(
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps>
+): meta is HeaderMetaProps {
+  return "type" in meta && typeof meta.type === "string";
+}
+
+/** Normalize header metadata from various response formats */
+function normalizeHeaderMeta(
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined
+): Record<string, HeaderMetaProps> {
+  if (!meta) return {};
+
+  if (isHeaderMetaProps(meta)) {
+    if (meta.children) return meta.children;
+    if (meta.child?.children) return meta.child.children;
+    return {};
+  }
+
+  return meta;
+}
+
+/** Normalize value to array */
+const normalizeValue = <T extends EntityItem>(value?: T | T[] | null): T[] => {
   if (!value) return [];
-  if (Array.isArray(value)) return value;
-  return multiple ? [value] : [value];
+  return Array.isArray(value) ? value : [value];
 };
 
-/* ========================
- * Component
- * ======================== */
+const DEFAULT_COL_DEF: ColDef = {
+  sortable: true,
+  resizable: true,
+  width: DEFAULT_COL_WIDTH,
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 const EntitySelectorInner = <T extends EntityItem>(
   {
     def,
@@ -58,18 +135,22 @@ const EntitySelectorInner = <T extends EntityItem>(
     onChange,
     multiple = false,
     contentType,
-    columns,
+    colDefinitions,
+    columnOrder,
     displayField,
     searchPlaceholder,
     title,
     mapResponseToItems,
     renderSelectedChip,
   }: EntitySelectorProps<T>,
-  ref: React.Ref<HTMLDivElement>
+  ref: React.Ref<View>
 ) => {
   const { i18n } = useLocale();
   const { getViewSet } = useDataService();
-  const viewSet = useMemo(() => getViewSet(contentType), [getViewSet, contentType]);
+  const viewSet = useMemo(
+    () => getViewSet(contentType),
+    [getViewSet, contentType]
+  );
 
   const readOnly = def?.read_only === true;
 
@@ -78,18 +159,77 @@ const EntitySelectorInner = <T extends EntityItem>(
   const [selected, setSelected] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [gridApi, setGridApi] = useState<any>(null);
+  const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
+  const gridApiRef = useRef<GridApi | null>(null);
 
-  /* ========================
-   * Sync value
-   * ======================== */
+  /** Build column definitions from metadata */
+  const buildColumnDefs = useCallback(
+    (meta: Record<string, HeaderMetaProps>): ColDef[] => {
+      const processedFields = new Set<string>();
+
+      // Build columns from metadata
+      const metaColumns = Object.entries(meta)
+        .filter(([key]) => !colDefinitions?.[key]?.skip)
+        .map(([field, fieldMeta]) => {
+          processedFields.add(field);
+          const customDef = colDefinitions?.[field] ?? {};
+
+          return {
+            field,
+            headerName: fieldMeta.label,
+            filter: getAgFilterType(fieldMeta.type, fieldMeta.operations ?? []),
+            filterParams: getFilterParams(fieldMeta.operations ?? []),
+            cellDataType: getCellDataType(fieldMeta.type),
+            valueFormatter: getValueFormatter(
+              fieldMeta.type,
+              fieldMeta.display_fields
+            ),
+            sortable: true,
+            resizable: true,
+            minWidth: DEFAULT_COL_WIDTH,
+            ...customDef,
+          } as ColDef;
+        });
+
+      // Add extra columns from colDefinitions not in metadata
+      const extraColumns = Object.entries(colDefinitions ?? {})
+        .filter(([key, def]) => !processedFields.has(key) && !def?.skip)
+        .map(([field, def]) => ({
+          field,
+          minWidth: DEFAULT_COL_WIDTH,
+          sortable: true,
+          resizable: true,
+          ...def,
+        }));
+
+      const allColumns = [...metaColumns, ...extraColumns];
+
+      // Sort columns by columnOrder if provided
+      if (columnOrder && columnOrder.length > 0) {
+        const orderMap = new Map(columnOrder.map((field, idx) => [field, idx]));
+        allColumns.sort((a, b) => {
+          const aIdx = orderMap.get(a.field as string) ?? Infinity;
+          const bIdx = orderMap.get(b.field as string) ?? Infinity;
+          return aIdx - bIdx;
+        });
+      }
+
+      return allColumns;
+    },
+    [colDefinitions, columnOrder]
+  );
+
+  /** Build columns from def metadata */
   useEffect(() => {
-    setSelected(normalizeValue(value, multiple));
-  }, [value, multiple]);
+    setColumnDefs(buildColumnDefs(normalizeHeaderMeta(def)));
+  }, [def, buildColumnDefs]);
 
-  /* ========================
-   * Fetch data
-   * ======================== */
+  /** Sync external value to internal state */
+  useEffect(() => {
+    setSelected(normalizeValue(value));
+  }, [value]);
+
+  /** Fetch data from API */
   const fetchData = useCallback(
     async (keyword = "") => {
       setLoading(true);
@@ -107,7 +247,7 @@ const EntitySelectorInner = <T extends EntityItem>(
 
         setOptions(results);
       } catch (error) {
-        console.error(`Failed to fetch ${contentType}:`, error);
+        devError(`Failed to fetch ${contentType}:`, error);
         setOptions([]);
       } finally {
         setLoading(false);
@@ -116,94 +256,84 @@ const EntitySelectorInner = <T extends EntityItem>(
     [viewSet, contentType, mapResponseToItems]
   );
 
+  /** Fetch when modal opens or search changes */
   useEffect(() => {
-    if (isOpen) {
-      fetchData(searchText);
-    }
+    if (isOpen) fetchData(searchText);
   }, [isOpen, fetchData, searchText]);
 
-  /* ========================
-   * Handlers
-   * ======================== */
-  const handleSearch = useCallback((text: string) => {
-    setSearchText(text);
-  }, []);
+  /* Handlers */
+  const handleSearch = setSearchText;
 
   const handleRowClicked = useCallback(
-    (event: any) => {
-      const clickedItem = event.data as T;
+    (event: { data: T }) => {
+      const clickedItem = event.data;
+      if (!clickedItem) return;
 
-      if (multiple) {
-        const isSelected = selected.some((item) => item.id === clickedItem.id);
-        if (isSelected) {
-          setSelected(selected.filter((item) => item.id !== clickedItem.id));
-        } else {
-          setSelected([...selected, clickedItem]);
-        }
-      } else {
-        setSelected([clickedItem]);
-      }
+      setSelected((prev) => {
+        if (!multiple) return [clickedItem];
+
+        const isSelected = prev.some((item) => item.id === clickedItem.id);
+        return isSelected
+          ? prev.filter((item) => item.id !== clickedItem.id)
+          : [...prev, clickedItem];
+      });
     },
-    [selected, multiple]
+    [multiple]
   );
 
   const handleConfirm = useCallback(() => {
-    // Close modal first to prevent re-fetch
     setIsOpen(false);
-
-    // Then trigger onChange callback
-    if (multiple) {
-      onChange?.(selected);
-    } else {
-      onChange?.(selected[0] || null);
-    }
+    onChange?.(multiple ? selected : selected[0] || null);
   }, [selected, multiple, onChange]);
 
   const handleRemove = useCallback(
     (id: string | number) => {
       if (readOnly) return;
-      const next = selected.filter((item) => item.id !== id);
-      setSelected(next);
-
-      if (multiple) {
-        onChange?.(next);
-      } else {
-        onChange?.(null);
-      }
+      setSelected((prev) => {
+        const next = prev.filter((item) => item.id !== id);
+        onChange?.(multiple ? next : null);
+        return next;
+      });
     },
-    [selected, multiple, onChange, readOnly]
+    [multiple, onChange, readOnly]
   );
 
   const handleClear = useCallback(() => {
     setSelected([]);
-    if (multiple) {
-      onChange?.([]);
-    } else {
-      onChange?.(null);
-    }
+    onChange?.(multiple ? [] : null);
   }, [multiple, onChange]);
 
-  /* ========================
-   * Row style
-   * ======================== */
-  const getRowStyle = useCallback(
+  /** Row styling for selected state */
+  const getRowClass = useCallback(
     (params: any) => {
-      const isSelected = selected.some((item) => item.id === params.data.id);
-      return isSelected ? { backgroundColor: "#e3f2fd" } : undefined;
+      const isSelected = selected.some((item) => item.id === params.data?.id);
+      return isSelected ? "entity-selector-row-selected" : "";
     },
     [selected]
   );
 
-  /* ========================
-   * Default chip renderer
-   * ======================== */
+  /** Refresh row styles when selection changes */
+  useEffect(() => {
+    gridApiRef.current?.redrawRows();
+  }, [selected]);
+
+  const onGridReady = useCallback((params: { api: GridApi }) => {
+    gridApiRef.current = params.api;
+  }, []);
+
+  /** Default chip renderer */
   const defaultRenderChip = useCallback(
     (item: T, onRemove: () => void) => (
-      <View className="flex-row items-center bg-gray-100 rounded px-2 py-0.5">
-        <Text className="text-sm mr-1">{item[displayField]}</Text>
+      <View className="animate-chip-fade-in transition-all duration-150 hover:scale-[1.02] hover:shadow-sm flex-row items-center bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 mr-1.5 mb-1">
+        <Text className="text-sm text-blue-800 font-medium">
+          {item[displayField]}
+        </Text>
         {!readOnly && (
-          <Pressable onPress={onRemove}>
-            <Text className="text-red-400 text-xs hover:text-red-600">×</Text>
+          <Pressable
+            onPress={onRemove}
+            className="ml-1.5 p-0.5 rounded-full hover:bg-blue-100 active:bg-blue-200"
+          >
+            <XMarkIcon size={14} className="text-blue-400" />
           </Pressable>
         )}
       </View>
@@ -211,102 +341,169 @@ const EntitySelectorInner = <T extends EntityItem>(
     [displayField, readOnly]
   );
 
-  /* ========================
-   * Render
-   * ======================== */
+  /* Derived values */
+  const modalTitle = title || `${i18n.t("Select")} ${contentType}`;
+  const placeholderText =
+    searchPlaceholder || `${i18n.t("Select")} ${title || contentType}`;
+  const closeModal = useCallback(() => setIsOpen(false), []);
+
   return (
-    <View className="w-full" ref={ref as any}>
-      {/* ========================
-       * Selected (Input-like)
-       * ======================== */}
+    <View className="w-full" ref={ref}>
+      {/* ═══════════════════════════════════════════════════════════════════
+          TRIGGER INPUT
+          ═══════════════════════════════════════════════════════════════════ */}
       <Pressable
         disabled={readOnly}
         onPress={() => !readOnly && setIsOpen(true)}
-        className={`
-          min-h-[36px] px-2 py-1 rounded-md border
-          flex-row flex-wrap items-center gap-1
-          ${readOnly ? "bg-gray-50 border-gray-200" : "border-gray-300"}
-        `}
+        className="min-h-8 px-3 py-1 border border-gray-300 rounded-md bg-white flex-row flex-wrap items-center transition-all duration-200 hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 disabled:bg-black/5 disabled:cursor-not-allowed disabled:text-black/25"
       >
         {selected.length === 0 ? (
-          <Text className="text-gray-400 text-sm">
-            {searchPlaceholder || `${i18n.t("Select")} ${title || contentType}`}
-          </Text>
+          <View className="flex-row items-center flex-1">
+            <MagnifyingGlassIcon size={16} className="text-gray-400 mr-2" />
+            <Text className="text-gray-400 text-sm">{placeholderText}</Text>
+          </View>
         ) : (
-          selected.map((item) => (
-            <View key={item.id}>
-              {renderSelectedChip
-                ? renderSelectedChip(item, () => handleRemove(item.id))
-                : defaultRenderChip(item, () => handleRemove(item.id))}
-            </View>
-          ))
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="flex-1"
+            contentContainerStyle={{ alignItems: "center" }}
+          >
+            {selected.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderSelectedChip
+                  ? renderSelectedChip(item, () => handleRemove(item.id))
+                  : defaultRenderChip(item, () => handleRemove(item.id))}
+              </React.Fragment>
+            ))}
+          </ScrollView>
+        )}
+        {!readOnly && (
+          <View className="ml-2">
+            <ChevronDownIcon size={18} className="text-gray-400" />
+          </View>
         )}
       </Pressable>
 
-      {/* ========================
-       * Modal with AG Grid Table
-       * ======================== */}
+      {/* ═══════════════════════════════════════════════════════════════════
+          MODAL
+          ═══════════════════════════════════════════════════════════════════ */}
       {!readOnly && (
         <Modal visible={isOpen} transparent animationType="fade">
           <View className="flex-1 justify-center items-center">
-            <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
-              <View className="absolute inset-0 bg-black/40" />
+            {/* Backdrop */}
+            <TouchableWithoutFeedback onPress={closeModal}>
+              <View className="absolute inset-0 bg-black/60" />
             </TouchableWithoutFeedback>
 
-            <View className="bg-white rounded-lg w-full md:w-[900px] max-h-[80vh] p-5">
+            {/* Modal Content */}
+            <View className="animate-modal-slide-in bg-white rounded-2xl w-[95%] md:w-[900px] max-h-[85vh] overflow-hidden shadow-2xl">
               {/* Header */}
-              <Text className="text-lg font-semibold mb-3">
-                {title || `${i18n.t("Select")} ${contentType}`}
-              </Text>
+              <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+                <View className="flex-row items-center">
+                  <View className="w-8 h-8 rounded-lg bg-blue-50 items-center justify-center mr-2">
+                    <Squares2X2Icon size={18} className="text-blue-500" />
+                  </View>
+                  <Text className="text-base font-medium text-gray-800">
+                    {modalTitle}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={closeModal}
+                  className="p-1 rounded hover:bg-gray-100"
+                >
+                  <XMarkIcon size={20} className="text-gray-400" />
+                </Pressable>
+              </View>
 
-              {/* Search */}
-              <View className="mb-3">
-                <Input
-                  placeholder={searchPlaceholder || i18n.t("Search...")}
-                  value={searchText}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full"
-                />
+              {/* Search Bar */}
+              <View className="px-5 py-3 border-b border-gray-100">
+                <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 focus-within:border-blue-300 focus-within:bg-white">
+                  <MagnifyingGlassIcon
+                    size={18}
+                    className="text-gray-400 mr-3"
+                  />
+                  <TextInput
+                    placeholder={i18n.t("Search...")}
+                    value={searchText}
+                    onChangeText={handleSearch}
+                    className="flex-1 text-sm text-gray-800 outline-none"
+                    placeholderTextColor="#9ca3af"
+                  />
+                  {searchText.length > 0 && (
+                    <Pressable
+                      onPress={() => setSearchText("")}
+                      className="p-1 rounded-full hover:bg-gray-200"
+                    >
+                      <XCircleIcon size={18} className="text-gray-400" />
+                    </Pressable>
+                  )}
+                </View>
               </View>
 
               {/* AG Grid Table */}
-              <View className="h-[400px] mb-3">
-                <div
-                  className="ag-theme-alpine"
-                  style={{ height: "100%", width: "100%" }}
-                >
+              <View className="entity-selector-grid h-[400px] max-sm:h-[300px] px-5 py-3">
+                <View className="h-full w-full">
                   <AgGridReact
                     rowData={options}
-                    columnDefs={columns}
-                    onGridReady={(params) => setGridApi(params.api)}
+                    columnDefs={columnDefs}
+                    theme={theme}
+                    onGridReady={onGridReady}
                     onRowClicked={handleRowClicked}
-                    getRowStyle={getRowStyle}
+                    getRowClass={getRowClass}
                     loading={loading}
                     rowSelection={multiple ? "multiple" : "single"}
                     pagination={false}
                     domLayout="normal"
+                    suppressCellFocus
+                    animateRows
+                    defaultColDef={DEFAULT_COL_DEF}
                   />
-                </div>
+                </View>
               </View>
 
-              {/* Selected Count */}
-              {multiple && selected.length > 0 && (
-                <Text className="text-sm text-gray-600 mb-2">
-                  {i18n.t("Selected")}: {selected.length}
-                </Text>
-              )}
-
               {/* Footer */}
-              <View className="flex-row justify-end gap-2">
-                <Button variant="outline" onPress={handleClear}>
-                  <Text>{i18n.t("Clear")}</Text>
-                </Button>
-                <Button variant="outline" onPress={() => setIsOpen(false)}>
-                  <Text>{i18n.t("Cancel")}</Text>
-                </Button>
-                <Button onPress={handleConfirm} disabled={loading}>
-                  <Text className="text-white">{i18n.t("Confirm")}</Text>
-                </Button>
+              <View className="flex-row max-sm:flex-col max-sm:gap-3 items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+                {/* Selection Info */}
+                <View className="flex-row items-center">
+                  {multiple && selected.length > 0 && (
+                    <>
+                      <View className="w-6 h-6 rounded-full bg-blue-500 items-center justify-center mr-2">
+                        <Text className="text-white text-xs font-bold">
+                          {selected.length}
+                        </Text>
+                      </View>
+                      <Text className="text-sm text-gray-600">
+                        {i18n.t("selected")}
+                      </Text>
+                    </>
+                  )}
+                  {!multiple && selected.length > 0 && (
+                    <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-lg">
+                      <CheckIcon size={14} className="text-blue-500 mr-1.5" />
+                      <Text className="text-sm text-blue-700 font-medium">
+                        {selected[0]?.[displayField]}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Actions */}
+                <View className="flex-row items-center gap-1">
+                  <Button variant="ghost" onPress={handleClear}>
+                    <Text className="text-blue-500 underline">
+                      {i18n.t("Clear")}
+                    </Text>
+                  </Button>
+                  <Button variant="outline" onPress={closeModal}>
+                    <Text>{i18n.t("Cancel")}</Text>
+                  </Button>
+                  <Button onPress={handleConfirm} disabled={loading}>
+                    <Text className="text-white font-medium">
+                      {i18n.t("Confirm")}
+                    </Text>
+                  </Button>
+                </View>
               </View>
             </View>
           </View>
@@ -316,9 +513,14 @@ const EntitySelectorInner = <T extends EntityItem>(
   );
 };
 
-// Use forwardRef with generic type
-const EntitySelector = forwardRef(EntitySelectorInner) as <T extends EntityItem>(
-  props: EntitySelectorProps<T> & { ref?: React.Ref<HTMLDivElement> }
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPORTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const EntitySelector = forwardRef(EntitySelectorInner) as <
+  T extends EntityItem
+>(
+  props: EntitySelectorProps<T> & { ref?: React.Ref<View> }
 ) => ReturnType<typeof EntitySelectorInner>;
 
 export default EntitySelector;

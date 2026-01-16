@@ -13,7 +13,7 @@ const baseParams = {
   fontFamily: FONT_FAMILY,
   spacing: 6,
   cellHorizontalPadding: 12,
-  rowHeight: 40,
+  rowHeight: 35,
   headerHeight: 35,
   wrapperBorderRadius: 0,
   borderRadius: 6,
@@ -43,8 +43,8 @@ export const theme = themeQuartz.withParams({
   chromeBackgroundColor: "#f9fafb",
 
   // Accent
-  accentColor: "#6366f1",
-  inputFocusBorder: "#6366f1",
+  accentColor: "#3b82f6",
+  inputFocusBorder: "#60a5fa",
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════

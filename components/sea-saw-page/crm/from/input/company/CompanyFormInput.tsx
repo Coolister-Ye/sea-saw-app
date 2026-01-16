@@ -113,7 +113,13 @@ export default function CompanyFormInput({
       {contextHolder}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <InputForm table="company" form={form} def={def} data={data} />
+        <InputForm
+          table="company"
+          form={form}
+          def={def}
+          data={data}
+          hideReadOnly={true}
+        />
       </ScrollView>
     </Drawer>
   );

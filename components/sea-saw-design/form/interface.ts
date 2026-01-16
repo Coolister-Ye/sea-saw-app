@@ -28,6 +28,8 @@ type InputFormProps = FormProps & {
   def?: Record<string, HeaderMetaProps>;
   config?: Record<string, any>;
   form: any;
+  /** Hide read_only fields automatically (default: false) */
+  hideReadOnly?: boolean;
 };
 
 /** Extended ForeignKeyInput props with render option */

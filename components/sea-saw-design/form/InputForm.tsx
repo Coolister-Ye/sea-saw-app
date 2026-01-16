@@ -88,6 +88,7 @@ export default function InputForm({
   form,
   className,
   data,
+  hideReadOnly = false,
   onValuesChange,
   onFieldsChange,
   onFinish,
@@ -195,13 +196,13 @@ export default function InputForm({
         >
           {formDefs.map((col) => {
             const colConfig = config?.[col.field];
-            const { render, fullWidth, ...restConfig } = colConfig || {};
+            // Extract read_only separately to prevent it from being spread to DOM
+            const { render, fullWidth, read_only, ...restConfig } =
+              colConfig || {};
 
             // Determine read_only status: config overrides def
             const isReadOnly =
-              config?.[col.field]?.read_only !== undefined
-                ? config[col.field].read_only
-                : col.read_only;
+              read_only !== undefined ? read_only : col.read_only;
 
             // Create modified col with overridden read_only
             const modifiedCol = { ...col, read_only: isReadOnly };
@@ -214,6 +215,7 @@ export default function InputForm({
                 rules={col.required ? [{ required: true }] : undefined}
                 normalize={createDefaultNormalizer(col)}
                 getValueProps={createDefaultValueProps(col)}
+                hidden={hideReadOnly && isReadOnly}
                 {...restConfig}
               >
                 {render ? render(modifiedCol) : renderInput(modifiedCol)}

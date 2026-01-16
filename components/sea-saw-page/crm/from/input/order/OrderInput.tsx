@@ -11,6 +11,7 @@ import { Form, message } from "antd";
 import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
+import { devError } from "@/utils/logger";
 import Drawer from "../../base/Drawer.web";
 import InputFooter from "../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
@@ -20,6 +21,7 @@ import OrderStatusSelector from "./OrderStatusSelector";
 import AttachmentInput from "../shared/AttachmentInput";
 
 interface OrderInputProps {
+  mode: "nested" | "standalone";
   isOpen: boolean;
   onClose: (res?: any) => void;
   onCreate?: (res?: any) => void;
@@ -29,19 +31,29 @@ interface OrderInputProps {
     id?: string | number;
     [key: string]: any;
   };
+  pipelineId?: string | number; // Required only for nested mode
 }
 
 export default function OrderInput({
+  mode,
   isOpen,
   onClose,
   onCreate,
   onUpdate,
   def,
   data = {},
+  pipelineId,
 }: OrderInputProps) {
   const { i18n } = useLocale();
   const { getViewSet } = useDataService();
+
+  // ViewSets for different modes
   const orderViewSet = useMemo(() => getViewSet("order"), [getViewSet]);
+  const nestedOrderViewSet = useMemo(
+    () => getViewSet("nestedOrder"),
+    [getViewSet]
+  );
+
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -50,7 +62,10 @@ export default function OrderInput({
    * ======================== */
   const [loading, setLoading] = useState(false);
   const prevOpenRef = useRef(isOpen);
+
   const isEdit = Boolean(data?.id);
+  const isNested = mode === "nested";
+  const isStandalone = mode === "standalone";
 
   /* ========================
    * Initialize Form with Default Values
@@ -125,8 +140,8 @@ export default function OrderInput({
   /* ========================
    * Custom Field Renderers
    * ======================== */
-  const config = useMemo(
-    () => ({
+  const config = useMemo(() => {
+    const baseConfig: Record<string, any> = {
       contact: {
         read_only: false, // Override backend read_only to make it editable
         render: (def: any) => <ContactSelector def={def} />,
@@ -140,7 +155,12 @@ export default function OrderInput({
       order_items: {
         fullWidth: true,
         render: (def: any) => (
-          <ProductInput def={def} onTotalsChange={handleTotalsChange} />
+          <ProductInput
+            def={def}
+            onTotalsChange={handleTotalsChange}
+            // In nested mode, don't show toolbar for adding new items
+            showToolbar={isNested ? false : true}
+          />
         ),
       },
       attachments: {
@@ -153,9 +173,17 @@ export default function OrderInput({
       total_amount: {
         onBlur: calculateBalance,
       },
-    }),
-    [handleTotalsChange, calculateBalance]
-  );
+    };
+
+    // In nested mode, hide related_pipeline field (it's auto-set)
+    if (isNested) {
+      baseConfig.related_pipeline = {
+        hidden: true,
+      };
+    }
+
+    return baseConfig;
+  }, [handleTotalsChange, calculateBalance, isNested]);
 
   /* ========================
    * Helper Functions
@@ -191,17 +219,45 @@ export default function OrderInput({
 
       showMessage("loading", i18n.t("saving"));
 
-      // Convert to FormData if files are present
-      const requestBody = prepareRequestBody(payload);
+      let res;
 
-      const res = isEdit
-        ? await orderViewSet.update({
-            id: data.id!,
-            body: requestBody,
-          })
-        : await orderViewSet.create({
-            body: requestBody,
-          });
+      if (isNested) {
+        // Nested mode: Use NestedOrderViewSet API
+        if (!pipelineId) {
+          throw new Error("Pipeline ID is required for nested mode");
+        }
+
+        const nestedPayload = {
+          ...payload,
+          related_pipeline: pipelineId,
+        };
+
+        // Convert to FormData if files are present
+        const requestBody = prepareRequestBody(nestedPayload);
+
+        res = isEdit
+          ? await nestedOrderViewSet.update({
+              id: data.id!,
+              body: requestBody,
+              params: { related_pipeline: pipelineId, return_related: "true" },
+            })
+          : await nestedOrderViewSet.create({
+              body: requestBody,
+              params: { related_pipeline: pipelineId, return_related: "true" },
+            });
+      } else {
+        // Standalone mode: Direct create/update on orderViewSet
+        const requestBody = prepareRequestBody(payload);
+
+        res = isEdit
+          ? await orderViewSet.update({
+              id: data.id!,
+              body: requestBody,
+            })
+          : await orderViewSet.create({
+              body: requestBody,
+            });
+      }
 
       showMessage("success", i18n.t("save successfully"));
 
@@ -212,7 +268,7 @@ export default function OrderInput({
       }
       onClose(res);
     } catch (err: any) {
-      console.error("Order save failed:", err);
+      devError("Order save failed:", err);
       const errorMessage =
         err?.message ||
         err?.response?.data?.message ||
@@ -227,6 +283,9 @@ export default function OrderInput({
     showMessage,
     i18n,
     isEdit,
+    isNested,
+    pipelineId,
+    nestedOrderViewSet,
     orderViewSet,
     data,
     onUpdate,
@@ -248,11 +307,12 @@ export default function OrderInput({
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <InputForm
-          table="order"
+          table={isStandalone ? "order" : "order"}
           form={form}
           def={def}
           data={data}
           config={config}
+          hideReadOnly
         />
       </ScrollView>
     </Drawer>

@@ -198,5 +198,6 @@
     "Attachment": "Attachment",
     "Purchase Order": "Purchase Order",
     "No purchase orders": "No purchase orders",
-    "pipeline": "Pipeline"
+    "pipeline": "Pipeline",
+    "No data yet": "No data yet"
 }

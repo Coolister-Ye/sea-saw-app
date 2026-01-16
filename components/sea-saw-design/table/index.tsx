@@ -7,14 +7,16 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { AgGridReact } from "ag-grid-react";
 import {
   ColDef,
   GetRowIdParams,
   GridReadyEvent,
   IServerSideGetRowsParams,
+  INoRowsOverlayParams,
 } from "ag-grid-community";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useDataService from "@/hooks/useDataService";
 import { useLocale } from "@/context/Locale";
@@ -68,6 +70,32 @@ function getRowId(params: GetRowIdParams): string {
   return String(params.data.pk ?? params.data.id ?? Math.random());
 }
 
+/** Custom No Rows Overlay Component */
+function NoRowsOverlay(
+  params: INoRowsOverlayParams & { noRowsMessage?: string }
+) {
+  return (
+    <View className="flex-1 items-center justify-center py-12">
+      <Ionicons name="file-tray-outline" size={48} color="#9ca3af" />
+      <Text className="text-gray-400 text-base mt-3">
+        {params.noRowsMessage || "No data yet"}
+      </Text>
+    </View>
+  );
+}
+
+/** Custom Loading Overlay Component */
+function LoadingOverlay(params: { loadingMessage?: string }) {
+  return (
+    <View className="flex-1 items-center justify-center py-12">
+      <ActivityIndicator />
+      <Text className="text-gray-500 text-base mt-3">
+        {params.loadingMessage || "Loading..."}
+      </Text>
+    </View>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPONENT
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -92,7 +120,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useImperativeHandle(ref, () => gridRef.current as AgGridReact, []);
+  useImperativeHandle(ref, () => gridRef.current as AgGridReact);
 
   /* ─────────────────────────────────────────────────────────────────────────
      DATA SOURCE
@@ -110,6 +138,9 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
       const filters = convertAgGridFilterToDjangoParams(filterModel);
       const sorter = convertAgGridSorterToDjangoParams(sortModel);
 
+      // Show loading overlay
+      gridRef.current?.api?.showLoadingOverlay();
+
       try {
         const response = await viewSet.list({
           params: {
@@ -121,12 +152,21 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           },
         });
 
+        const rowData = response.results ?? [];
         params.success({
-          rowData: response.results ?? [],
+          rowData,
           rowCount: response.count,
         });
+
+        // Show no rows overlay when first page returns empty
+        if (startRow === 0 && rowData.length === 0) {
+          gridRef.current?.api?.showNoRowsOverlay();
+        } else {
+          gridRef.current?.api?.hideOverlay();
+        }
       } catch (err) {
         devError("Table fetch failed:", err);
+        gridRef.current?.api?.hideOverlay();
         params.fail();
       }
     },
@@ -245,7 +285,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator />
       </View>
     );
   }
@@ -274,6 +314,10 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
         paginationPageSize={DEFAULT_PAGE_SIZE}
         paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
         onGridReady={handleGridReady}
+        noRowsOverlayComponent={NoRowsOverlay}
+        noRowsOverlayComponentParams={{ noRowsMessage: i18n.t("No data yet") }}
+        loadingOverlayComponent={LoadingOverlay}
+        loadingOverlayComponentParams={{ loadingMessage: i18n.t("Loading...") }}
         {...gridProps}
       />
     </View>

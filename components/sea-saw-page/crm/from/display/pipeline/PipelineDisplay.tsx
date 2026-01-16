@@ -28,13 +28,16 @@ export default function PipelineDisplay({
   const pipeline = data ?? {};
 
   const {
-    orders = [],
+    order,
     production_orders = [],
     purchase_orders = [],
     outbound_orders = [],
     payments = [],
     allowed_actions = [],
   } = pipeline;
+
+  // Convert single order to array for OrdersSection compatibility
+  const orders = order ? [order] : [];
 
   /* ========================
    * Defs split & existence check
@@ -46,6 +49,7 @@ export default function PipelineDisplay({
       base: def.filter(
         (d) =>
           ![
+            "order",
             "orders",
             "production_orders",
             "purchase_orders",
@@ -54,7 +58,8 @@ export default function PipelineDisplay({
             "allowed_actions",
           ].includes(d.field)
       ),
-      orders: pick("orders"),
+      // Support both "order" (single) and "orders" (array) field names
+      orders: pick("order") || pick("orders"),
       productionOrders: pick("production_orders"),
       purchaseOrders: pick("purchase_orders"),
       outboundOrders: pick("outbound_orders"),

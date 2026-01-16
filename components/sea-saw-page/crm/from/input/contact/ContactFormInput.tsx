@@ -140,6 +140,7 @@ export default function ContactFormInput({
           def={def}
           data={data}
           config={config}
+          hideReadOnly={true}
         />
       </ScrollView>
     </Drawer>

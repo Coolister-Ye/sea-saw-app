@@ -90,9 +90,11 @@ export default function OrdersSection({
       )}
 
       <OrderInput
+        mode="nested"
         isOpen={Boolean(editingOrder)}
         def={defs.orders}
         data={editingOrder ?? {}}
+        pipelineId={pipeline?.id}
         onClose={() => setEditingOrder(null)}
         onCreate={onCreate}
         onUpdate={onUpdate}

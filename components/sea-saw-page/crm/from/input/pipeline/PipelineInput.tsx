@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Form, message } from "antd";
 
 import { useLocale } from "@/context/Locale";
@@ -15,7 +15,8 @@ import Drawer from "../../base/Drawer.web";
 import InputFooter from "../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ContactSelector from "../contact/ContactSelector";
-import AttachmentInput from "../shared/AttachmentInput";
+import OrderSelector from "../order/OrderSelector";
+import AutoCreateOrderToggle from "../order/AutoCreateOrderToggle";
 
 interface PipelineInputProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ export default function PipelineInput({
    * State Management
    * ======================== */
   const [loading, setLoading] = useState(false);
+  const [autoCreateOrder, setAutoCreateOrder] = useState(false);
   const prevOpenRef = useRef(isOpen);
   const isEdit = Boolean(data?.id);
 
@@ -58,8 +60,8 @@ export default function PipelineInput({
       // Set default values for new pipelines
       const today = new Date().toISOString().split("T")[0];
       form.setFieldsValue({
-        created_date: today,
-        currency: "USD",
+        order_date: today,
+        status: "draft",
       });
     }
   }, [isOpen, isEdit, form]);
@@ -70,6 +72,7 @@ export default function PipelineInput({
   useEffect(() => {
     if (prevOpenRef.current && !isOpen) {
       form.resetFields();
+      setAutoCreateOrder(false);
     }
     prevOpenRef.current = isOpen;
   }, [isOpen, form]);
@@ -95,22 +98,42 @@ export default function PipelineInput({
       contact_id: {
         hidden: true, // Hidden - auto-updated by ContactSelector
       },
-      attachments: {
-        fullWidth: true,
-        render: (def: any) => <AttachmentInput def={def} />,
+      order: {
+        read_only: false,
+        render: (def: any) => (
+          <View>
+            {/* Order Selector */}
+            <OrderSelector def={{ ...def, read_only: autoCreateOrder }} />
+
+            {/* Auto-create Order Toggle (only for new pipelines) */}
+            {!isEdit && (
+              <AutoCreateOrderToggle
+                checked={autoCreateOrder}
+                onChange={(checked) => {
+                  setAutoCreateOrder(checked);
+                  if (checked) {
+                    // Clear the order field when auto-create is enabled
+                    form.setFieldsValue({ order: null, order_id: null });
+                  }
+                }}
+              />
+            )}
+          </View>
+        ),
       },
+      order_id: { hidden: true },
     }),
-    []
+    [autoCreateOrder, isEdit, i18n, form]
   );
 
   /* ========================
    * Helper Functions
    * ======================== */
   const normalizePayload = useCallback((values: any) => {
-    // ContactSelector already sets contact_id directly
-    // Just remove the contact field (read-only)
+    // Remove read-only fields that are auto-updated by selectors
     const payload = { ...values };
     delete payload.contact;
+    delete payload.order;
     return payload;
   }, []);
 
@@ -120,7 +143,7 @@ export default function PipelineInput({
         key: "save",
         type,
         content,
-        duration: type === "loading" ? 0 : undefined, // Don't auto-close loading message
+        duration: type === "loading" ? 0 : undefined,
       });
     },
     [messageApi]
@@ -135,27 +158,34 @@ export default function PipelineInput({
       const values = await form.validateFields();
       const payload = normalizePayload(values);
 
+      // Add auto_create_order flag when creating new pipeline
+      if (!isEdit && autoCreateOrder) {
+        payload.auto_create_order = true;
+      }
+
       showMessage("loading", i18n.t("saving"));
 
       // Convert to FormData if files are present
       const requestBody = prepareRequestBody(payload);
 
-      const res = isEdit
-        ? await pipelineViewSet.update({
-            id: data.id!,
-            body: requestBody,
-          })
-        : await pipelineViewSet.create({
-            body: requestBody,
-          });
-
-      showMessage("success", i18n.t("save successfully"));
+      let res;
 
       if (isEdit) {
+        // Update existing pipeline
+        res = await pipelineViewSet.update({
+          id: data.id!,
+          body: requestBody,
+        });
         onUpdate?.(res);
       } else {
+        // Create new pipeline (backend will auto-create order if auto_create_order=true)
+        res = await pipelineViewSet.create({
+          body: requestBody,
+        });
         onCreate?.(res);
       }
+
+      showMessage("success", i18n.t("save successfully"));
       onClose(res);
     } catch (err: any) {
       console.error("Pipeline save failed:", err);
@@ -173,6 +203,7 @@ export default function PipelineInput({
     showMessage,
     i18n,
     isEdit,
+    autoCreateOrder,
     pipelineViewSet,
     data,
     onUpdate,
@@ -183,7 +214,9 @@ export default function PipelineInput({
   /* ========================
    * Render
    * ======================== */
-  const drawerTitle = isEdit ? i18n.t("Edit Pipeline") : i18n.t("Create Pipeline");
+  const drawerTitle = isEdit
+    ? i18n.t("Edit Pipeline")
+    : i18n.t("Create Pipeline");
   const footer = (
     <InputFooter loading={loading} onSave={handleSave} onCancel={onClose} />
   );
@@ -199,6 +232,7 @@ export default function PipelineInput({
           def={def}
           data={data}
           config={config}
+          hideReadOnly={true}
         />
       </ScrollView>
     </Drawer>

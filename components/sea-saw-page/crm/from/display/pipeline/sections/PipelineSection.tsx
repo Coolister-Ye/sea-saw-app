@@ -20,7 +20,7 @@ export default function PipelineSection({
   const { i18n } = useLocale();
 
   const {
-    orders,
+    order,
     production_orders,
     purchase_orders,
     outbound_orders,

@@ -116,10 +116,6 @@
     "Enter value between 1-100": "请输入1-100之间的数值",
     "setting": "设置",
     "crm": "订单管理",
-    "Order Details": "订单详情",
-    "Order Information": "订单信息",
-    "Production Order": "生产单",
-    "Outbound Order": "出库单",
     "Payments": "付款单",
     "No payments": "还没有付款单",
     "No payment records": "无付款记录",
@@ -203,5 +199,15 @@
     "Attachment": "附件",
     "Purchase Order": "采购单",
     "No purchase orders": "无采购单",
-    "pipeline": "流水线"
+    "pipeline": "流水线",
+    "No data yet": "暂无数据",
+    "Search orders...": "查找订单绑定...",
+    "Auto-create Order": "自动创建订单",
+    "Select an existing order or create one automatically": "选择一个已有订单或自动创建一个新订单",
+    "A new order will be created with pipeline data": "一个新的绑定流水线的订单将被创建",
+    "Order will be created on save": "订单将在保存时创建",
+    "Pipeline Details": "流水线详情",
+    "Pipeline Information": "流水线信息",
+    "Orders": "订单",
+    "Change pipeline status": "更改流水线状态"
 }

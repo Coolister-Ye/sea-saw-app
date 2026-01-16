@@ -16,6 +16,7 @@ export const constants = {
 
     contact: "/api/sea-saw-crm/contacts/",
     order: "/api/sea-saw-crm/orders/",
+    nestedOrder: "/api/sea-saw-crm/nested-orders/",
     pipeline: "/api/sea-saw-crm/pipelines/",
     company: "/api/sea-saw-crm/companies/",
     product: "/api/sea-saw-crm/products/",

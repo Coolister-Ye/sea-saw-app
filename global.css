@@ -2,59 +2,220 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ENTITY SELECTOR - AG Grid specific styles (cannot be inlined with Tailwind)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.entity-selector-grid .ag-row {
+  cursor: pointer;
+}
+
+.entity-selector-grid .ag-row.entity-selector-row-selected {
+  background-color: #eff6ff !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-chip-fade-in,
+  .animate-modal-slide-in {
+    animation: none;
+  }
+}
+
 @layer base {
   :root {
+    /* ═══════════════════════════════════════════════════════════════════════════
+       Ant Design 风格主题变量 - Light Mode
+       基于 antd 5.x 默认主题色板
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    /* 基础色 */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 15%;
+
+    /* 容器色 */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 0 0% 15%;
+
+    /* 主色 - Primary (antd #1677ff) */
+    --primary: 215 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 215 100% 62%;
+    --primary-active: 215 100% 45%;
+    --primary-bg: 215 100% 97%;
+    --primary-bg-hover: 215 100% 93%;
+    --primary-border: 215 100% 80%;
+    --primary-border-hover: 215 100% 55%;
+
+    /* 成功色 - Success (antd #52c41a) */
+    --success: 100 77% 44%;
+    --success-foreground: 0 0% 100%;
+    --success-hover: 100 77% 52%;
+    --success-active: 100 77% 36%;
+    --success-bg: 100 77% 97%;
+    --success-bg-hover: 100 77% 93%;
+    --success-border: 100 77% 70%;
+    --success-border-hover: 100 77% 44%;
+
+    /* 警告色 - Warning (antd #faad14) */
+    --warning: 37 95% 53%;
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 37 95% 60%;
+    --warning-active: 37 95% 45%;
+    --warning-bg: 37 95% 97%;
+    --warning-bg-hover: 37 95% 93%;
+    --warning-border: 37 95% 70%;
+    --warning-border-hover: 37 95% 53%;
+
+    /* 错误色 - Error (antd #ff4d4f) */
+    --error: 359 100% 65%;
+    --error-foreground: 0 0% 100%;
+    --error-hover: 359 100% 72%;
+    --error-active: 359 100% 55%;
+    --error-bg: 359 100% 97%;
+    --error-bg-hover: 359 100% 93%;
+    --error-border: 359 100% 80%;
+    --error-border-hover: 359 100% 65%;
+
+    /* 信息色 - Info (antd #1677ff, 与 primary 相同) */
+    --info: 215 100% 55%;
+    --info-foreground: 0 0% 100%;
+    --info-bg: 215 100% 97%;
+    --info-border: 215 100% 80%;
+
+    /* 次要色 - Secondary */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 25%;
+
+    /* 中性色 */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
+
+    /* 边框和输入 */
+    --border: 0 0% 85%;
+    --border-secondary: 0 0% 91%;
+    --input: 0 0% 85%;
+    --ring: 215 100% 55%;
+
+    /* 禁用状态 */
+    --disabled: 0 0% 96%;
+    --disabled-foreground: 0 0% 65%;
+
+    /* 分割线 */
+    --divider: 0 0% 94%;
+
+    /* 阴影 */
+    --shadow: 0 0% 0%;
+
+    /* 圆角 */
+    --radius: 0.375rem;
+    --radius-sm: 0.25rem;
+    --radius-lg: 0.5rem;
+
+    /* 图表色 */
+    --chart-1: 215 100% 55%;
+    --chart-2: 100 77% 44%;
+    --chart-3: 37 95% 53%;
+    --chart-4: 359 100% 65%;
+    --chart-5: 270 60% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* ═══════════════════════════════════════════════════════════════════════════
+       Ant Design 风格主题变量 - Dark Mode
+       基于 antd 5.x 暗色主题
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    /* 基础色 */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 93%;
+
+    /* 容器色 */
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 14%;
+    --popover-foreground: 0 0% 93%;
+
+    /* 主色 - Primary (antd dark #1668dc) */
+    --primary: 215 85% 48%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 215 85% 55%;
+    --primary-active: 215 85% 40%;
+    --primary-bg: 215 85% 12%;
+    --primary-bg-hover: 215 85% 18%;
+    --primary-border: 215 85% 35%;
+    --primary-border-hover: 215 85% 48%;
+
+    /* 成功色 - Success */
+    --success: 100 65% 40%;
+    --success-foreground: 0 0% 100%;
+    --success-hover: 100 65% 48%;
+    --success-active: 100 65% 32%;
+    --success-bg: 100 65% 10%;
+    --success-bg-hover: 100 65% 15%;
+    --success-border: 100 65% 28%;
+    --success-border-hover: 100 65% 40%;
+
+    /* 警告色 - Warning */
+    --warning: 37 85% 48%;
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 37 85% 55%;
+    --warning-active: 37 85% 40%;
+    --warning-bg: 37 85% 10%;
+    --warning-bg-hover: 37 85% 15%;
+    --warning-border: 37 85% 32%;
+    --warning-border-hover: 37 85% 48%;
+
+    /* 错误色 - Error */
+    --error: 359 85% 55%;
+    --error-foreground: 0 0% 100%;
+    --error-hover: 359 85% 62%;
+    --error-active: 359 85% 45%;
+    --error-bg: 359 85% 12%;
+    --error-bg-hover: 359 85% 18%;
+    --error-border: 359 85% 38%;
+    --error-border-hover: 359 85% 55%;
+
+    /* 信息色 - Info */
+    --info: 215 85% 48%;
+    --info-foreground: 0 0% 100%;
+    --info-bg: 215 85% 12%;
+    --info-border: 215 85% 35%;
+
+    /* 次要色 - Secondary */
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 85%;
+
+    /* 中性色 */
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 17%;
+    --accent-foreground: 0 0% 93%;
+
+    /* 边框和输入 */
+    --border: 0 0% 24%;
+    --border-secondary: 0 0% 20%;
+    --input: 0 0% 24%;
+    --ring: 215 85% 48%;
+
+    /* 禁用状态 */
+    --disabled: 0 0% 17%;
+    --disabled-foreground: 0 0% 40%;
+
+    /* 分割线 */
+    --divider: 0 0% 20%;
+
+    /* 阴影 */
+    --shadow: 0 0% 0%;
+
+    /* 图表色 */
+    --chart-1: 215 85% 55%;
+    --chart-2: 100 65% 48%;
+    --chart-3: 37 85% 55%;
+    --chart-4: 359 85% 60%;
+    --chart-5: 270 55% 55%;
   }
 }
