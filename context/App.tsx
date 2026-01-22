@@ -1,20 +1,17 @@
 import React, { ReactNode } from "react";
 import { AuthProvider } from "./Auth";
 import { LocaleProvider } from "./Locale";
-import { ToastProvider } from "./Toast";
 import { useAuthStore } from "@/stores/authStore";
 import { useLocaleStore } from "@/stores/localeStore";
 
-// Simplified provider composition
+// Simplified provider composition (no more ToastProvider)
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <ToastProvider>
-      <LocaleProvider>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </LocaleProvider>
-    </ToastProvider>
+    <LocaleProvider>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </LocaleProvider>
   );
 };
 

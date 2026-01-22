@@ -1,6 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useToast } from "./Toast";
 
 interface AuthContextType {
   isLogin: boolean;
@@ -31,42 +30,25 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const store = useAuthStore();
-  const { showToast } = useToast();
 
   // Initialize on mount
   useEffect(() => {
     store.initialize();
   }, []);
 
-  // Wrap login to match old API and add error handling
+  // Wrap login to match old API - errors are returned, not thrown
   const login = async ({ username, password }: { username: string; password: string }) => {
-    try {
-      return await store.login(username, password);
-    } catch (error) {
-      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      showToast({ message: errMessage, variant: "error" });
-      return { status: false };
-    }
+    return await store.login(username, password);
   };
 
-  // Wrap logout with error handling
+  // Wrap logout - errors are thrown for caller to handle
   const logout = async () => {
-    try {
-      await store.logout();
-    } catch (error) {
-      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      showToast({ message: errMessage, variant: "error" });
-    }
+    await store.logout();
   };
 
-  // Wrap setPasswd to match old API
+  // Wrap setPasswd to match old API - errors are thrown for caller to handle
   const setPasswd = async ({ new_password, current_password }: { new_password: string; current_password: string }) => {
-    try {
-      await store.setPassword(new_password, current_password);
-    } catch (error) {
-      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      showToast({ message: errMessage, variant: "error" });
-    }
+    await store.setPassword(new_password, current_password);
   };
 
   return (

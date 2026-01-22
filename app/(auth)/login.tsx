@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Platform, Alert } from "react-native";
 import View from "@/components/themed/View";
 import Image from "@/components/themed/Image";
 import Text from "@/components/themed/Text";
@@ -15,8 +15,8 @@ import {
   setLocalData,
   removeLocalData,
 } from "@/utils";
-import { useToast } from "@/context/Toast";
 import { useLocalSearchParams, useRouter, Href } from "expo-router";
+import { message } from "antd";
 
 // Define constants
 const REMEMBER_NAME = "remember-me";
@@ -25,9 +25,11 @@ const CREDENTIAL_NAME = "credentials";
 export default function LoginScreen() {
   const { login } = useAuth();
   const { i18n } = useLocale();
-  const { showToast } = useToast();
   const router = useRouter();
   const { next } = useLocalSearchParams<{ next?: string }>();
+
+  // Use Ant Design message for web
+  const [messageApi, contextHolder] = Platform.OS === 'web' ? message.useMessage() : [null, null];
 
   const [isRemember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,15 @@ export default function LoginScreen() {
     username: string;
     password: string;
   } | null>(null);
+
+  // Helper to show messages on both web and native
+  const showMessage = (msg: string, type: 'error' | 'success' | 'warning' = 'error') => {
+    if (Platform.OS === 'web' && messageApi) {
+      messageApi[type](msg);
+    } else {
+      Alert.alert(type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : 'Success', msg);
+    }
+  };
 
   // Automatically load saved credentials
   useEffect(() => {
@@ -80,12 +91,11 @@ export default function LoginScreen() {
 
         // Redirect to next param or home
         router.replace((next as Href) || "/");
+      } else {
+        showMessage(response.errorMsg || i18n.t("Login failed, please try again."), 'error');
       }
     } catch (error) {
-      showToast({
-        message: i18n.t("Login failed, please try again."),
-        variant: "error",
-      });
+      showMessage(i18n.t("Login failed, please try again."), 'error');
     } finally {
       setLoading(false);
     }
@@ -99,6 +109,7 @@ export default function LoginScreen() {
 
   return (
     <View className="flex min-h-full flex-1 relative" variant="paper">
+      {contextHolder}
       {/* Main content */}
       <View className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <View className="mx-auto w-full max-w-sm lg:w-96">
@@ -173,10 +184,7 @@ export default function LoginScreen() {
                     </View>
                     <Pressable
                       onPress={() =>
-                        showToast({
-                          message: i18n.t("Contact admin to change password"),
-                          variant: "warning",
-                        })
+                        showMessage(i18n.t("Contact admin to change password"), 'warning')
                       }
                     >
                       <Text className="font-semibold text-indigo-600 hover:text-indigo-500 text-sm leading-6">
