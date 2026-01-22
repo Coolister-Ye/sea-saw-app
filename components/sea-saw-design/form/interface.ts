@@ -30,6 +30,8 @@ type InputFormProps = FormProps & {
   form: any;
   /** Hide read_only fields automatically (default: false) */
   hideReadOnly?: boolean;
+  /** Show help_text as input placeholder (default: true) */
+  showHelpTextAsPlaceholder?: boolean;
 };
 
 /** Extended ForeignKeyInput props with render option */

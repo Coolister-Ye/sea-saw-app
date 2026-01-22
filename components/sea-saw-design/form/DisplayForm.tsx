@@ -117,7 +117,7 @@ function DisplayForm({
               <Text
                 className={clsx(
                   "text-gray-900 text-sm font-medium",
-                  "break-words"
+                  "break-words",
                 )}
               >
                 {renderValue(data?.[def.field], def)}

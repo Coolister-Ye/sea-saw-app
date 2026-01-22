@@ -11,7 +11,7 @@ import {
 import { UploadOutlined } from "@ant-design/icons";
 import clsx from "clsx";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import { InputFormProps } from "./interface";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
@@ -20,63 +20,50 @@ import { useLocale } from "@/context/Locale";
 /* ========================
  * 常量
  * ======================== */
-const NUMERIC_TYPES = ["integer", "float", "double", "decimal"];
-const DATE_TYPES = ["date", "datetime"];
-const FILE_TYPES = ["file upload"];
+const NUMERIC_TYPES = new Set(["integer", "float", "double", "decimal"]);
+const DATE_TYPES = new Set(["date", "datetime"]);
+const FILE_TYPES = new Set(["file upload"]);
 const FORM_LAYOUT = { labelCol: { xs: 24, sm: 6 } };
+const DATE_FORMAT = "YYYY-MM-DD";
+const DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 /* ========================
  * 值处理工具函数
  * ======================== */
-// 归一化日期值（日期对象 → 字符串）
 export const normalizeDateValue = (val: any, type: string = "date") => {
-  // 处理空值：空字符串、null、undefined 都返回 null（Django 接受 null）
   if (!val || val === "") return null;
 
   const date = dayjs(val);
   if (!date.isValid()) return null;
 
-  // date: YYYY-MM-DD, datetime: YYYY-MM-DD HH:mm:ss
-  const format = type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm:ss";
-  return date.format(format);
+  return date.format(type === "date" ? DATE_FORMAT : DATETIME_FORMAT);
 };
 
-// 转换日期值用于显示（字符串 → 日期对象）
 const parseDateValue = (val: any) => {
   if (!val) return null;
   const date = dayjs(val);
   return date.isValid() ? date : null;
 };
 
-// 创建默认归一化函数（处理日期类型和文件类型）
-const createDefaultNormalizer = (col: FormDef) => {
-  return (val: any) => {
-    if (DATE_TYPES.includes(col.type)) {
-      return normalizeDateValue(val, col.type);
-    }
-    // 文件上传：从 Upload 组件的 fileList 中提取文件对象
-    if (FILE_TYPES.includes(col.type)) {
-      if (val?.fileList && val.fileList.length > 0) {
-        return val.fileList[0].originFileObj;
-      }
-      if (val?.file) {
-        return val.file.originFileObj || val.file;
-      }
-      return val;
-    }
-    return val;
-  };
+const normalizeFileValue = (val: any) => {
+  if (val?.fileList?.[0]?.originFileObj) {
+    return val.fileList[0].originFileObj;
+  }
+  if (val?.file) {
+    return val.file.originFileObj || val.file;
+  }
+  return val;
 };
 
-// 创建默认值属性获取函数（处理日期类型）
-const createDefaultValueProps = (col: FormDef) => {
-  return (val: any) => {
-    if (DATE_TYPES.includes(col.type)) {
-      return { value: parseDateValue(val) };
-    }
-    return { value: val };
-  };
+const createNormalizer = (type: string) => (val: any) => {
+  if (DATE_TYPES.has(type)) return normalizeDateValue(val, type);
+  if (FILE_TYPES.has(type)) return normalizeFileValue(val);
+  return val;
 };
+
+const createValueProps = (type: string) => (val: any) => ({
+  value: DATE_TYPES.has(type) ? parseDateValue(val) : val,
+});
 
 /* ========================
  * Component
@@ -89,6 +76,7 @@ export default function InputForm({
   className,
   data,
   hideReadOnly = false,
+  showHelpTextAsPlaceholder = true,
   onValuesChange,
   onFieldsChange,
   onFinish,
@@ -96,89 +84,69 @@ export default function InputForm({
   ...restFormProps
 }: InputFormProps & { data?: Record<string, any> }) {
   const { i18n } = useLocale();
-
-  /* ========================
-   * 字段定义
-   * ======================== */
   const formDefs = useFormDefs({ table, def });
 
-  /* ========================
-   * 同步外部数据
-   * ======================== */
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {
-      // Edit / Copy
       form.setFieldsValue(data);
-    } else {
-      // Create
-      form.resetFields();
     }
   }, [data, form]);
 
-  /* ========================
-   * 渲染输入组件
-   * ======================== */
-  const renderInput = (col: FormDef) => {
-    const isReadOnly = col.read_only;
+  const renderInput = useCallback(
+    (col: FormDef, placeholder?: string) => {
+      const { type, read_only: disabled, choices, min_value, max_value } = col;
 
-    // 1. 文件上传
-    if (FILE_TYPES.includes(col.type)) {
-      return (
-        <Upload
-          maxCount={1}
-          beforeUpload={() => false} // 阻止自动上传，手动处理
-          disabled={isReadOnly}
-        >
-          <Button icon={<UploadOutlined />} disabled={isReadOnly}>
-            {i18n.t("Select file")}
-          </Button>
-        </Upload>
-      );
-    }
+      if (FILE_TYPES.has(type)) {
+        return (
+          <Upload maxCount={1} beforeUpload={() => false} disabled={disabled}>
+            <Button icon={<UploadOutlined />} disabled={disabled}>
+              {i18n.t("Select file")}
+            </Button>
+          </Upload>
+        );
+      }
 
-    // 2. 选择框（下拉选项）
-    if (col.choices) {
-      return (
-        <Select
-          options={col.choices}
-          disabled={isReadOnly}
-          getPopupContainer={(node) => node.parentNode as HTMLElement}
-        />
-      );
-    }
+      if (choices) {
+        return (
+          <Select
+            options={choices}
+            disabled={disabled}
+            placeholder={placeholder}
+            getPopupContainer={(node) => node.parentNode as HTMLElement}
+          />
+        );
+      }
 
-    // 3. 数字输入
-    if (NUMERIC_TYPES.includes(col.type)) {
-      return (
-        <InputNumber
-          style={{ width: "100%" }}
-          disabled={isReadOnly}
-          min={col.min_value}
-          max={col.max_value}
-        />
-      );
-    }
+      if (NUMERIC_TYPES.has(type)) {
+        return (
+          <InputNumber
+            style={{ width: "100%" }}
+            disabled={disabled}
+            placeholder={placeholder}
+            min={min_value}
+            max={max_value}
+          />
+        );
+      }
 
-    // 4. 日期选择
-    if (DATE_TYPES.includes(col.type)) {
-      return (
-        <DatePicker
-          style={{ width: "100%" }}
-          disabled={isReadOnly}
-          showTime={col.type === "datetime"}
-          format={col.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm:ss"}
-          getPopupContainer={(node) => node.parentNode as HTMLElement}
-        />
-      );
-    }
+      if (DATE_TYPES.has(type)) {
+        return (
+          <DatePicker
+            style={{ width: "100%" }}
+            disabled={disabled}
+            placeholder={placeholder}
+            showTime={type === "datetime"}
+            format={type === "date" ? DATE_FORMAT : DATETIME_FORMAT}
+            getPopupContainer={(node) => node.parentNode as HTMLElement}
+          />
+        );
+      }
 
-    // 5. 默认文本输入
-    return <Input disabled={isReadOnly} />;
-  };
+      return <Input disabled={disabled} placeholder={placeholder} />;
+    },
+    [i18n]
+  );
 
-  /* ========================
-   * Render
-   * ======================== */
   return (
     <View className={clsx("w-full flex-1", className)}>
       <ScrollView className="w-full flex-1 p-2">
@@ -195,30 +163,38 @@ export default function InputForm({
           {...restFormProps}
         >
           {formDefs.map((col) => {
-            const colConfig = config?.[col.field];
-            // Extract read_only separately to prevent it from being spread to DOM
-            const { render, fullWidth, read_only, ...restConfig } =
-              colConfig || {};
+            const {
+              render,
+              fullWidth,
+              read_only: configReadOnly,
+              hidden: configHidden,
+              rules: configRules,
+              ...restConfig
+            } = config?.[col.field] || {};
 
-            // Determine read_only status: config overrides def
-            const isReadOnly =
-              read_only !== undefined ? read_only : col.read_only;
-
-            // Create modified col with overridden read_only
+            const isReadOnly = configReadOnly ?? col.read_only;
+            const isHidden = configHidden ?? (hideReadOnly && isReadOnly);
+            const formRules =
+              configRules ?? (col.required ? [{ required: true }] : undefined);
             const modifiedCol = { ...col, read_only: isReadOnly };
+            const placeholder = showHelpTextAsPlaceholder
+              ? col.help_text
+              : undefined;
 
             return (
               <Form.Item
                 key={col.field}
                 name={col.field}
                 label={col.label}
-                rules={col.required ? [{ required: true }] : undefined}
-                normalize={createDefaultNormalizer(col)}
-                getValueProps={createDefaultValueProps(col)}
-                hidden={hideReadOnly && isReadOnly}
+                rules={formRules}
+                normalize={createNormalizer(col.type)}
+                getValueProps={createValueProps(col.type)}
+                hidden={isHidden}
                 {...restConfig}
               >
-                {render ? render(modifiedCol) : renderInput(modifiedCol)}
+                {render
+                  ? render(modifiedCol)
+                  : renderInput(modifiedCol, placeholder)}
               </Form.Item>
             );
           })}

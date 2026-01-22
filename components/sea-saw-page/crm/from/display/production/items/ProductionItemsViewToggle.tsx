@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View } from "react-native";
-import { Radio, Tooltip } from "antd";
 import type { AgGridReactProps } from "ag-grid-react";
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
 import { useLocale } from "@/context/Locale";
-import ProductionItemsDisplay from "./ProductionItemsCard";
+import {
+  ViewToggle,
+  type ViewToggleOption,
+} from "@/components/sea-saw-design/view-toggle";
+import ProductionItemsCard from "./ProductionItemsCard";
 import ProductionItemsTable from "./ProductionItemsTable";
 import { ProductionItemsDisplayProps } from "../types";
 
@@ -22,44 +25,53 @@ export default function ProductionItemsViewToggle({
   onItemClick,
 }: ProductionItemsViewToggleProps) {
   const { i18n } = useLocale();
-  const [viewMode, setViewMode] = useState<ViewMode>("card");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
+
+  const toggleOptions = useMemo<ViewToggleOption<ViewMode>[]>(
+    () => [
+      {
+        value: "card",
+        label: i18n.t("Card View"),
+        icon: <AppstoreOutlined />,
+      },
+      {
+        value: "table",
+        label: i18n.t("Table View"),
+        icon: <TableOutlined />,
+      },
+    ],
+    [i18n],
+  );
 
   return (
-    <View className="w-full space-y-3">
+    <View className="w-full">
       {/* View Mode Toggle */}
-      <View className="flex-row items-center justify-end">
-        <Radio.Group
+      <View className="flex-row items-center justify-end mb-4">
+        <ViewToggle
+          options={toggleOptions}
           value={viewMode}
-          onChange={(e) => setViewMode(e.target.value)}
-          size="small"
-        >
-          <Tooltip title={i18n.t("Card View")}>
-            <Radio.Button value="card">
-              <AppstoreOutlined />
-            </Radio.Button>
-          </Tooltip>
-          <Tooltip title={i18n.t("Table View")}>
-            <Radio.Button value="table">
-              <TableOutlined />
-            </Radio.Button>
-          </Tooltip>
-        </Radio.Group>
+          onChange={setViewMode}
+          size="md"
+          variant="default"
+        />
       </View>
 
       {/* Display Mode */}
-      {viewMode === "card" ? (
-        <ProductionItemsDisplay
-          def={def}
-          value={value}
-          onItemClick={onItemClick}
-        />
-      ) : (
-        <ProductionItemsTable
-          def={def}
-          value={value}
-          agGridReactProps={agGridReactProps}
-        />
-      )}
+      <View className="w-full">
+        {viewMode === "card" ? (
+          <ProductionItemsCard
+            def={def}
+            value={value}
+            onItemClick={onItemClick}
+          />
+        ) : (
+          <ProductionItemsTable
+            def={def}
+            value={value}
+            agGridReactProps={agGridReactProps}
+          />
+        )}
+      </View>
     </View>
   );
 }

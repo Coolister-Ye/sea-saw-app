@@ -22,6 +22,7 @@ interface AuthContextType {
   isLogin: boolean;
   user: any;
   loading: boolean;
+  isInitialized: boolean;
   login: (params: {
     username: string;
     password: string;
@@ -61,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // 状态管理
   const [user, setUser] = useState<any | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 统一错误处理函数
   const handleError = useCallback(
@@ -160,8 +162,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         handleError(error);
+      } finally {
+        // 无论成功或失败，都标记为已初始化
+        setIsInitialized(true);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -171,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         loading:
           loginLoading || logoutLoading || profileLoading || setPasswdLoading,
+        isInitialized,
         login,
         logout,
         isGroupX,

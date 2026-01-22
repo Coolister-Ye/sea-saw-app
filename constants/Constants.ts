@@ -21,7 +21,7 @@ export const constants = {
     company: "/api/sea-saw-crm/companies/",
     product: "/api/sea-saw-crm/products/",
     payment: "/api/sea-saw-crm/payments/",
-    nestedPayment: "/api/sea-saw-crm/nested-payment-records/",
+    nestedPayment: "/api/sea-saw-crm/nested-payments/",
     productionOrder: "/api/sea-saw-crm/production-orders/",
     nestedProductionOrder: "/api/sea-saw-crm/nested-production-orders/",
     purchaseOrder: "/api/sea-saw-crm/purchase-orders/",
@@ -34,10 +34,10 @@ export const constants = {
     listOrdersByMonth: "/api/sea-saw-crm/orders-stats/s2/",
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",
 
-    createProductionOrder: "/api/sea-saw-crm/orders/{id}/create_production/",
-    createOutboundOrder: "/api/sea-saw-crm/orders/{id}/create_outbound/",
-    createPurchaseOrder: "/api/sea-saw-crm/orders/{id}/create_purchase/",
-    orderStatusTransition: "/api/sea-saw-crm/orders/{id}/transition/",
+    createProductionOrder: "/api/sea-saw-crm/pipelines/{id}/create_production/",
+    createOutboundOrder: "/api/sea-saw-crm/pipelines/{id}/create_outbound/",
+    createPurchaseOrder: "/api/sea-saw-crm/pipelines/{id}/create_purchase/",
+    orderStatusTransition: "/api/sea-saw-crm/pipelines/{id}/transition/",
     pipelineStatusTransition: "/api/sea-saw-crm/pipelines/{id}/transition/",
 
     login: "/api/token/",

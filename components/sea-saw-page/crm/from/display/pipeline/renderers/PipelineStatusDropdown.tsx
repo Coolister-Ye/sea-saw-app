@@ -37,7 +37,7 @@ export default function PipelineStatusDropdown({
         method: "POST",
         id: pipelineId,
         body: {
-          action: action,
+          target_status: action,
         },
       });
 
@@ -72,7 +72,7 @@ export default function PipelineStatusDropdown({
       })),
       onClick: ({ key }) => handleAction(key),
     }),
-    [stateActions, i18n]
+    [stateActions, i18n],
   );
 
   if (!stateActions.length) return null;

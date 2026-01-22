@@ -1,5 +1,5 @@
-import { Text, Linking, Pressable } from "react-native";
-import { PaperClipIcon } from "react-native-heroicons/outline";
+import { Text, Linking, Pressable, View } from "react-native";
+import { DocumentIcon } from "react-native-heroicons/outline";
 
 /* ========================
  * Types
@@ -14,7 +14,7 @@ interface FileDisplayProps {
  * ======================== */
 export default function FileDisplay({ value }: FileDisplayProps) {
   if (!value) {
-    return <Text className="text-gray-400 text-sm">-</Text>;
+    return <Text className="text-slate-300 italic text-sm">未上传</Text>;
   }
 
   // 处理不同的文件值格式
@@ -45,10 +45,10 @@ export default function FileDisplay({ value }: FileDisplayProps) {
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row w-full items-center gap-1 py-1 hover:bg-gray-100 rounded"
+      className="inline-flex flex-row items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 active:bg-blue-100"
     >
-      <PaperClipIcon size={16} className="text-blue-500" />
-      <Text className="text-blue-500 text-sm" numberOfLines={1}>
+      <DocumentIcon size={14} className="text-blue-600" />
+      <Text className="text-blue-700 text-sm font-medium" numberOfLines={1}>
         {fileName}
       </Text>
     </Pressable>

@@ -1,4 +1,4 @@
-import { Stack, Tabs } from "expo-router";
+import { Stack } from "expo-router";
 import "../global.css";
 import "antd/dist/reset.css";
 import "ag-grid-enterprise";
@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { WebSplashScreen } from "@/components/sea-saw-design/splash/WebSplashScreen";
 import { Asset } from "expo-asset";
-import { AppProvider } from "@/context/App";
+import { AppProvider, useAppContext } from "@/context/App";
 import { DrawerHeader } from "@/components/sea-saw-design/header";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalProvider } from "@gorhom/portal";
@@ -21,9 +21,40 @@ import { SafeAreaProviderCompat } from "@react-navigation/elements";
 SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 1000, fade: true });
 
+// 内部组件，用于访问 AppContext
+function AppContent() {
+  const isWeb = Platform.OS === "web";
+  const { isAppReady } = useAppContext();
+
+  // 等待 Auth 和 Locale 初始化完成
+  if (!isAppReady) {
+    return Platform.OS === "web" ? <WebSplashScreen /> : null;
+  }
+
+  return (
+    <>
+      {isWeb && <DrawerHeader title="Sea saw" />}
+      <Stack>
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="(setting)" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="user"
+          options={{
+            presentation: "transparentModal",
+            animation: "fade",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+      </Stack>
+      <PortalHost />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const isWeb = Platform.OS === "web";
 
   // Set AG Grid license key
   useEffect(() => {
@@ -58,22 +89,7 @@ export default function RootLayout() {
       <PortalProvider>
         <BottomSheetModalProvider>
           <AppProvider>
-            {isWeb && <DrawerHeader title="Sea saw" />}
-            <Stack>
-              <Stack.Screen name="(app)" options={{ headerShown: false }} />
-              <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="user"
-                options={{
-                  presentation: "transparentModal",
-                  animation: "fade",
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-            </Stack>
-            <PortalHost />
+            <AppContent />
           </AppProvider>
         </BottomSheetModalProvider>
       </PortalProvider>

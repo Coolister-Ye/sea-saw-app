@@ -10,7 +10,7 @@ import { theme } from "@/components/sea-saw-design/table/theme";
 
 import { CompanyFormInput } from "@/components/sea-saw-page/crm/from/input/company";
 import { CompanyDisplay } from "@/components/sea-saw-page/crm/from/display/company";
-import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
+import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 
 export default function CompanyScreen() {
   const {
@@ -48,9 +48,9 @@ export default function CompanyScreen() {
         {/* Top Actions */}
         <View className="flex-row justify-end gap-1 p-1 py-1.5">
           <ActionDropdown
-            openCreate={openCreate}
-            openCopy={openCopy}
-            openDelete={openDelete}
+            onPrimaryAction={openCreate}
+            onCopy={openCopy}
+            onDelete={openDelete}
             copyDisabled={copyDisabled}
             deleteDisabled={deleteDisabled}
           />

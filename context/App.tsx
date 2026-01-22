@@ -37,8 +37,8 @@ export const useAppContext = (): AppContextType => {
 
   // 确保 auth 和 locale 初始化完成
   const isAppReady = useMemo(
-    () => Boolean(auth.user) && !auth.loading && !locale.isLoading,
-    [auth.user, auth.loading, locale.isLoading]
+    () => auth.isInitialized && !locale.isLoading,
+    [auth.isInitialized, locale.isLoading],
   );
 
   return { auth, locale, toast, isAppReady };

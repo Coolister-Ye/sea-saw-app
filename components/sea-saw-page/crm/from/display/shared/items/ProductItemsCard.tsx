@@ -1,150 +1,81 @@
-import React, { useMemo } from "react";
-import { View } from "react-native";
-import { Tag } from "antd";
-import { Text } from "@/components/ui/text";
-import { getFieldLabelMap } from "@/utils";
-import { formatNumberTrim } from "@/utils";
+import React from "react";
 import { useLocale } from "@/context/Locale";
-import EmptySlot from "../../../base/EmptySlot";
-import InfoField from "../../../base/InfoField";
-import InfoSection from "../../../base/InfoSection";
-import ItemCard from "../../../base/ItemCard";
+import {
+  ItemsCard,
+  type ItemsCardFieldConfig,
+  type TagConfig,
+} from "../../../base";
 
 interface ProductItemsCardProps {
   def?: any;
   value?: any[] | null;
   onItemClick?: (index: number) => void;
+  hideEmptyFields?: boolean;
 }
+
+// Field configuration for product items card
+const FIELD_CONFIG: ItemsCardFieldConfig = {
+  // Fields to exclude from auto-rendering (shown in header/tags)
+  exclude: ["id", "product_name", "specification", "size", "unit", "glazing"],
+  // Full-width text fields
+  fullWidth: ["comment", "notes", "description", "remark"],
+  // Organized field sections
+  sections: [
+    {
+      title: "order information",
+      fields: ["order_qty", "unit_price", "total_price"],
+      className: "bg-blue-50/30",
+    },
+    {
+      title: "packaging information",
+      fields: ["inner_packaging", "outter_packaging"],
+      className: "bg-white",
+    },
+    {
+      title: "weight information",
+      fields: [
+        "gross_weight",
+        "net_weight",
+        "total_gross_weight",
+        "total_net_weight",
+      ],
+      className: "bg-slate-50/70",
+    },
+  ],
+};
+
+// Tag configurations
+const TAGS: TagConfig[] = [
+  { field: "size", color: "blue", showLabel: true },
+  { field: "unit", color: "cyan", showLabel: true },
+  {
+    field: "glazing",
+    color: "purple",
+    showLabel: true,
+    format: (value) => (Number(value) * 100).toFixed(0) + "%",
+  },
+];
 
 export default function ProductItemsCard({
   def,
   value,
   onItemClick,
+  hideEmptyFields = false,
 }: ProductItemsCardProps) {
   const { i18n } = useLocale();
 
-  const fieldLabelMap = useMemo(
-    () => getFieldLabelMap(def?.child?.children ?? {}),
-    [def]
-  );
-
-  const getLabel = (field: string, fallback?: string) =>
-    fieldLabelMap[field] ?? (fallback ? i18n.t?.(fallback) ?? fallback : field);
-
-  const clickable = typeof onItemClick === "function";
-
-  if (!value?.length) {
-    return <EmptySlot message={i18n.t("No product information")} />;
-  }
-
   return (
-    <View className="gap-4 w-full">
-      {value.map((item, index) => {
-        const weightUnit = item.unit || "kg";
-
-        return (
-          <ItemCard
-            key={item.id ?? index}
-            clickable={clickable}
-            onPress={clickable ? () => onItemClick?.(index) : undefined}
-          >
-            {/* ================= Header ================= */}
-            <Text className="text-base font-semibold text-gray-900 mb-1">
-              {item.product_name || getLabel("product_name", "Unnamed Product")}
-            </Text>
-
-            {item.specification && (
-              <Text className="text-sm text-gray-600 mb-3">
-                {getLabel("specification")}: {item.specification}
-              </Text>
-            )}
-
-            {/* ================= Attributes ================= */}
-            <View className="flex-row gap-2 flex-wrap mb-3">
-              {item.size && (
-                <Tag color="blue">
-                  {getLabel("size")}: {item.size}
-                </Tag>
-              )}
-              {item.unit && (
-                <Tag color="cyan">
-                  {getLabel("unit")}: {item.unit}
-                </Tag>
-              )}
-              {item.glazing && (
-                <Tag color="purple">
-                  {getLabel("glazing")}:{" "}
-                  {(Number(item.glazing) * 100).toFixed(0)}%
-                </Tag>
-              )}
-            </View>
-
-            {/* ================= Trade Info ================= */}
-            <InfoSection title={i18n.t("Order Information")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("order_qty")}
-                  value={item.order_qty}
-                />
-                <InfoField
-                  label={getLabel("unit_price")}
-                  value={item.unit_price}
-                  prefix="$"
-                />
-                <InfoField
-                  label={getLabel("total_price")}
-                  value={item.total_price}
-                  prefix="$"
-                />
-              </View>
-            </InfoSection>
-
-            {/* ================= Packaging ================= */}
-            <InfoSection title={i18n.t("Packaging")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("inner_packaging")}
-                  value={item.inner_packaging}
-                />
-                <InfoField
-                  label={getLabel("outter_packaging")}
-                  value={item.outter_packaging}
-                />
-              </View>
-            </InfoSection>
-
-            {/* ================= Weight ================= */}
-            <InfoSection title={i18n.t("Weight")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("gross_weight")}
-                  value={item.gross_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("net_weight")}
-                  value={item.net_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("total_gross_weight")}
-                  value={item.total_gross_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("total_net_weight")}
-                  value={item.total_net_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-              </View>
-            </InfoSection>
-          </ItemCard>
-        );
-      })}
-    </View>
+    <ItemsCard
+      def={def}
+      value={value}
+      onItemClick={onItemClick}
+      hideEmptyFields={hideEmptyFields}
+      emptyMessage={i18n.t("No product information")}
+      fieldConfig={FIELD_CONFIG}
+      headerField="product_name"
+      subtitleField="specification"
+      tags={TAGS}
+      accentColor="indigo"
+    />
   );
 }

@@ -170,6 +170,9 @@
     "Progress": "进度",
     "Weight Information": "重量信息",
     "Trade Information": "贸易信息",
+    "basic_information": "基本信息",
+    "financial_information": "财务信息",
+    "logistics_information": "物流信息",
     "Packaging": "包装信息",
     "Weight": "重量",
     "Card View": "卡片视图",
@@ -209,5 +212,12 @@
     "Pipeline Details": "流水线详情",
     "Pipeline Information": "流水线信息",
     "Orders": "订单",
-    "Change pipeline status": "更改流水线状态"
+    "Change pipeline status": "更改流水线状态",
+    "Related Entity": "关联实体",
+    "basic information": "基本信息",
+    "financial information": "财务信息",
+    "logistics information": "物流信息",
+    "order information": "订单信息",
+    "packaging information": "包装信息",
+    "weight information": "重量信息"
 }

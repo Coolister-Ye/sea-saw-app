@@ -11,7 +11,7 @@ import { theme } from "@/components/sea-saw-design/table/theme";
 import { ContactFormInput } from "@/components/sea-saw-page/crm/from/input/contact";
 import { ContactDisplay } from "@/components/sea-saw-page/crm/from/display/contact";
 import { CompanyPopover } from "@/components/sea-saw-page/crm/from/display/company";
-import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
+import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 
 /** Contact 的自定义 copy 逻辑 - 保留 company_id */
 function buildContactCopyData(contact: any) {
@@ -78,9 +78,9 @@ export default function ContactScreen() {
         {/* Top Actions */}
         <View className="flex-row justify-end gap-1 p-1 py-1.5">
           <ActionDropdown
-            openCreate={openCreate}
-            openCopy={openCopy}
-            openDelete={openDelete}
+            onPrimaryAction={openCreate}
+            onCopy={openCopy}
+            onDelete={openDelete}
             copyDisabled={copyDisabled}
             deleteDisabled={deleteDisabled}
           />

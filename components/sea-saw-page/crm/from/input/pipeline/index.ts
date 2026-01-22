@@ -1,1 +1,2 @@
-export { default as PipelineInput } from "./PipelineInput";
+// Standalone input
+export { default as PipelineInput } from "./standalone/PipelineInput";

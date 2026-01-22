@@ -18,7 +18,7 @@ import PipelineStatusRender from "@/components/sea-saw-page/crm/table/render/Pip
 
 import { PipelineInput } from "@/components/sea-saw-page/crm/from/input/pipeline";
 import { PipelineDisplay } from "@/components/sea-saw-page/crm/from/display/pipeline";
-import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
+import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 
 export default function PipelineScreen() {
   const {
@@ -97,8 +97,8 @@ export default function PipelineScreen() {
         {/* Top Actions */}
         <View className="flex-row justify-end gap-1 p-1 py-3">
           <ActionDropdown
-            openCreate={openCreate}
-            openCopy={openCopy}
+            onPrimaryAction={openCreate}
+            onCopy={openCopy}
             copyDisabled={copyDisabled}
           />
         </View>

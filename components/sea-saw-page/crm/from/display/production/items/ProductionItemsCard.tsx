@@ -1,167 +1,202 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { View } from "react-native";
 import { Tag } from "antd";
 import { Text } from "@/components/ui/text";
-import { getFieldLabelMap } from "@/utils";
-import { formatNumberTrim } from "@/utils";
 import { useLocale } from "@/context/Locale";
-import EmptySlot from "../../../base/EmptySlot";
-import InfoField from "../../../base/InfoField";
-import InfoSection from "../../../base/InfoSection";
-import ItemCard from "../../../base/ItemCard";
+import { formatNumberTrim } from "@/utils";
+import {
+  ItemsCard,
+  type ItemsCardFieldConfig,
+  type TagConfig,
+  CardSection,
+  CardField,
+} from "../../../base";
 
-interface ProductItemsCardProps {
+interface ProductionItemsCardProps {
   def?: any;
   value?: any[] | null;
   onItemClick?: (index: number) => void;
+  hideEmptyFields?: boolean;
 }
 
-export default function ProductItemsCard({
+// Field configuration for production items card
+const FIELD_CONFIG: ItemsCardFieldConfig = {
+  // Fields shown in header/tags, exclude from auto-rendering
+  exclude: [
+    "id",
+    "product_name",
+    "specification",
+    "size",
+    "unit",
+    "glazing",
+    // Production-specific fields handled in extra sections
+    "order_qty",
+    "planned_qty",
+    "produced_qty",
+  ],
+  // Full-width text fields
+  fullWidth: ["comment", "notes", "description", "remark"],
+  // Organized field sections
+  sections: [
+    {
+      title: "packaging information",
+      fields: ["inner_packaging", "outter_packaging"],
+      className: "bg-white",
+    },
+    {
+      title: "weight information",
+      fields: [
+        "gross_weight",
+        "net_weight",
+        "total_gross_weight",
+        "total_net_weight",
+      ],
+      className: "bg-slate-50/70",
+    },
+  ],
+};
+
+// Tag configurations
+const TAGS: TagConfig[] = [
+  { field: "size", color: "blue", showLabel: true },
+  { field: "unit", color: "cyan", showLabel: true },
+  {
+    field: "glazing",
+    color: "purple",
+    showLabel: true,
+    format: (value) => (Number(value) * 100).toFixed(0) + "%",
+  },
+];
+
+export default function ProductionItemsCard({
   def,
   value,
   onItemClick,
-}: ProductItemsCardProps) {
+  hideEmptyFields = false,
+}: ProductionItemsCardProps) {
   const { i18n } = useLocale();
 
-  const fieldLabelMap = useMemo(
-    () => getFieldLabelMap(def?.child?.children ?? {}),
-    [def]
-  );
+  // Calculate progress percent for an item
+  const getProgressPercent = (item: any) => {
+    const plannedQty = Number(item.planned_qty || 0);
+    const producedQty = Number(item.produced_qty || 0);
+    return plannedQty > 0
+      ? ((producedQty / plannedQty) * 100).toFixed(1)
+      : null;
+  };
 
-  const getLabel = (field: string, fallback?: string) =>
-    fieldLabelMap[field] ?? (fallback ? i18n.t?.(fallback) ?? fallback : field);
+  // Custom header with progress percent in top-right corner
+  const renderHeader = (
+    item: any,
+    _index: number,
+    getFieldLabel: (field: string) => string,
+  ) => {
+    const progressPercent = getProgressPercent(item);
 
-  const clickable = typeof onItemClick === "function";
+    return (
+      <View className="p-4 pb-3">
+        <View className="flex-row justify-between items-start mb-1">
+          <Text className="text-base font-semibold text-slate-800 flex-1">
+            {item.product_name || getFieldLabel("product_name")}
+          </Text>
+          {progressPercent != null && (
+            <Tag color={Number(progressPercent) >= 100 ? "green" : "blue"}>
+              {progressPercent}%
+            </Tag>
+          )}
+        </View>
+        {item.specification && (
+          <Text className="text-sm text-slate-500 mb-2">
+            {item.specification}
+          </Text>
+        )}
 
-  if (!value?.length) {
-    return <EmptySlot message={i18n.t("No product information")} />;
-  }
+        {/* Attributes Tags */}
+        {TAGS.length > 0 && (
+          <View className="flex-row gap-2 flex-wrap">
+            {TAGS.map((tagConfig) => {
+              const tagValue = item[tagConfig.field];
+              if (!tagValue) return null;
+              const displayValue = tagConfig.format
+                ? tagConfig.format(tagValue)
+                : tagValue;
+              return (
+                <Tag key={tagConfig.field} color={tagConfig.color}>
+                  {tagConfig.showLabel !== false
+                    ? `${getFieldLabel(tagConfig.field)}: ${displayValue}`
+                    : displayValue}
+                </Tag>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Render production progress section (specific to production items)
+  const renderExtraSections = (
+    item: any,
+    _index: number,
+    getFieldLabel: (field: string) => string,
+  ) => {
+    // Hide section if no production data and hideEmptyFields is true
+    if (
+      hideEmptyFields &&
+      !item.order_qty &&
+      !item.planned_qty &&
+      !item.produced_qty
+    ) {
+      return null;
+    }
+
+    return (
+      <CardSection>
+        <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+          {i18n.t("Production Progress")}
+        </Text>
+        <View className="flex-row flex-wrap gap-x-6 gap-y-3">
+          <CardField
+            label={getFieldLabel("order_qty")}
+            value={
+              item.order_qty != null ? formatNumberTrim(item.order_qty) : null
+            }
+          />
+          <CardField
+            label={getFieldLabel("planned_qty")}
+            value={
+              item.planned_qty != null
+                ? formatNumberTrim(item.planned_qty)
+                : null
+            }
+          />
+          <CardField
+            label={getFieldLabel("produced_qty")}
+            value={
+              item.produced_qty != null
+                ? formatNumberTrim(item.produced_qty)
+                : null
+            }
+          />
+        </View>
+      </CardSection>
+    );
+  };
 
   return (
-    <View className="gap-4 w-full">
-      {value.map((item, index) => {
-        const weightUnit = item.unit || "kg";
-
-        const plannedQty = Number(item.planned_qty || 0);
-        const producedQty = Number(item.produced_qty || 0);
-
-        const progressPercent =
-          plannedQty > 0 ? ((producedQty / plannedQty) * 100).toFixed(1) : null;
-
-        return (
-          <ItemCard
-            key={item.id ?? index}
-            clickable={clickable}
-            onPress={clickable ? () => onItemClick?.(index) : undefined}
-          >
-            {/* ================= Header ================= */}
-            <Text className="text-base font-semibold text-gray-900 mb-1">
-              {item.product_name || getLabel("product_name", "Unnamed Product")}
-            </Text>
-
-            {item.specification && (
-              <Text className="text-sm text-gray-600 mb-3">
-                {getLabel("specification")}: {item.specification}
-              </Text>
-            )}
-
-            {/* ================= Attributes ================= */}
-            <View className="flex-row gap-2 flex-wrap mb-3">
-              {item.size && (
-                <Tag color="blue">
-                  {getLabel("size")}: {item.size}
-                </Tag>
-              )}
-              {item.unit && (
-                <Tag color="cyan">
-                  {getLabel("unit")}: {item.unit}
-                </Tag>
-              )}
-              {item.glazing && (
-                <Tag color="purple">
-                  {getLabel("glazing")}:{" "}
-                  {(Number(item.glazing) * 100).toFixed(0)}%
-                </Tag>
-              )}
-            </View>
-
-            {/* ================= Order Info ================= */}
-            <InfoSection title={i18n.t("Order Information")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("order_qty")}
-                  value={item.order_qty}
-                />
-              </View>
-            </InfoSection>
-
-            {/* ================= Packaging ================= */}
-            <InfoSection title={i18n.t("Packaging")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("inner_packaging")}
-                  value={item.inner_packaging}
-                />
-                <InfoField
-                  label={getLabel("outter_packaging")}
-                  value={item.outter_packaging}
-                />
-              </View>
-            </InfoSection>
-
-            {/* ================= Weight ================= */}
-            <InfoSection title={i18n.t("Weight")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("gross_weight")}
-                  value={item.gross_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("net_weight")}
-                  value={item.net_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("total_gross_weight")}
-                  value={item.total_gross_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-                <InfoField
-                  label={getLabel("total_net_weight")}
-                  value={item.total_net_weight}
-                  format={formatNumberTrim}
-                  suffix={weightUnit}
-                />
-              </View>
-            </InfoSection>
-
-            {/* ================= Progress ================= */}
-            <InfoSection title={i18n.t("Production Progress")}>
-              <View className="flex-row gap-4 flex-wrap">
-                <InfoField
-                  label={getLabel("planned_qty")}
-                  value={item.planned_qty}
-                  format={formatNumberTrim}
-                />
-                <InfoField
-                  label={getLabel("produced_qty")}
-                  value={item.produced_qty}
-                  format={formatNumberTrim}
-                />
-                <InfoField
-                  label={i18n.t("Completion")}
-                  value={progressPercent}
-                  suffix="%"
-                />
-              </View>
-            </InfoSection>
-          </ItemCard>
-        );
-      })}
-    </View>
+    <ItemsCard
+      def={def}
+      value={value}
+      onItemClick={onItemClick}
+      hideEmptyFields={hideEmptyFields}
+      emptyMessage={i18n.t("No production items")}
+      fieldConfig={FIELD_CONFIG}
+      headerField="product_name"
+      subtitleField="specification"
+      tags={TAGS}
+      accentColor="indigo"
+      renderHeader={renderHeader}
+      renderExtraSections={renderExtraSections}
+    />
   );
 }

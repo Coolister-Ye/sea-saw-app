@@ -2,9 +2,11 @@ import { getLocales } from "expo-localization";
 import { I18n } from "i18n-js";
 
 // Import your localization files
+import en from "./en.json";
 import zh from "./zh.json";
 
 const i18n = new I18n({
+  en,
   zh,
 });
 

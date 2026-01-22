@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { Radio, Tooltip } from "antd";
+import type { AgGridReactProps } from "ag-grid-react";
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
 import PurchaseItemsCard from "./PurchaseItemsCard";
 import PurchaseItemsTable from "./PurchaseItemsTable";
@@ -11,7 +12,7 @@ type ViewMode = "card" | "table";
 interface PurchaseItemsViewToggleProps {
   def?: any;
   value?: any[] | null;
-  agGridReactProps?: any;
+  agGridReactProps?: AgGridReactProps;
   onItemClick?: (item: any) => void;
 }
 

@@ -13,8 +13,8 @@ const baseParams = {
   fontFamily: FONT_FAMILY,
   spacing: 6,
   cellHorizontalPadding: 12,
-  rowHeight: 35,
-  headerHeight: 35,
+  rowHeight: 30,
+  headerHeight: 30,
   wrapperBorderRadius: 0,
   borderRadius: 6,
 };

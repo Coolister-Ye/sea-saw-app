@@ -19,7 +19,7 @@ import OrderStatusRender from "@/components/sea-saw-page/crm/table/render/OrderS
 
 import { OrderInput } from "@/components/sea-saw-page/crm/from/input/order";
 import { OrderDisplay } from "@/components/sea-saw-page/crm/from/display/order";
-import ActionDropdown from "@/components/sea-saw-page/crm/common/ActionDropdown";
+import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 
 export default function OrderScreen() {
   const {
@@ -96,8 +96,8 @@ export default function OrderScreen() {
         {/* Top Actions */}
         <View className="flex-row justify-end gap-1 p-1 py-1.5">
           <ActionDropdown
-            openCreate={openCreate}
-            openCopy={openCopy}
+            onPrimaryAction={openCreate}
+            onCopy={openCopy}
             copyDisabled={copyDisabled}
           />
         </View>

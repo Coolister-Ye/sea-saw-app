@@ -7,8 +7,20 @@ export * from "./contact";
 // Order
 export * from "./order";
 
-// Product
-export * from "./product";
+// Pipeline
+export * from "./pipeline";
 
 // Production
 export * from "./production";
+
+// Purchase
+export * from "./purchase";
+
+// Warehouse
+export * from "./warehouse";
+
+// Finance
+export * from "./finance";
+
+// Shared
+export * from "./shared";

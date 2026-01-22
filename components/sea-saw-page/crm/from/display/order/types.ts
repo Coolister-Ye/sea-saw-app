@@ -44,11 +44,11 @@ export interface ProductionOrdersSectionProps {
 }
 
 export interface OutboundOrdersSectionProps {
-  order: any;
-  orderStatus: string;
+  pipeline: any; // Pipeline object
+  pipelineStatus: string; // Pipeline status
   outboundOrders: any[];
   defs: OrderDefs;
-  displayConfig: any;
+  displayConfig?: any;
   optionState: string[];
   editingOb: any | null;
   setEditingOb: (ob: any | null) => void;
