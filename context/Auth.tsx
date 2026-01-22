@@ -1,33 +1,17 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useCallback,
-  useMemo,
-} from "react";
-import { AuthService } from "@/services/AuthService";
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
+import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "./Toast";
-import { useAsyncWithLoading } from "@/hooks/useAsyncWithLoading";
 
-// Context 类型定义
 interface AuthContextType {
   isLogin: boolean;
   user: any;
   loading: boolean;
   isInitialized: boolean;
-  login: (params: {
-    username: string;
-    password: string;
-  }) => Promise<AuthResponse>;
+  login: (params: { username: string; password: string }) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   isGroupX: (groupName: string) => boolean;
   isStaff: boolean;
-  setPasswd: (params: {
-    new_password: string;
-    current_password: string;
-  }) => Promise<void>;
+  setPasswd: (params: { new_password: string; current_password: string }) => Promise<void>;
 }
 
 interface AuthResponse {
@@ -35,10 +19,8 @@ interface AuthResponse {
   errorMsg?: string;
 }
 
-// 创建 AuthContext
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 用于消费 AuthContext 的 Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -47,124 +29,57 @@ export const useAuth = () => {
   return context;
 };
 
-// AuthProvider 组件
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const store = useAuthStore();
   const { showToast } = useToast();
 
-  // 状态管理
-  const [user, setUser] = useState<any | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // 统一错误处理函数
-  const handleError = useCallback(
-    (error: unknown): void => {
-      const errMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      showToast({ message: errMessage });
-    },
-    [showToast]
-  );
-
-  // 获取用户资料
-  const { execute: getUserProfile, loading: profileLoading } =
-    useAsyncWithLoading(async () => {
-      try {
-        const userProfile = await AuthService.getUserProfile();
-        setUser(userProfile);
-      } catch (error) {
-        setUser(null);
-        handleError(error);
-      }
-    });
-
-  // 登录
-  const { execute: login, loading: loginLoading } = useAsyncWithLoading(
-    async ({ username, password }: { username: string; password: string }) => {
-      try {
-        const response = await AuthService.login(username, password);
-        if (response.status) {
-          await getUserProfile();
-        }
-        return response;
-      } catch (error) {
-        handleError(error);
-        return { status: false };
-      }
-    }
-  );
-
-  // 登出
-  const { execute: logout, loading: logoutLoading } = useAsyncWithLoading(
-    async () => {
-      try {
-        await AuthService.logout();
-        setUser(null);
-      } catch (error) {
-        handleError(error);
-      }
-    }
-  );
-
-  // 修改密码
-  const { execute: setPasswd, loading: setPasswdLoading } = useAsyncWithLoading(
-    async ({
-      new_password,
-      current_password,
-    }: {
-      new_password: string;
-      current_password: string;
-    }) => {
-      try {
-        await AuthService.setPassword(new_password, current_password);
-        setUser(null);
-      } catch (error) {
-        handleError(error);
-      }
-    }
-  );
-
-  // 用户是否属于指定组
-  const isGroupX = useCallback(
-    (groupName: string): boolean =>
-      user?.groups?.some(
-        (group: { name: string }) => group.name === groupName
-      ) ?? false,
-    [user]
-  );
-
-  // 是否为管理员
-  const isStaff = useMemo(() => user?.is_staff ?? false, [user]);
-
-  // 组件挂载时检查登录状态
+  // Initialize on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const loggedIn = await AuthService.isLogin();
-        if (loggedIn) {
-          await getUserProfile();
-        }
-      } catch (error) {
-        handleError(error);
-      } finally {
-        // 无论成功或失败，都标记为已初始化
-        setIsInitialized(true);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    store.initialize();
   }, []);
+
+  // Wrap login to match old API and add error handling
+  const login = async ({ username, password }: { username: string; password: string }) => {
+    try {
+      return await store.login(username, password);
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      showToast({ message: errMessage, variant: "error" });
+      return { status: false };
+    }
+  };
+
+  // Wrap logout with error handling
+  const logout = async () => {
+    try {
+      await store.logout();
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      showToast({ message: errMessage, variant: "error" });
+    }
+  };
+
+  // Wrap setPasswd to match old API
+  const setPasswd = async ({ new_password, current_password }: { new_password: string; current_password: string }) => {
+    try {
+      await store.setPassword(new_password, current_password);
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      showToast({ message: errMessage, variant: "error" });
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        isLogin: Boolean(user),
-        user,
-        loading:
-          loginLoading || logoutLoading || profileLoading || setPasswdLoading,
-        isInitialized,
+        isLogin: store.user !== null,
+        user: store.user,
+        loading: store.loading,
+        isInitialized: store.isInitialized,
         login,
         logout,
-        isGroupX,
-        isStaff,
+        isGroupX: store.isGroupX,
+        isStaff: store.user?.is_staff ?? false,
         setPasswd,
       }}
     >
@@ -172,3 +87,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
+// Export store for new code
+export { useAuthStore };
