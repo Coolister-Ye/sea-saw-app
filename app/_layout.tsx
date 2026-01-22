@@ -35,9 +35,9 @@ function AppContent() {
     <>
       {isWeb && <DrawerHeader title="Sea saw" />}
       <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen
           name="user"
           options={{

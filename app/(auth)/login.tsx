@@ -16,6 +16,7 @@ import {
   removeLocalData,
 } from "@/utils";
 import { useToast } from "@/context/Toast";
+import { useLocalSearchParams, useRouter, Href } from "expo-router";
 
 // Define constants
 const REMEMBER_NAME = "remember-me";
@@ -25,6 +26,8 @@ export default function LoginScreen() {
   const { login } = useAuth();
   const { i18n } = useLocale();
   const { showToast } = useToast();
+  const router = useRouter();
+  const { next } = useLocalSearchParams<{ next?: string }>();
 
   const [isRemember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,11 +69,17 @@ export default function LoginScreen() {
   }) => {
     setLoading(true);
     try {
-      await login({ username, password });
-      if (isRemember) {
-        await setLocalData(CREDENTIAL_NAME, { username, password });
-      } else {
-        await removeLocalData(CREDENTIAL_NAME);
+      const response = await login({ username, password });
+      if (response.status) {
+        // Save credentials if remember me
+        if (isRemember) {
+          await setLocalData(CREDENTIAL_NAME, { username, password });
+        } else {
+          await removeLocalData(CREDENTIAL_NAME);
+        }
+
+        // Redirect to next param or home
+        router.replace((next as Href) || "/");
       }
     } catch (error) {
       showToast({

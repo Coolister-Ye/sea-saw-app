@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Drawer } from "expo-router/drawer";
+import { Redirect } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Platform } from "react-native";
 import { useDevice } from "@/hooks/useDevice";
@@ -17,11 +18,21 @@ import {
 
 export default function AppLayout() {
   const { i18n } = useLocale();
-  const { isGroupX, isStaff } = useAuth();
+  const { isGroupX, isStaff, isLogin, isInitialized } = useAuth();
   const { isLargeScreen } = useDevice();
   const isWeb = Platform.OS === "web";
 
   const [collapsed, setCollapsed] = useState(false);
+
+  // Wait for auth initialization
+  if (!isInitialized) {
+    return null;
+  }
+
+  // Redirect to login if not authenticated
+  if (!isLogin) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   /** -------------------------------
    * Parent 标题和 Icons（useMemo 缓存）

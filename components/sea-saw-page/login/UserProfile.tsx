@@ -5,10 +5,17 @@ import { useAuth } from "@/context/Auth";
 import { useLocale } from "@/context/Locale";
 import { PowerIcon } from "react-native-heroicons/outline";
 import { Pressable } from "react-native";
+import { useRouter } from "expo-router";
 
 export function UserProfile({ setVisible }: { setVisible?: any }) {
   const { user, logout } = useAuth();
   const { i18n } = useLocale();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
   const {
     username = "",
     email = "",
@@ -43,7 +50,7 @@ export function UserProfile({ setVisible }: { setVisible?: any }) {
       <View className="bg-zinc-100 px-1">
         <Pressable
           className="p-2 rounded mr-1 flex-row hover:opacity-80 justify-center items-center"
-          onPress={logout}
+          onPress={handleLogout}
         >
           <PowerIcon size={18} className="mr-1 text-text-secondary" />
           <Text variant="secondary">{i18n.t("logout")}</Text>

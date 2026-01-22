@@ -1,9 +1,21 @@
 import { UserProfile } from "@/components/sea-saw-page/login/UserProfile";
 import Animated, { FadeIn, SlideInRight } from "react-native-reanimated";
+import { Redirect } from "expo-router";
+import { useAuth } from "@/context/Auth";
 
 // 用户屏幕组件，展示用户个人资料
 // User screen component to display user profile
 export default function UserScreen() {
+  const { isLogin, isInitialized } = useAuth();
+
+  if (!isInitialized) {
+    return null;
+  }
+
+  if (!isLogin) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     // 外层容器，使用FadeIn动画从透明过渡到不透明，设置背景颜色和阴影
     // Outer container with FadeIn animation for transition from transparent to opaque, background color, and shadow

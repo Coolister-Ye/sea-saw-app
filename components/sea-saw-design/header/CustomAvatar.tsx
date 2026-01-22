@@ -11,10 +11,17 @@ import {
 } from "../dropdown-menu";
 import { useLocale } from "@/context/Locale";
 import { PowerIcon } from "react-native-heroicons/solid";
+import { useRouter } from "expo-router";
 
 export function CustomAvatar() {
   const { i18n } = useLocale();
   const { user, loading: isUserLoading, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
 
   const {
     username = "",
@@ -59,7 +66,7 @@ export function CustomAvatar() {
           </View>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-100" />
-        <DropdownMenuItem className="hover:bg-gray-100" onPress={logout}>
+        <DropdownMenuItem className="hover:bg-gray-100" onPress={handleLogout}>
           <View className="rounded mr-1 flex-row hover:opacity-80 justify-center items-center">
             <PowerIcon size={18} className="mr-1 text-text-secondary" />
             <Text>{i18n.t("logout")}</Text>

@@ -8,12 +8,6 @@ import React, {
   useMemo,
 } from "react";
 import { AuthService } from "@/services/AuthService";
-import {
-  Href,
-  useLocalSearchParams,
-  usePathname,
-  useRouter,
-} from "expo-router";
 import { useToast } from "./Toast";
 import { useAsyncWithLoading } from "@/hooks/useAsyncWithLoading";
 
@@ -55,9 +49,6 @@ export const useAuth = () => {
 
 // AuthProvider 组件
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { next } = useLocalSearchParams<{ next?: string }>();
   const { showToast } = useToast();
 
   // 状态管理
@@ -93,7 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const response = await AuthService.login(username, password);
         if (response.status) {
           await getUserProfile();
-          router.replace((next as Href) || "/");
         }
         return response;
       } catch (error) {
@@ -109,7 +99,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await AuthService.logout();
         setUser(null);
-        router.replace("/login");
       } catch (error) {
         handleError(error);
       }
@@ -128,7 +117,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await AuthService.setPassword(new_password, current_password);
         setUser(null);
-        router.replace("/login");
       } catch (error) {
         handleError(error);
       }
@@ -154,11 +142,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const loggedIn = await AuthService.isLogin();
         if (loggedIn) {
           await getUserProfile();
-          if (pathname === "/login") {
-            router.replace((next as Href) || "/");
-          }
-        } else if (pathname !== "/login") {
-          router.replace(`/login?next=${pathname}`);
         }
       } catch (error) {
         handleError(error);

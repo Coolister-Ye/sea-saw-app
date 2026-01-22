@@ -1,5 +1,6 @@
 import React from "react";
 import { Drawer } from "expo-router/drawer";
+import { Redirect } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Platform } from "react-native";
 import { useDevice } from "@/hooks/useDevice";
@@ -10,9 +11,19 @@ import DrawerFooter from "@/components/sea-saw-design/drawer/DrawerFoot";
 
 export default function AppLayout() {
   const { i18n } = useLocale();
-  const { isGroupX, isStaff } = useAuth();
+  const { isGroupX, isStaff, isLogin, isInitialized } = useAuth();
   const { isLargeScreen } = useDevice();
   const isWeb = Platform.OS === "web";
+
+  // Wait for auth initialization
+  if (!isInitialized) {
+    return null;
+  }
+
+  // Redirect to login if not authenticated
+  if (!isLogin) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   // 统一管理 Parent Title 映射
   const parentTitleMap = {
