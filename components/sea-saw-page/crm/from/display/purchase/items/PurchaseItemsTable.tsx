@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { AgGridReact } from "ag-grid-react";
 import type { AgGridReactProps } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { getFieldLabelMap } from "@/utils";
 import { myTableTheme } from "@/components/sea-saw-design/table/theme";
 import EmptySlot from "../../../base/EmptySlot";
@@ -22,8 +22,6 @@ export default function PurchaseItemsTable({
   className = "",
   agGridReactProps,
 }: PurchaseItemsTableProps) {
-  const { i18n } = useLocale();
-
   const fieldLabelMap = useMemo(
     () => getFieldLabelMap(def?.child?.children ?? {}),
     [def]

@@ -1,21 +1,12 @@
-import { Redirect, Stack } from "expo-router";
-import { useAuth } from "@/context/Auth";
+import { Stack } from "expo-router";
 
 export default function AuthLayout() {
-  const { isLogin, isInitialized } = useAuth();
-
-  if (!isInitialized) {
-    return null; // Show nothing while initializing
-  }
-
-  // Redirect to home if already logged in
-  if (isLogin) {
-    return <Redirect href="/" />;
-  }
-
+  // Stack.Protected 已经在父级 _layout.tsx 中处理认证保护
+  // 这里不需要再手动检查登录状态和重定向
   return (
-    <Stack>
-      <Stack.Screen name="login" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
     </Stack>
   );
 }

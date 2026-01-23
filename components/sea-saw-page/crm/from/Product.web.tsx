@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Drawer from "./base/Drawer.web";
@@ -18,8 +18,6 @@ interface ProductProps {
 }
 
 function Product({ def, value = [], onChange }: ProductProps) {
-  const { i18n } = useLocale();
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [list, setList] = useState<any[]>(value);

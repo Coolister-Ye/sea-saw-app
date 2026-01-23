@@ -7,8 +7,8 @@ import {
   InputNumber,
   Select,
 } from "antd";
-import { useLocale } from "@/context/Locale";
 import { BasicFrame } from "../sea-saw-page/BasicFrame";
+import i18n from '@/locale/i18n';
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { ScrollView, TextInput } from "react-native";
@@ -46,7 +46,7 @@ export function SearchToolBar({
   onSubmit,
   onCancel,
 }: SearchToolBarProps) {
-  const { i18n } = useLocale(); // 获取国际化对象
+  // 获取国际化对象
   const [form] = Form.useForm(); // 创建表单实例
   const { styles } = useStyle(); // 获取样式
 

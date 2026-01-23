@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
@@ -6,7 +7,6 @@ import Drawer from "../../../base/Drawer.web";
 import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 
 interface CompanyFormInputProps {
@@ -29,7 +29,6 @@ export default function CompanyFormInput({
   def,
   data = {},
 }: CompanyFormInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const companyViewSet = useMemo(() => getViewSet("company"), [getViewSet]);
 

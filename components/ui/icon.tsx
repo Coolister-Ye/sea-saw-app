@@ -1,9 +1,12 @@
 import { cn } from '@/lib/utils';
-import type { LucideIcon, LucideProps } from 'lucide-react-native';
 import { cssInterop } from 'nativewind';
+import type { ComponentType } from 'react';
 
-type IconProps = LucideProps & {
-  as: LucideIcon;
+type IconProps = {
+  as: ComponentType<any>;
+  className?: string;
+  size?: number;
+  [key: string]: any;
 };
 
 function IconImpl({ as: IconComponent, ...props }: IconProps) {
@@ -29,16 +32,16 @@ cssInterop(IconImpl, {
  * @component
  * @example
  * ```tsx
- * import { ArrowRight } from 'lucide-react-native';
+ * import { Ionicons } from '@expo/vector-icons';
  * import { Icon } from '@/registry/components/ui/icon';
  *
- * <Icon as={ArrowRight} className="text-red-500" size={16} />
+ * <Icon as={Ionicons} className="text-red-500" size={16} />
  * ```
  *
- * @param {LucideIcon} as - The Lucide icon component to render.
+ * @param {ComponentType} as - The icon component to render.
  * @param {string} className - Utility classes to style the icon using Nativewind.
  * @param {number} size - Icon size (defaults to 14).
- * @param {...LucideProps} ...props - Additional Lucide icon props passed to the "as" icon.
+ * @param {...any} ...props - Additional icon props passed to the "as" icon.
  */
 function Icon({ as: IconComponent, className, size = 14, ...props }: IconProps) {
   return (

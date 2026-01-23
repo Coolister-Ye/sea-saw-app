@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Tag } from "antd";
 import { Text } from "@/components/ui/text";
 import { getFieldLabelMap } from "@/utils";
 import { formatNumberTrim } from "@/utils";
-import { useLocale } from "@/context/Locale";
 import EmptySlot from "../../../base/EmptySlot";
 import InfoField from "../../../base/InfoField";
 import InfoSection from "../../../base/InfoSection";
@@ -21,8 +21,6 @@ export default function PurchaseItemsCard({
   value,
   onItemClick,
 }: PurchaseItemsCardProps) {
-  const { i18n } = useLocale();
-
   const fieldLabelMap = useMemo(
     () => getFieldLabelMap(def?.child?.children ?? {}),
     [def]

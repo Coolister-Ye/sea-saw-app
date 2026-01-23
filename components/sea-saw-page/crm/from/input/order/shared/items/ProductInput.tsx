@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView, View } from "react-native";
 import { Form, Input } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { devError } from "@/utils/logger";
 import Drawer from "../../../../base/Drawer.web";
@@ -30,7 +30,6 @@ function OrderItemsInput({
   onTotalsChange,
   showToolbar = true,
 }: OrderItemsInputProps) {
-  const { i18n } = useLocale();
   const [form] = Form.useForm();
 
   const [list, setList] = useState<any[]>(value);

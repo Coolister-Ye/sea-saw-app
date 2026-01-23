@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "antd";
@@ -6,7 +7,6 @@ import {
   PencilSquareIcon,
   QueueListIcon,
 } from "react-native-heroicons/outline";
-import { useLocale } from "@/context/Locale";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -148,8 +148,6 @@ export default function PipelineCard({
   canEdit = false,
   hideEmptyFields = false,
 }: PipelineCardProps) {
-  const { i18n } = useLocale();
-
   // Use the shared hook for common card item helpers
   const {
     getChoiceLabel,

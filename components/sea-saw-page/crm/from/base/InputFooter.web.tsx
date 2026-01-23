@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
+import i18n from '@/locale/i18n';
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import clsx from "clsx";
 import { View } from "react-native";
 
@@ -17,7 +17,6 @@ function InputFooter({
   loading,
   className,
 }: InputFooterProps) {
-  const { i18n } = useLocale();
   return (
     <View
       className={clsx(

@@ -1,4 +1,5 @@
 import { View, ScrollView } from "react-native";
+import i18n from '@/locale/i18n';
 import {
   DatePicker,
   Form,
@@ -15,8 +16,6 @@ import { useEffect, useCallback } from "react";
 
 import { InputFormProps } from "./interface";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
-import { useLocale } from "@/context/Locale";
-
 /* ========================
  * 常量
  * ======================== */
@@ -83,7 +82,6 @@ export default function InputForm({
   onFinishFailed,
   ...restFormProps
 }: InputFormProps & { data?: Record<string, any> }) {
-  const { i18n } = useLocale();
   const formDefs = useFormDefs({ table, def });
 
   useEffect(() => {

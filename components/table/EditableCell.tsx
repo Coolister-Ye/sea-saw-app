@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import i18n from '@/locale/i18n';
 import {
   Form,
   Select,
@@ -12,8 +13,6 @@ import _ from "lodash";
 import { DebounceSelect } from "./DebounceSelect";
 import dayjs from "dayjs";
 import { useToast } from "@/context/Toast";
-import { useLocale } from "@/context/Locale";
-
 // OptionType 定义了每个选项的类型
 type OptionType = {
   value: any;
@@ -58,7 +57,6 @@ const EditableCell = ({
   const inputRef = useRef<any>(null); // 引用输入框组件
   const { form, recordRef } = useContext(EditableContext); // 获取编辑上下文
   const toast = useToast();
-  const { i18n } = useLocale();
   const popupClassName = "date-picker-popup-for-hack";
 
   // 编辑开始时，自动聚焦输入框

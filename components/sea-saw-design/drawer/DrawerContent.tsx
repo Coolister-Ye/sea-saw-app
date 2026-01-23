@@ -1,14 +1,9 @@
+import React, { useMemo } from "react";
 import {
   DrawerContentScrollView,
   DrawerContentComponentProps,
   DrawerItem,
-  DrawerItemList,
 } from "@react-navigation/drawer";
-import {
-  DrawerDescriptor,
-  DrawerDescriptorMap,
-  DrawerNavigationHelpers,
-} from "@react-navigation/drawer/lib/typescript/commonjs/src/types";
 import { ReactNode } from "react";
 import { Text, View } from "react-native";
 import {
@@ -17,27 +12,53 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../accordion";
+import type { NestedDrawerStruct, ParentNode, ParentTitleMap } from "./types";
 
-// Define the structure for the nested drawer
-type ParentNode = {
-  type: "parent";
-  children: NestedDrawerStruct;
+// Infer types from DrawerContentComponentProps
+type DrawerDescriptorMap = DrawerContentComponentProps["descriptors"];
+type DrawerNavigationHelpers = DrawerContentComponentProps["navigation"];
+type DrawerDescriptor = DrawerDescriptorMap[string];
+
+/**
+ * Checks if a descriptor should be hidden based on drawerItemStyle
+ */
+const isDescriptorHidden = (descriptor: DrawerDescriptor): boolean => {
+  const style = descriptor.options.drawerItemStyle;
+  return (
+    typeof style === "object" &&
+    style !== null &&
+    "display" in style &&
+    style.display === "none"
+  );
 };
 
-type ChildNode = {
-  type: "child";
-  descriptor: DrawerDescriptor;
-};
+/**
+ * Recursively removes empty parent nodes
+ */
+const removeEmptyParents = (node: NestedDrawerStruct): NestedDrawerStruct => {
+  const filteredNode: NestedDrawerStruct = {};
 
-type NestedDrawerStruct = Record<string, ParentNode | ChildNode>;
+  for (const [key, value] of Object.entries(node)) {
+    if (value.type === "child") {
+      filteredNode[key] = value;
+    } else {
+      const cleanedChildren = removeEmptyParents(value.children);
+      if (Object.keys(cleanedChildren).length > 0) {
+        filteredNode[key] = { type: "parent", children: cleanedChildren };
+      }
+    }
+  }
+
+  return filteredNode;
+};
 
 /**
  * Parses the drawer descriptors to create a nested structure.
- * If all children under a parent have `drawerItemStyle.display === "none"`, that parent is removed.
+ * Filters out hidden items and removes empty parent nodes.
  */
-function getNestedDrawerStruct(
-  descriptors: DrawerDescriptorMap
-): NestedDrawerStruct {
+const buildNestedDrawerStruct = (
+  descriptors: DrawerDescriptorMap,
+): NestedDrawerStruct => {
   const nestedStruct: NestedDrawerStruct = {};
 
   for (const descriptor of Object.values(descriptors)) {
@@ -45,55 +66,35 @@ function getNestedDrawerStruct(
     const routePath = routeName.split("/");
 
     let current: NestedDrawerStruct = nestedStruct;
-    routePath.forEach((segment, index) => {
-      if (index < routePath.length - 1) {
+
+    routePath.forEach((segment: string, index: number) => {
+      const isLastSegment = index === routePath.length - 1;
+
+      if (isLastSegment) {
+        if (!isDescriptorHidden(descriptor)) {
+          current[segment] = { type: "child", descriptor };
+        }
+      } else {
         if (!current[segment]) {
           current[segment] = { type: "parent", children: {} };
         }
         current = (current[segment] as ParentNode).children;
-      } else {
-        const isHidden =
-          typeof descriptor.options.drawerItemStyle === "object" &&
-          descriptor.options.drawerItemStyle &&
-          "display" in descriptor.options.drawerItemStyle &&
-          descriptor.options.drawerItemStyle.display === "none";
-        if (!isHidden) {
-          current[segment] = { type: "child", descriptor };
-        }
       }
     });
   }
 
-  // Recursively remove empty parents
-  function removeEmptyParents(node: NestedDrawerStruct): NestedDrawerStruct {
-    const filteredNode: NestedDrawerStruct = {};
-
-    for (const [key, value] of Object.entries(node)) {
-      if (value.type === "child") {
-        filteredNode[key] = value;
-      } else {
-        const cleanedChildren = removeEmptyParents(value.children);
-        if (Object.keys(cleanedChildren).length > 0) {
-          filteredNode[key] = { type: "parent", children: cleanedChildren };
-        }
-      }
-    }
-
-    return filteredNode;
-  }
-
   return removeEmptyParents(nestedStruct);
-}
+};
 
 /**
  * Recursively renders the nested drawer structure.
  */
-function renderNestedDrawer(
+const renderNestedDrawer = (
   struct: NestedDrawerStruct,
   navigation: DrawerNavigationHelpers,
-  parentTitleMap: Record<string, string | ReactNode>,
-  parentKey = ""
-) {
+  parentTitleMap: ParentTitleMap,
+  parentKey = "",
+): React.ReactElement[] => {
   return Object.entries(struct).map(([key, val]) => {
     const uniqueKey = parentKey ? `${parentKey}/${key}` : key;
 
@@ -132,42 +133,54 @@ function renderNestedDrawer(
               val.children,
               navigation,
               parentTitleMap,
-              uniqueKey
+              uniqueKey,
             )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>
     );
   });
-}
+};
 
-type CustomDrawerContentComponentProps = {
-  parentTitleMap?: Record<string, string | ReactNode>;
+export type CustomDrawerContentProps = {
+  parentTitleMap?: ParentTitleMap;
   footer?: ReactNode;
 } & DrawerContentComponentProps;
 
 /**
- * Custom drawer content with nested structure support.
+ * Custom drawer content with nested structure support for native platforms.
+ * Uses accordion-style navigation for nested routes.
  */
-function CustomDrawerContent({
-  parentTitleMap = {},
-  footer,
-  ...props
-}: CustomDrawerContentComponentProps) {
-  const nestedDrawerStruct = getNestedDrawerStruct(props.descriptors);
+export const CustomDrawerContent = React.memo<CustomDrawerContentProps>(
+  ({ parentTitleMap = {}, footer, ...props }) => {
+    // Memoize nested structure to avoid recalculation on every render
+    const nestedDrawerStruct = useMemo(
+      () => buildNestedDrawerStruct(props.descriptors),
+      [props.descriptors],
+    );
 
-  return (
-    <View className="flex justify-between flex-1 bg-white">
-      <DrawerContentScrollView {...props}>
-        {renderNestedDrawer(
+    // Memoize rendered content
+    const drawerContent = useMemo(
+      () =>
+        renderNestedDrawer(
           nestedDrawerStruct,
           props.navigation,
-          parentTitleMap
-        )}
-      </DrawerContentScrollView>
-      {footer ? footer : undefined}
-    </View>
-  );
-}
+          parentTitleMap,
+        ),
+      [nestedDrawerStruct, props.navigation, parentTitleMap],
+    );
+
+    return (
+      <View className="flex justify-between flex-1 bg-white">
+        <DrawerContentScrollView {...props}>
+          {drawerContent}
+        </DrawerContentScrollView>
+        {footer}
+      </View>
+    );
+  },
+);
+
+CustomDrawerContent.displayName = "CustomDrawerContent";
 
 export default CustomDrawerContent;

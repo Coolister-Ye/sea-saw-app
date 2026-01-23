@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import type { AgGridReactProps } from "ag-grid-react";
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
-import { useLocale } from "@/context/Locale";
 import {
   ViewToggle,
   type ViewToggleOption,
@@ -25,7 +25,6 @@ export default function ProductItemsViewToggle({
   agGridReactProps,
   onItemClick,
 }: ProductItemsViewToggleProps) {
-  const { i18n } = useLocale();
   const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const toggleOptions = useMemo<ViewToggleOption<ViewMode>[]>(

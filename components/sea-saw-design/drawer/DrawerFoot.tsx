@@ -1,28 +1,39 @@
-import { View, Text, Pressable } from "react-native";
+import React, { useCallback } from "react";
 import { useRouter } from "expo-router";
 import { Cog6ToothIcon } from "react-native-heroicons/outline";
-import { useLocale } from "@/context/Locale";
+import i18n from "@/locale/i18n";
+import { View } from "../view";
+import { Button } from "../button";
 
-export default function DrawerFooter() {
+/**
+ * Drawer footer component with settings navigation.
+ * Displays a settings button that navigates to the password/settings page.
+ */
+export const DrawerFooter = React.memo(() => {
   const router = useRouter();
-  const { i18n } = useLocale();
 
-  const pressableStyles =
-    "group -mx-2 flex flex-row items-center gap-x-3 rounded-md p-2 text-indigo-200 hover:bg-indigo-700 active:bg-indigo-800";
-  const iconStyles = "size-6 shrink-0 text-gray-500 group-hover:text-white";
-  const textStyles =
-    "text-sm font-semibold text-gray-500 group-hover:text-white";
-
-  const handlePress = () => {
-    router.push("/(setting)/password");
-  };
+  const handlePress = useCallback(() => {
+    router.push("/(app)/(setting)/password");
+  }, [router]);
 
   return (
-    <View className="px-4 pb-2">
-      <Pressable className={pressableStyles} onPress={handlePress}>
-        <Cog6ToothIcon className={iconStyles} />
-        <Text className={textStyles}>{i18n.t("Settings")}</Text>
-      </Pressable>
+    <View variant="default" padding="md" className="border-t border-border">
+      <Button
+        type="text"
+        size="middle"
+        block
+        onPress={handlePress}
+        icon={<Cog6ToothIcon className="size-5" />}
+        iconPosition="start"
+        className="justify-start"
+        textClassName="text-sm font-medium"
+      >
+        {i18n.t("Settings")}
+      </Button>
     </View>
   );
-}
+});
+
+DrawerFooter.displayName = "DrawerFooter";
+
+export default DrawerFooter;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
@@ -7,7 +8,6 @@ import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import CompanySelector from "../../company/shared/CompanySelector";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 
 interface ContactFormInputProps {
@@ -30,7 +30,6 @@ export default function ContactFormInput({
   def,
   data = {},
 }: ContactFormInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const contactViewSet = useMemo(() => getViewSet("contact"), [getViewSet]);
 

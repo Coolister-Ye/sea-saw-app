@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocale } from "@/context/Locale";
+import i18n from '@/locale/i18n';
 import {
   ItemsCard,
   type ItemsCardFieldConfig,
@@ -62,8 +62,6 @@ export default function ProductItemsCard({
   onItemClick,
   hideEmptyFields = false,
 }: ProductItemsCardProps) {
-  const { i18n } = useLocale();
-
   return (
     <ItemsCard
       def={def}

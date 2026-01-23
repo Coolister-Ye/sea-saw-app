@@ -1,9 +1,8 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
 import { PlusCircleIcon } from "react-native-heroicons/outline";
-import { useLocale } from "@/context/Locale";
-
 interface ProductionAddDividerProps {
   disabled?: boolean;
   onAdd: () => void;
@@ -13,8 +12,6 @@ export default function ProductionAddDivider({
   disabled,
   onAdd,
 }: ProductionAddDividerProps) {
-  const { i18n } = useLocale();
-
   return (
     <View className="px-4 py-3">
       <View className="flex-row items-center">

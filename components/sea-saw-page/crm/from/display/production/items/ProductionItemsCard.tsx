@@ -1,8 +1,8 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Tag } from "antd";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { formatNumberTrim } from "@/utils";
 import {
   ItemsCard,
@@ -74,8 +74,6 @@ export default function ProductionItemsCard({
   onItemClick,
   hideEmptyFields = false,
 }: ProductionItemsCardProps) {
-  const { i18n } = useLocale();
-
   // Calculate progress percent for an item
   const getProgressPercent = (item: any) => {
     const plannedQty = Number(item.planned_qty || 0);

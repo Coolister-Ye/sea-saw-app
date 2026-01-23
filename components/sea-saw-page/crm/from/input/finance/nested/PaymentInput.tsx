@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView, View } from "react-native";
 import { Form, Select, message } from "antd";
 
@@ -7,7 +8,6 @@ import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import AttachmentInput from "../../shared/AttachmentInput";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils";
 
@@ -46,7 +46,6 @@ export default function PaymentInput({
   data = {},
   pipeline,
 }: PaymentInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const nestedPaymentViewSet = useMemo(
     () => getViewSet("nestedPayment"),

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Button, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 
 /* ========================
@@ -33,7 +33,6 @@ export default function AttachmentInput({
   value = [],
   onChange,
 }: AttachmentInputProps) {
-  const { i18n } = useLocale();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   /* ========================

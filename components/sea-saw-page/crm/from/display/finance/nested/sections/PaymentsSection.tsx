@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { PaymentInput } from "../../../../input/finance";
 import { PaymentEmptySlot, PaymentAddDivider } from "../../shared";
 import { PaymentsSectionProps } from "../../../order/types";
@@ -18,8 +18,6 @@ export default function PaymentsSection({
   onCreate,
   onUpdate,
 }: PaymentsSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate payment summary
   const totalAmount = payments.reduce(
     (sum, p) => sum + (parseFloat(p.amount) || 0),

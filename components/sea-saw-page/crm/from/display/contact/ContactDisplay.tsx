@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react";
+import i18n from '@/locale/i18n';
 import { View, ScrollView } from "react-native";
 import { Button } from "antd";
-import { useLocale } from "@/context/Locale";
-
 import Drawer from "../../base/Drawer.web";
 import Section from "../../base/Section";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
@@ -26,7 +25,6 @@ export default function ContactDisplay({
   def = [],
   data,
 }: ContactDisplayProps) {
-  const { i18n } = useLocale();
   const parentNodeRef = useRef<any>(null);
 
   const contact = data ?? {};

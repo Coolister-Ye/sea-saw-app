@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable } from "react-native";
 import { Switch, Tooltip } from "antd";
 import {
@@ -7,7 +8,6 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 
-import { useLocale } from "@/context/Locale";
 import { Text } from "@/components/ui/text";
 
 /* ========================
@@ -27,8 +27,6 @@ export default function AutoCreateOrderToggle({
   onChange,
   disabled = false,
 }: AutoCreateOrderToggleProps) {
-  const { i18n } = useLocale();
-
   return (
     <View
       className={`

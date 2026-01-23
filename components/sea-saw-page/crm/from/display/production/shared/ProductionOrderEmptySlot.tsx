@@ -1,8 +1,8 @@
 import { useState } from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable } from "react-native";
 import { Typography, message } from "antd";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import {
   WrenchScrewdriverIcon,
@@ -22,7 +22,6 @@ export default function ProductionOrderEmptySlot({
   onCreate,
   disabled = false,
 }: Props) {
-  const { i18n } = useLocale();
   const { request } = useDataService();
   const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState(false);

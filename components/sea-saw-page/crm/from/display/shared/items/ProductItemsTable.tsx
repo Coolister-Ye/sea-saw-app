@@ -1,6 +1,6 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import type { AgGridReactProps } from "ag-grid-react";
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { ItemsTable } from "../../../base";
 
@@ -17,8 +17,6 @@ export default function ProductItemsTable({
   className = "",
   agGridReactProps,
 }: ProductItemsTableProps) {
-  const { i18n } = useLocale();
-
   return (
     <ItemsTable
       def={def}

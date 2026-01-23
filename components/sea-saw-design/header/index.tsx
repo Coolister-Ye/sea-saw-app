@@ -1,82 +1,87 @@
 import { Header } from "@react-navigation/elements";
-import React, { useCallback, useState } from "react";
-import { GestureResponderEvent, Pressable, View } from "react-native";
-import {
-  LanguageIcon,
-  Bars3BottomRightIcon,
-} from "react-native-heroicons/solid";
+import { useCallback } from "react";
+import { View } from "react-native";
+import { Bars3Icon } from "react-native-heroicons/outline";
 import { useDevice } from "@/hooks/useDevice";
-import { useLocale } from "@/context/Locale";
+import { useLocaleStore } from "@/stores/localeStore";
 import { useNavigationContainerRef, usePathname, useRouter } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
-import UserModal from "./UserModal";
-import { HeaderTitle } from "./CustomHeaderTitle";
-import { CustomAvatar } from "./CustomAvatar";
+import { HeaderLogo } from "./HeaderLogo";
+import { HeaderActions } from "./HeaderActions";
+import { HeaderIconButton } from "./HeaderIconButton";
 
-type HeaderProps = React.ComponentProps<typeof Header>;
+type HeaderProps = Partial<React.ComponentProps<typeof Header>>;
 
-export function DrawerHeader({ ...props }: HeaderProps) {
+/**
+ * Main application header with responsive drawer toggle
+ *
+ * Structure:
+ * - Left: Menu toggle (mobile only)
+ * - Center/Left: Logo + App name
+ * - Right: Actions (locale, user avatar)
+ */
+export function DrawerHeader(props: HeaderProps = {}) {
   const { isLargeScreen } = useDevice();
-  const { locale, changeLocale } = useLocale();
+  const locale = useLocaleStore((state) => state.locale);
+  const changeLocale = useLocaleStore((state) => state.changeLocale);
   const navigation = useNavigationContainerRef();
-  const [usrModalVisible, setUsrModalVisable] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleToggleMenu = (e: GestureResponderEvent) => {
+  const isLoginPage = pathname === "/login";
+
+  const handleToggleMenu = useCallback(() => {
     navigation.dispatch(DrawerActions.toggleDrawer());
-  };
+  }, [navigation]);
 
   const handleChangeLocale = useCallback(() => {
     changeLocale(locale === "en" ? "zh" : "en");
   }, [locale, changeLocale]);
 
+  const handleNavigateHome = useCallback(() => {
+    router.navigate("/");
+  }, [router]);
+
   return (
-    <View className="shadow-sm shadow-zinc-800">
-      <UserModal isVisible={usrModalVisible} setVisible={setUsrModalVisable} />
+    <View className="bg-background border-b border-border">
       <Header
         {...props}
+        title={props.title ?? "Sea-Saw"}
         headerTitleAlign="left"
-        headerRight={() => (
-          <>
-            {pathname !== "/login" ? <CustomAvatar /> : null}
-            <Pressable
-              onPress={handleChangeLocale}
-              className="p-2 rounded mr-1"
-            >
-              <LanguageIcon
-                size={24}
-                className="text-zinc-600 hover:text-zinc-500"
-              />
-            </Pressable>
-          </>
-        )}
-        headerLeft={() => {
-          return (
-            <>
-              {!isLargeScreen && (
-                <Pressable
-                  onPress={handleToggleMenu}
-                  className="p-2 rounded mr-1"
-                >
-                  <Bars3BottomRightIcon
-                    size={24}
-                    className="text-zinc-600 hover:text-zinc-500"
-                  />
-                </Pressable>
-              )}
-            </>
-          );
+        headerStyle={{
+          backgroundColor: "transparent",
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
         }}
-        headerTitle={(props) => (
-          <HeaderTitle
-            {...props}
-            onPress={() => {
-              router.navigate("/");
-            }}
+        headerRight={() => (
+          <HeaderActions
+            showUserAvatar={!isLoginPage}
+            currentLocale={locale}
+            onLocaleChange={handleChangeLocale}
           />
+        )}
+        headerLeft={() =>
+          !isLargeScreen ? (
+            <HeaderIconButton
+              onPress={handleToggleMenu}
+              accessibilityLabel="Toggle navigation menu"
+              accessibilityRole="button"
+            >
+              <Bars3Icon size={22} strokeWidth={2} className="text-foreground" />
+            </HeaderIconButton>
+          ) : null
+        }
+        headerTitle={() => (
+          <HeaderLogo title={props.title as string} onPress={handleNavigateHome} />
         )}
       />
     </View>
   );
 }
+
+// Re-export subcomponents for external use
+export { HeaderLogo } from "./HeaderLogo";
+export { HeaderActions } from "./HeaderActions";
+export { HeaderIconButton } from "./HeaderIconButton";
+export { CustomAvatar } from "./CustomAvatar";

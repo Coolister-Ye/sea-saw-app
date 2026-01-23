@@ -1,8 +1,8 @@
 import { Icon } from '@/components/ui/icon';
 import { Text, TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react-native';
 import * as React from 'react';
+import type { ComponentType } from 'react';
 import { View, type ViewProps } from 'react-native';
 
 function Alert({
@@ -14,7 +14,7 @@ function Alert({
   ...props
 }: ViewProps &
   React.RefAttributes<View> & {
-    icon: LucideIcon;
+    icon: ComponentType<any>;
     variant?: 'default' | 'destructive';
     iconClassName?: string;
   }) {

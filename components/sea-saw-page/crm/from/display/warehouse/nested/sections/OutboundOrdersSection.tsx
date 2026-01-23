@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { OutboundOrderInput } from "../../../../input/warehouse";
 import { OutboundOrderEmptySlot, OutboundAddDivider } from "../../shared";
 import { OutboundOrdersSectionProps } from "../../../order/types";
@@ -19,8 +19,6 @@ export default function OutboundOrdersSection({
   onCreate,
   onUpdate,
 }: OutboundOrdersSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate outbound summary
   const outboundCount = outboundOrders.length;
   const totalItems = outboundOrders.reduce(

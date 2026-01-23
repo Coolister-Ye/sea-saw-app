@@ -8,6 +8,7 @@ import React, {
   forwardRef,
 } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
+import i18n from '@/locale/i18n';
 import { AgGridReact } from "ag-grid-react";
 import {
   ColDef,
@@ -19,7 +20,6 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useDataService from "@/hooks/useDataService";
-import { useLocale } from "@/context/Locale";
 import { devError } from "@/utils/logger";
 import {
   convertAgGridFilterToDjangoParams,
@@ -111,8 +111,6 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
   ref
 ) {
   const { getViewSet } = useDataService();
-  const { i18n } = useLocale();
-
   const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
   const gridRef = useRef<AgGridReact>(null);
 

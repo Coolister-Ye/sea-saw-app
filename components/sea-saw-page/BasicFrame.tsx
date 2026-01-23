@@ -1,7 +1,7 @@
 import clsx from "clsx";
+import i18n from '@/locale/i18n';
 import View from "../themed/View";
 import Text from "../themed/Text";
-import { useLocale } from "@/context/Locale";
 import Button from "../themed/Button";
 
 type BasicFrameProps = {
@@ -24,8 +24,6 @@ export function BasicFrame({
 }: BasicFrameProps) {
   const commonClassName =
     "bg-neutral-50 px-5 py-3 ring-1 ring-inset ring-neutral-200";
-  const { i18n } = useLocale();
-
   return (
     <View className="w-full h-full">
       {/* Header */}

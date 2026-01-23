@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import i18n from '@/locale/i18n';
 import { Pressable, Text, View, TouchableWithoutFeedback } from "react-native";
 import { Portal } from "@gorhom/portal";
 import {
@@ -8,7 +9,6 @@ import {
 } from "ag-grid-community";
 import { useGridFilter, AgGridReact, CustomFilterProps } from "ag-grid-react";
 
-import { useLocale } from "@/context/Locale";
 import Table from "./index";
 import { seaSawTableTheme } from "./theme";
 
@@ -28,7 +28,6 @@ function ForeignKeyFilter({
   table = "company",
 }: ForeignKeyFilterProps) {
   const gridRef = useRef<AgGridReact>(null);
-  const { i18n } = useLocale();
   const [isOpen, setIsOpen] = useState(true);
 
   const rowSelection = useMemo<RowSelectionOptions>(

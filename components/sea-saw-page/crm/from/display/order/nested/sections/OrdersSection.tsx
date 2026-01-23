@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { OrderInputNested as OrderInput } from "../../../../input/order";
 import { ShoppingCartIcon, CubeIcon } from "react-native-heroicons/outline";
 import OrderCard from "../../items/OrderCard";
@@ -26,8 +26,6 @@ export default function OrdersSection({
   onCreate,
   onUpdate,
 }: OrdersSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate order summary
   const orderCount = orders.length;
   const totalItems = orders.reduce(

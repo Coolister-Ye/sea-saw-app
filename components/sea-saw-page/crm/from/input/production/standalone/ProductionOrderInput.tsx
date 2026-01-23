@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { devError } from "@/utils/logger";
 import Drawer from "../../../base/Drawer.web";
@@ -33,7 +33,6 @@ export default function ProductionOrderInput({
   def,
   data = {},
 }: ProductionOrderInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
 
   const productionOrder = useMemo(

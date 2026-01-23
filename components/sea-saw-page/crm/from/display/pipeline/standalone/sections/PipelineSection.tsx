@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { PipelineInput } from "../../../../input/pipeline";
 import { PipelineSectionProps } from "../../types";
 import {
@@ -18,8 +18,6 @@ export default function PipelineSection({
   onCreate,
   onUpdate,
 }: PipelineSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate summary statistics
   const hasAttachments = pipeline.attachments && pipeline.attachments.length > 0;
   const attachmentCount = pipeline.attachments?.length || 0;

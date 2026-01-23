@@ -7,18 +7,19 @@ import { ScrollView } from "react-native";
 import { PlanList } from "@/components/sea-saw-page/index/PlanList";
 import { useRootNavigationState } from "expo-router";
 import SwitchStats from "@/components/sea-saw-page/index/SwitchStats";
-import { useAppContext } from "@/context/App";
+import { useAuthStore } from "@/stores/authStore";
+import { useLocaleStore } from "@/stores/localeStore";
+import i18n from "@/locale/i18n";
 
 const POSLIST = ["已完成生产", "运输中", "支付中", "完成"];
 
 export default function Index() {
-  const {
-    auth: { user },
-    locale: { locale, i18n },
-    toast,
-    isAppReady: isAppBaseReady,
-  } = useAppContext();
-  const { request, loading } = useDataService();
+  const hasHydrated = useAuthStore(state => state._hasHydrated);
+  const isLocaleLoading = useLocaleStore(state => state.isLoading);
+  const isAppBaseReady = hasHydrated && !isLocaleLoading;
+  const user = useAuthStore(state => state.user);
+  const locale = useLocaleStore(state => state.locale);
+  const { request } = useDataService();
 
   const [switchableStats, setSwitchableStats] = useState<any[]>([]);
   const [orderStatByMonth, setOrderStatByMonth] = useState<any>(null);

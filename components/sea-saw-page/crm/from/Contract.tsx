@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { Pressable, ScrollView, Text } from "react-native";
 import { Form } from "antd";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 
 import Drawer from "./base/Drawer";
@@ -30,7 +30,6 @@ export default function Contract({
   def,
   data,
 }: ContractProps) {
-  const { i18n } = useLocale();
   const { showToast } = useToast();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

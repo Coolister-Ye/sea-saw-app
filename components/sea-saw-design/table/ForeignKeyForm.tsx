@@ -6,8 +6,8 @@ import {
   Modal,
 } from "react-native";
 import { AgGridReact } from "ag-grid-react";
+import i18n from '@/locale/i18n';
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocale } from "@/context/Locale";
 import Table from ".";
 import { RowSelectionOptions } from "ag-grid-community";
 import { myTableTheme } from "./theme";
@@ -27,7 +27,6 @@ function ForeignKeyInput({
   field,
   onChange,
 }: ForeignKeyInputProps) {
-  const { i18n } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
 

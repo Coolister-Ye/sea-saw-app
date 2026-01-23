@@ -1,4 +1,5 @@
 import React, { forwardRef, useCallback } from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable } from "react-native";
 import { Form, Tag } from "antd";
 import {
@@ -11,7 +12,6 @@ import EntitySelector, {
   EntityItem,
 } from "@/components/sea-saw-design/selector/EntitySelector";
 import type { ColDefinition } from "@/components/sea-saw-design/table/interface";
-import { useLocale } from "@/context/Locale";
 import { Text } from "@/components/ui/text";
 import { FormDef } from "@/hooks/useFormDefs";
 
@@ -60,7 +60,6 @@ const STATUS_COLORS: Record<string, string> = {
 
 const OrderSelector = forwardRef<View, OrderSelectorProps>(
   ({ def, value, onChange, multiple = false }, ref) => {
-    const { i18n } = useLocale();
     const form = Form.useFormInstance();
 
     /* ─────────────────────────────────────────────────────────────────────────

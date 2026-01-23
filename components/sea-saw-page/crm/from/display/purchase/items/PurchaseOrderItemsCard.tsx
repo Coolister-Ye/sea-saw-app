@@ -1,9 +1,9 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "antd";
 import { PencilSquareIcon, ShoppingBagIcon } from "react-native-heroicons/outline";
-import { useLocale } from "@/context/Locale";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -116,8 +116,6 @@ export default function PurchaseOrderItemsCard({
   activeEntity,
   hideEmptyFields = false,
 }: PurchaseOrderItemsCardProps) {
-  const { i18n } = useLocale();
-
   // Use the shared hook for common card item helpers
   const {
     getChoiceLabel,

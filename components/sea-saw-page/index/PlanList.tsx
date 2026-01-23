@@ -1,5 +1,5 @@
-import { useLocale } from "@/context/Locale";
 import View from "../../themed/View";
+import i18n from '@/locale/i18n';
 import Text from "@/components/themed/Text";
 import clsx from "clsx";
 
@@ -17,7 +17,7 @@ type PlanListProps = {
 };
 
 export function PlanList({ plans, posList = [] }: PlanListProps) {
-  const { i18n } = useLocale(); // 获取国际化的内容
+  // 获取国际化的内容
 
   // 将 posList 转换为 Set 来提高包含检查的性能
   const posSet = new Set(posList);

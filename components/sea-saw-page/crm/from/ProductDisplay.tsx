@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View, Text } from "react-native";
 import { AgGridReact } from "ag-grid-react";
 import type { AgGridReactProps } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { myTableTheme } from "@/components/sea-saw-design/table/theme";
@@ -23,8 +23,6 @@ export default function ProductDisplay({
   className = "",
   agGridReactProps,
 }: ProductDisplayProps) {
-  const { i18n } = useLocale();
-
   /** 默认列定义 */
   const defaultColDef = useMemo<ColDef>(
     () => ({

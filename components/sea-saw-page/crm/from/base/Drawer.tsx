@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { View, DimensionValue, TouchableOpacity } from "react-native";
 import Modal from "react-native-modal";
-import { X } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface DrawerProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ export default function Drawer({
           onPress={onClose}
           className="absolute top-5 right-5 z-50"
         >
-          <X size={20} color="black" />
+          <Ionicons name="close" size={20} color="black" />
         </TouchableOpacity>
 
         {/* Drawer 内容区 */}

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import {
   View,
   Text,
@@ -7,7 +8,6 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useLocale } from "@/context/Locale";
 import { debounce } from "lodash";
 
 interface UserSelectorProps {
@@ -42,7 +42,6 @@ export default function UserSelector({
   renderSelectedItem,
   loading = false,
 }: UserSelectorProps) {
-  const { i18n } = useLocale();
   const [search, setSearch] = useState("");
 
   // 判断是否被选中

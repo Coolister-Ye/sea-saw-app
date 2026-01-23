@@ -3,7 +3,10 @@ import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-vie
 import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as DropdownMenuPrimitive from '@rn-primitives/dropdown-menu';
-import { Check, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react-native';
+import { Check } from '@/components/sea-saw-design/icons/Check';
+import { ChevronDown } from '@/components/sea-saw-design/icons/ChevronDown';
+import { ChevronRight } from '@/components/sea-saw-design/icons/ChevronRight';
+import { ChevronUp } from '@/components/sea-saw-design/icons/ChevronUp';
 import * as React from 'react';
 import {
   Platform,

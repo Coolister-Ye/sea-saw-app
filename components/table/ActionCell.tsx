@@ -1,4 +1,5 @@
 import { Dropdown, Popconfirm, Typography } from "antd";
+import i18n from '@/locale/i18n';
 import React, { useContext, useMemo } from "react";
 import { EditableContext } from "./EditableRow";
 import { MenuProps } from "antd";
@@ -9,7 +10,6 @@ import {
 } from "react-native-heroicons/outline";
 import View from "@/components/themed/View";
 import _ from "lodash";
-import { useLocale } from "@/context/Locale";
 import { useToast } from "@/context/Toast";
 import { Pressable } from "react-native";
 
@@ -44,7 +44,7 @@ const ActionCell = <T extends Record<string, any>>({
   ...restProps
 }: ActionCellProps<T>) => {
   const { form, recordRef } = useContext(EditableContext);
-  const { i18n } = useLocale(); // 用于本地化 (i18n)
+  // 用于本地化 (i18n)
   const { showToast } = useToast();
 
   // Save the record with updated fields after validation

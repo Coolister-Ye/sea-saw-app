@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { PurchaseOrderInputNested as PurchaseOrderInput } from "../../../../input/purchase";
 import { PurchaseOrderEmptySlot, PurchaseAddDivider } from "../../shared";
 import { PurchaseOrdersSectionProps } from "../../../order/types";
@@ -19,8 +19,6 @@ export default function PurchaseOrdersSection({
   onCreate,
   onUpdate,
 }: PurchaseOrdersSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate purchase summary
   const purchaseCount = purchaseOrders.length;
   const totalItems = purchaseOrders.reduce(

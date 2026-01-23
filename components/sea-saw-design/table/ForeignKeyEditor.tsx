@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import i18n from '@/locale/i18n';
 import {
   View,
   Text,
@@ -9,7 +10,6 @@ import {
 import { AgGridReact } from "ag-grid-react";
 import { RowSelectionOptions } from "ag-grid-community";
 
-import { useLocale } from "@/context/Locale";
 import Table from "./index";
 import { seaSawTableTheme } from "./theme";
 import ForeignKeyCell from "./ForeignKeyCell";
@@ -28,7 +28,6 @@ function ForeignKeyEditor({
   cellStartedEdit,
 }: ForeignKeyEditorProps) {
   const { field } = colDef;
-  const { i18n } = useLocale();
   const gridRef = useRef<AgGridReact>(null);
   const [isOpen, setIsOpen] = useState(false);
 

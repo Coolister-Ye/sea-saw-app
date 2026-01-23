@@ -52,3 +52,6 @@ export const useLocaleStore = create<LocaleState>((set, get) => ({
 // Selectors
 export const selectLocale = (state: LocaleState) => state.locale;
 export const selectIsLoading = (state: LocaleState) => state.isLoading;
+
+// Convenience hook for components that only need i18n
+export const useI18n = () => i18n;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import {
   XMarkIcon,
@@ -10,7 +11,6 @@ import { EnvelopeIcon } from "@heroicons/react/20/solid";
 import { Form } from "antd";
 
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import type { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/ui/text";
@@ -58,7 +58,6 @@ export default function ContactSelector({
   onChange,
   multiple = false,
 }: ContactSelectorProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const contactViewSet = useMemo(() => getViewSet("contact"), [getViewSet]);
   const form = Form.useFormInstance();

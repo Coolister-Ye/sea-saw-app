@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import type { ColDef, Theme } from "ag-grid-community";
 
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { theme as defaultTheme } from "@/components/sea-saw-design/table/theme";
@@ -66,8 +66,6 @@ export default function ItemsTable({
   showTotal = false,
   theme,
 }: ItemsTableProps) {
-  const { i18n } = useLocale();
-
   const items = useMemo(() => value ?? [], [value]);
 
   // Build field label map from def

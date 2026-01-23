@@ -9,7 +9,7 @@ import {
   ArrowRightCircleIcon,
 } from "react-native-heroicons/solid";
 import { TouchableOpacity, View } from "react-native";
-import { useLocale } from "@/context/Locale";
+import { useLocaleStore } from '@/stores/localeStore';
 import Text from "@/components/themed/Text";
 // @ts-ignore
 import Lunar from "chinese-lunar";
@@ -101,7 +101,7 @@ LocaleConfig.locales["en"] = {
 };
 
 function Calendar({ markedDates, onDayPress, onMonthChange }: any) {
-  const { locale } = useLocale(); // 获取当前语言环境
+  const locale = useLocaleStore(state => state.locale); // 获取当前语言环境
   const [currentLocale, setCurrentLocale] = useState(locale);
 
   // 处理标记的日期，转换成符合react-native-calendars要求的格式

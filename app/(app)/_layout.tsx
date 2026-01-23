@@ -1,117 +1,111 @@
-import React from "react";
-import { Drawer } from "expo-router/drawer";
-import { Redirect } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useMemo, useCallback } from "react";
 import { Platform } from "react-native";
+import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useDevice } from "@/hooks/useDevice";
-import { useLocale } from "@/context/Locale";
-import { useAuth } from "@/context/Auth";
-import CustomDrawerContent from "@/components/sea-saw-design/drawer/DrawerContent";
-import DrawerFooter from "@/components/sea-saw-design/drawer/DrawerFoot";
+import { useAuthStore, selectIsStaff } from "@/stores/authStore";
+import { useLocaleStore, selectLocale } from "@/stores/localeStore";
+import { CustomDrawerContent } from "@/components/sea-saw-design/drawer/DrawerContent";
+import { DrawerFooter } from "@/components/sea-saw-design/drawer/DrawerFoot";
+import { DrawerHeader } from "@/components/sea-saw-design/header";
+import i18n from "@/locale/i18n";
+
+type ScreenConfig = {
+  name: string;
+  label: string;
+  groups?: string[];
+  staffOnly?: boolean;
+};
+
+const SCREEN_CONFIGS: ScreenConfig[] = [
+  { name: "index", label: "Home" },
+  { name: "(crm)/contact", label: "customer", groups: ["Sale"] },
+  { name: "(crm)/company", label: "company", groups: ["Sale"] },
+  { name: "(crm)/order", label: "order", groups: ["Sale"] },
+  { name: "(crm)/production", label: "production", groups: ["Production"] },
+  { name: "(crm)/pipeline", label: "pipeline", groups: ["Sale"] },
+  { name: "(crm)/download", label: "download" },
+  { name: "(setting)/profile", label: "profile" },
+  { name: "(setting)/profile-edit", label: "profile_edit" },
+  { name: "(setting)/password", label: "password" },
+  { name: "(playground)/playground", label: "playground", staffOnly: true },
+  { name: "(playground)/example", label: "playground", staffOnly: true },
+  {
+    name: "(playground)/hoverCardExample",
+    label: "playground",
+    staffOnly: true,
+  },
+];
 
 export default function AppLayout() {
-  const { i18n } = useLocale();
-  const { isGroupX, isStaff, isLogin, isInitialized } = useAuth();
+  const isGroupX = useAuthStore((state) => state.isGroupX);
+  const isStaff = useAuthStore(selectIsStaff);
+  const locale = useLocaleStore(selectLocale); // Subscribe to locale changes
   const { isLargeScreen } = useDevice();
   const isWeb = Platform.OS === "web";
 
-  // Wait for auth initialization
-  if (!isInitialized) {
-    return null;
-  }
+  const parentTitleMap = useMemo(
+    () => ({
+      "(playground)": i18n.t("playground"),
+      "(crm)": i18n.t("crm"),
+      "(setting)": i18n.t("setting"),
+    }),
+    [locale],
+  );
 
-  // Redirect to login if not authenticated
-  if (!isLogin) {
-    return <Redirect href="/(auth)/login" />;
-  }
+  const getDrawerItemStyle = useCallback(
+    (config: ScreenConfig) => {
+      const { groups, staffOnly } = config;
 
-  // 统一管理 Parent Title 映射
-  const parentTitleMap = {
-    "(playground)": i18n.t("playground"),
-  };
+      if (!groups && !staffOnly) return undefined;
 
-  // 统一管理权限控制
-  const getDrawerVisibility = (groups: string[]) =>
-    isStaff || groups.some(isGroupX) ? "flex" : "none";
+      const isVisible = staffOnly
+        ? isStaff
+        : isStaff || (groups?.some(isGroupX) ?? false);
+
+      return { display: (isVisible ? "flex" : "none") as "flex" | "none" };
+    },
+    [isStaff, isGroupX],
+  );
+
+  const drawerContent = useCallback(
+    (props: any) => (
+      <CustomDrawerContent
+        parentTitleMap={parentTitleMap}
+        footer={<DrawerFooter />}
+        {...props}
+      />
+    ),
+    [parentTitleMap],
+  );
+
+  const screenOptions = useMemo(
+    () => ({
+      headerShown: Platform.OS !== "web",
+      drawerType: (isLargeScreen ? "permanent" : "front") as
+        | "permanent"
+        | "front",
+      drawerStyle: { width: 280 },
+      drawerItemStyle: { borderRadius: 8 },
+    }),
+    [isLargeScreen],
+  );
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {/* {isWeb && <DrawerHeader title="Sea saw" />} */}
+      {isWeb && <DrawerHeader title="Sea saw" />}
       <Drawer
-        screenOptions={{
-          headerShown: !isWeb,
-          drawerType: isLargeScreen ? "permanent" : "front",
-          drawerStyle: { width: 280 },
-          drawerItemStyle: { borderRadius: 8 },
-        }}
-        drawerContent={(props) => (
-          <CustomDrawerContent
-            parentTitleMap={parentTitleMap}
-            footer={<DrawerFooter />}
-            {...props}
-          />
-        )}
+        key={locale}
+        screenOptions={screenOptions}
+        drawerContent={drawerContent}
       >
-        <Drawer.Screen name="index" options={{ drawerLabel: i18n.t("Home") }} />
-
-        {[
-          { name: "contact", label: "customer", groups: ["Sale"] },
-          { name: "company", label: "company", groups: ["Sale"] },
-        ].map(({ name, label, groups }) => (
+        {SCREEN_CONFIGS.map((config) => (
           <Drawer.Screen
-            key={name}
-            name={name}
+            key={config.name}
+            name={config.name}
             options={{
-              drawerLabel: i18n.t(label),
-              drawerItemStyle: {
-                display: getDrawerVisibility(groups),
-                borderRadius: 8,
-              },
-            }}
-          />
-        ))}
-
-        <Drawer.Screen
-          name="production"
-          options={{
-            drawerLabel: i18n.t("production"),
-            drawerItemStyle: {
-              display: getDrawerVisibility(["Production"]),
-              borderRadius: 8,
-            },
-          }}
-        />
-
-        <Drawer.Screen
-          name="pipeline"
-          options={{
-            drawerLabel: i18n.t("pipeline"),
-            drawerItemStyle: {
-              display: getDrawerVisibility(["Sale"]),
-              borderRadius: 8,
-            },
-          }}
-        />
-
-        <Drawer.Screen
-          name="download"
-          options={{ drawerLabel: i18n.t("download") }}
-        />
-
-        {[
-          "(playground)/playground",
-          "(playground)/example",
-          "(playground)/hoverCardExample",
-        ].map((name) => (
-          <Drawer.Screen
-            key={name}
-            name={name}
-            options={{
-              drawerLabel: i18n.t("playground"),
-              drawerItemStyle: {
-                display: isStaff ? "flex" : "none",
-                borderRadius: 8,
-              },
+              drawerLabel: i18n.t(config.label),
+              drawerItemStyle: getDrawerItemStyle(config),
             }}
           />
         ))}

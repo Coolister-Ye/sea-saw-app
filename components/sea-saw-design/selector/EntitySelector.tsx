@@ -15,6 +15,7 @@ import {
   ScrollView,
 } from "react-native";
 import { AgGridReact } from "ag-grid-react";
+import i18n from '@/locale/i18n';
 import type { ColDef, GridApi } from "ag-grid-community";
 import {
   MagnifyingGlassIcon,
@@ -25,7 +26,6 @@ import {
   XCircleIcon,
 } from "react-native-heroicons/outline";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import type { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/ui/text";
@@ -145,7 +145,6 @@ const EntitySelectorInner = <T extends EntityItem>(
   }: EntitySelectorProps<T>,
   ref: React.Ref<View>
 ) => {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const viewSet = useMemo(
     () => getViewSet(contentType),

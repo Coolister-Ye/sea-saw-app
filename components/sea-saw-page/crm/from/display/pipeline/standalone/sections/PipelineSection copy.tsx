@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { PipelineInput } from "../../../../input/pipeline";
 import { PipelineSectionProps } from "../../types";
@@ -19,8 +19,6 @@ export default function PipelineSection({
   onCreate,
   onUpdate,
 }: PipelineSectionProps) {
-  const { i18n } = useLocale();
-
   const {
     order,
     production_orders,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
@@ -10,7 +11,6 @@ import PurchaseOrderStatusSelector from "../shared/selectors/PurchaseOrderStatus
 import RelatedOrderSelector from "../shared/selectors/RelatedOrderSelector";
 import SupplierSelector from "../shared/selectors/SupplierSelector";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody, devError } from "@/utils";
 import { AttachmentInput } from "../../shared";
@@ -37,7 +37,6 @@ export default function PurchaseOrderInput({
   data = {},
   orderId,
 }: PurchaseOrderInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const purchaseOrder = useMemo(
     () => getViewSet("purchaseOrder"),

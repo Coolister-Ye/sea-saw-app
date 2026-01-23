@@ -1,7 +1,7 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import { ProductionOrderInputNested as ProductionOrderInput } from "../../../../input/production";
 import { ProductionOrderEmptySlot, ProductionAddDivider } from "../../shared";
 import { ProductionOrdersSectionProps } from "../../../order/types";
@@ -19,8 +19,6 @@ export default function ProductionOrdersSection({
   onCreate,
   onUpdate,
 }: ProductionOrdersSectionProps) {
-  const { i18n } = useLocale();
-
   // Calculate production summary
   const productionCount = productionOrders.length;
   const totalItems = productionOrders.reduce(

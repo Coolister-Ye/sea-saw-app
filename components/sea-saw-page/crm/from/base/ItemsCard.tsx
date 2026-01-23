@@ -1,9 +1,9 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Tag, Button } from "antd";
 import { Text } from "@/components/ui/text";
 import { PencilSquareIcon } from "react-native-heroicons/outline";
-import { useLocale } from "@/context/Locale";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -88,8 +88,6 @@ export default function ItemsCard({
   renderHeader,
   renderExtraSections,
 }: ItemsCardProps) {
-  const { i18n } = useLocale();
-
   // Use the shared hook for common card item helpers
   const { renderFieldValue, fullWidthFields, getFieldLabel, fieldSections } =
     useCardItemHelpers(def?.child?.children, fieldConfig);

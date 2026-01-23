@@ -1,97 +1,148 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { View, Pressable } from "react-native";
-import { Menu } from "antd";
-import { DrawerContentComponentProps } from "@react-navigation/drawer";
+import { Menu, type MenuProps } from "antd";
+import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { ReactNode } from "react";
 import { usePathname } from "expo-router";
 import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/20/solid";
+import type { ParentTitleMap, ParentIconMap } from "./types";
 
 /** ---------- Types ---------- */
-type ParentNode = {
-  type: "parent";
-  children: NestedDrawerStruct;
-};
 
-type ChildNode = {
+// Infer types from DrawerContentComponentProps
+type DrawerDescriptorMap = DrawerContentComponentProps["descriptors"];
+type DrawerNavigationHelpers = DrawerContentComponentProps["navigation"];
+type DrawerDescriptor = DrawerDescriptorMap[string];
+
+/** Web-specific child node structure */
+type WebChildNode = {
   type: "child";
   routeName: string;
   drawerLabel?: ReactNode;
   drawerItemStyle?: any;
 };
 
-type NestedDrawerStruct = Record<string, ParentNode | ChildNode>;
+/** Web-specific parent node structure */
+type WebParentNode = {
+  type: "parent";
+  children: WebNestedDrawerStruct;
+};
 
-type CustomDrawerMenuProps = {
-  parentTitleMap?: Record<string, string | ReactNode>;
-  parentIconMap?: Record<string, ReactNode>;
+/** Web-specific nested drawer structure */
+type WebNestedDrawerStruct = Record<string, WebParentNode | WebChildNode>;
+
+export type CustomDrawerContentProps = {
+  parentTitleMap?: ParentTitleMap;
+  parentIconMap?: ParentIconMap;
   footer?: ReactNode;
   collapsed?: boolean;
-  setCollapsed?: (v: boolean) => void;
+  setCollapsed?: (value: boolean) => void;
 } & DrawerContentComponentProps;
 
-/** ---------- Build Nested Menu Struct ---------- */
-function buildNestedStruct(
-  descriptors: Record<string, any>
-): NestedDrawerStruct {
-  const root: NestedDrawerStruct = {};
+/** ---------- Helper Functions ---------- */
 
-  for (const d of Object.values(descriptors)) {
-    const routeName = d.route.name; // e.g. (crm)/company
+/**
+ * Checks if a descriptor should be hidden based on drawerItemStyle
+ */
+const isDescriptorHidden = (descriptor: DrawerDescriptor): boolean => {
+  const style = descriptor.options.drawerItemStyle;
+  return (
+    typeof style === "object" &&
+    style !== null &&
+    !Array.isArray(style) &&
+    "display" in style &&
+    (style as any).display === "none"
+  );
+};
+
+/**
+ * Recursively removes empty parent nodes
+ */
+const removeEmptyParents = (
+  struct: WebNestedDrawerStruct,
+): WebNestedDrawerStruct => {
+  const filtered: WebNestedDrawerStruct = {};
+
+  for (const [key, val] of Object.entries(struct)) {
+    if (val.type === "child") {
+      filtered[key] = val;
+    } else {
+      const cleanedChildren = removeEmptyParents(val.children);
+      if (Object.keys(cleanedChildren).length > 0) {
+        filtered[key] = { type: "parent", children: cleanedChildren };
+      }
+    }
+  }
+
+  return filtered;
+};
+
+/**
+ * Gets the label from drawer options, handling function labels
+ */
+const getDrawerLabel = (
+  label:
+    | string
+    | ((props: { color: string; focused: boolean }) => ReactNode)
+    | undefined,
+): ReactNode => {
+  if (typeof label === "function") {
+    // Call the function with default props for static rendering
+    return label({ color: "#000", focused: false });
+  }
+  return label;
+};
+
+/**
+ * Builds a nested structure from drawer descriptors
+ */
+const buildNestedStruct = (
+  descriptors: DrawerDescriptorMap,
+): WebNestedDrawerStruct => {
+  const root: WebNestedDrawerStruct = {};
+
+  for (const descriptor of Object.values(descriptors)) {
+    const routeName = descriptor.route.name;
     const segments = routeName.split("/");
     let current = root;
 
-    segments.forEach((seg: string, idx: number) => {
-      const isLast = idx === segments.length - 1;
+    segments.forEach((segment: string, index: number) => {
+      const isLastSegment = index === segments.length - 1;
 
-      if (isLast) {
-        const hidden = d.options.drawerItemStyle?.display === "none";
-        if (!hidden) {
-          current[seg] = {
+      if (isLastSegment) {
+        if (!isDescriptorHidden(descriptor)) {
+          current[segment] = {
             type: "child",
             routeName,
-            drawerLabel: d.options.drawerLabel,
-            drawerItemStyle: d.options.drawerItemStyle,
+            drawerLabel: getDrawerLabel(descriptor.options.drawerLabel),
+            drawerItemStyle: descriptor.options.drawerItemStyle,
           };
         }
       } else {
-        if (!current[seg]) {
-          current[seg] = { type: "parent", children: {} };
+        if (!current[segment]) {
+          current[segment] = { type: "parent", children: {} };
         }
-        current = (current[seg] as ParentNode).children;
+        current = (current[segment] as WebParentNode).children;
       }
     });
   }
 
   return removeEmptyParents(root);
-}
+};
 
-/** ---------- Remove empty parents ---------- */
-function removeEmptyParents(struct: NestedDrawerStruct): NestedDrawerStruct {
-  const filtered: NestedDrawerStruct = {};
-
-  for (const [key, val] of Object.entries(struct)) {
-    if (val.type === "child") filtered[key] = val;
-    else {
-      const child = removeEmptyParents(val.children);
-      if (Object.keys(child).length > 0)
-        filtered[key] = { type: "parent", children: child };
-    }
-  }
-
-  return filtered;
-}
-
-/** ---------- Convert to Antd Menu items ---------- */
-function structToMenuItems(
-  struct: NestedDrawerStruct,
-  parentTitleMap: Record<string, ReactNode>,
-  parentIconMap: Record<string, ReactNode>,
-  navigation: any,
-  prefix = ""
-): any[] {
+/**
+ * Converts nested structure to Ant Design Menu items
+ */
+const structToMenuItems = (
+  struct: WebNestedDrawerStruct,
+  parentTitleMap: ParentTitleMap,
+  parentIconMap: ParentIconMap,
+  navigation: DrawerNavigationHelpers,
+  prefix = "",
+): MenuProps["items"] => {
   return Object.entries(struct).map(([key, val]) => {
     const fullPath = prefix ? `${prefix}/${key}` : key;
 
@@ -113,81 +164,124 @@ function structToMenuItems(
         parentTitleMap,
         parentIconMap,
         navigation,
-        fullPath
+        fullPath,
       ),
     };
   });
-}
+};
+
+/**
+ * Finds the currently selected key based on pathname
+ */
+const findSelectedKey = (
+  pathname: string,
+  descriptors: DrawerDescriptorMap,
+): string => {
+  const keys = Object.values(descriptors).map((d) => d.route.name);
+  return keys.find((k) => pathname.includes(k)) ?? "index";
+};
+
+/**
+ * Finds parent menu keys that should be opened based on pathname
+ */
+const findOpenKeys = (
+  pathname: string,
+  menuItems: MenuProps["items"],
+): string[] => {
+  if (!menuItems) return [];
+
+  return menuItems
+    .map((item: any) => item.key)
+    .filter((k: string) => pathname.includes(k));
+};
 
 /** ---------- Component ---------- */
-export default function CustomDrawerContent({
-  parentTitleMap = {},
-  parentIconMap = {},
-  footer,
-  descriptors,
-  navigation,
-  collapsed = false,
-  setCollapsed,
-}: CustomDrawerMenuProps) {
-  const pathname = usePathname(); // 当前路径，例如 /crm/company
 
-  /** 当前选中的 Drawer routeName */
-  const selectedKey = useMemo(() => {
-    const keys = Object.values(descriptors).map((d) => d.route.name);
-    return keys.find((k) => pathname.includes(k)) ?? "index";
-  }, [pathname, descriptors]);
+/**
+ * Custom drawer content for web platform.
+ * Uses Ant Design Menu component with collapsible functionality.
+ */
+export const CustomDrawerContent = React.memo<CustomDrawerContentProps>(
+  ({
+    parentTitleMap = {},
+    parentIconMap = {},
+    footer,
+    descriptors,
+    navigation,
+    collapsed = false,
+    setCollapsed,
+  }) => {
+    const pathname = usePathname();
 
-  const nestedStruct = useMemo(
-    () => buildNestedStruct(descriptors),
-    [descriptors]
-  );
+    // Memoize nested structure
+    const nestedStruct = useMemo(
+      () => buildNestedStruct(descriptors),
+      [descriptors],
+    );
 
-  const menuItems = useMemo(
-    () =>
-      structToMenuItems(
-        nestedStruct,
-        parentTitleMap,
-        parentIconMap,
-        navigation
-      ),
-    [nestedStruct, parentTitleMap, parentIconMap]
-  );
+    // Memoize menu items
+    const menuItems = useMemo(
+      () =>
+        structToMenuItems(
+          nestedStruct,
+          parentTitleMap,
+          parentIconMap,
+          navigation,
+        ),
+      [nestedStruct, parentTitleMap, parentIconMap, navigation],
+    );
 
-  /** 自动展开父菜单 */
-  const openKeys = useMemo(() => {
-    const found = menuItems
-      .map((item: any) => item.key)
-      .filter((k: string) => pathname.includes(k));
-    return found;
-  }, [pathname, menuItems]);
+    // Find selected key
+    const selectedKey = useMemo(
+      () => findSelectedKey(pathname, descriptors),
+      [pathname, descriptors],
+    );
 
-  return (
-    <View style={{ flex: 1, justifyContent: "space-between" }}>
-      {/* MENU */}
-      <Menu
-        mode="inline"
-        items={menuItems}
-        selectedKeys={[selectedKey]}
-        defaultOpenKeys={openKeys}
-        inlineCollapsed={collapsed}
-        style={{ width: "100%", flex: 1 }}
-      />
+    // Find keys that should be opened
+    const openKeys = useMemo(
+      () => findOpenKeys(pathname, menuItems),
+      [pathname, menuItems],
+    );
 
-      {/* COLLAPSE BUTTON */}
-      <Pressable
-        onPress={() => setCollapsed?.(!collapsed)}
-        className="absolute -right-5 bottom-3 bg-sky-900 p-2 rounded-full hover:bg-sky-600"
-        style={{ pointerEvents: "auto" }}
-      >
-        {collapsed ? (
-          <ChevronDoubleRightIcon className="size-5 text-white" />
-        ) : (
-          <ChevronDoubleLeftIcon className="size-5 text-white" />
-        )}
-      </Pressable>
+    // Toggle collapsed state
+    const handleToggleCollapse = useCallback(() => {
+      setCollapsed?.(!collapsed);
+    }, [collapsed, setCollapsed]);
 
-      {/* FOOTER */}
-      {footer}
-    </View>
-  );
-}
+    return (
+      <View style={{ flex: 1, justifyContent: "space-between" }}>
+        {/* Menu */}
+        <Menu
+          mode="inline"
+          items={menuItems}
+          selectedKeys={[selectedKey]}
+          defaultOpenKeys={openKeys}
+          inlineCollapsed={collapsed}
+          style={{ width: "100%", flex: 1 }}
+        />
+
+        {/* Collapse Toggle Button */}
+        <Pressable
+          onPress={handleToggleCollapse}
+          className="absolute -right-5 bottom-3 bg-sky-900 p-2 rounded-full hover:bg-sky-600"
+          style={{ pointerEvents: "auto" }}
+          accessibilityLabel={collapsed ? "Expand menu" : "Collapse menu"}
+          accessibilityRole="button"
+        >
+          {collapsed ? (
+            <ChevronDoubleRightIcon className="size-5 text-white" />
+          ) : (
+            <ChevronDoubleLeftIcon className="size-5 text-white" />
+          )}
+        </Pressable>
+
+        {/* Footer */}
+        {footer}
+      </View>
+    );
+  },
+);
+
+CustomDrawerContent.displayName = "CustomDrawerContent";
+
+export default CustomDrawerContent;

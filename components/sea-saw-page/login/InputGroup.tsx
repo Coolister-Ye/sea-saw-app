@@ -1,44 +1,38 @@
-import clsx from "clsx";
 import { View } from "react-native";
-import { SelectListProps } from "../SelectList";
-import TextInput from "@/components/themed/TextInput";
-import Text from "@/components/themed/Text";
-import exp from "constants";
+import { Input, InputProps } from "@/components/sea-saw-design/input";
+import { Text } from "@/components/sea-saw-design/text";
+import { cn } from "@/components/sea-saw-design/utils";
 
-type InputGroupProps = Omit<SelectListProps, "variant"> & {
-  variant?: "text-input" | "select-list" | "date-picker";
+type InputGroupProps = InputProps & {
   label: string;
   containerClassName?: string;
   isMandatory?: boolean;
-  error?: any;
+  /** 支持 Formik 的 touched && errors 模式 */
+  error?: string | false | null;
 };
 
 function InputGroup({
-  variant = "text-input",
   label,
   containerClassName,
   isMandatory = false,
   error = null,
+  status,
   ...props
 }: InputGroupProps) {
-  const _className = clsx("flex w-full", containerClassName);
-
   return (
-    <View>
-      <View className={_className}>
-        {/* Render the label with an asterisk if it's mandatory */}
-        <Text
-          className="block text-sm font-medium leading-6 mb-2"
-          variant="primary"
-        >
-          {label}
-          {isMandatory && <Text className="text-red-500 px-1">*</Text>}
-        </Text>
-        <TextInput {...props} />
-      </View>
-
-      <Text variant="error" className="text-xs h-5 w-full text-right pr-2 mt-1">
-        {error}
+    <View className={cn("flex w-full", containerClassName)}>
+      <Text className="block text-sm font-medium leading-6 mb-2 text-slate-700 dark:text-slate-300">
+        {label}
+        {isMandatory && <Text className="text-red-500 px-1">*</Text>}
+      </Text>
+      <Input
+        {...props}
+        status={error ? "error" : status}
+        variant="outlined"
+        size="large"
+      />
+      <Text className="text-xs h-5 w-full text-left mt-1.5 text-red-500 dark:text-red-400">
+        {error || null}
       </Text>
     </View>
   );

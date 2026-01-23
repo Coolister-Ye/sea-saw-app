@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
+import i18n from '@/locale/i18n';
 import { View, FlatList, ScrollView } from "react-native";
 import { Button } from "@/components/ui/button";
 import Drawer from "./Drawer";
 import { Form } from "antd";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import InputHeader from "./InputHeader";
 import InputFooter from "./InputFooter";
 
@@ -29,7 +29,6 @@ function ModalForm<T>({
   value = [],
   onChange,
 }: ModalFormProps<T>) {
-  const { i18n } = useLocale();
   const [form] = Form.useForm();
 
   const [list, setList] = useState<T[]>(value);

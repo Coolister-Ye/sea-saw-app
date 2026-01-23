@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View, Text, Pressable } from "react-native";
-import { useLocale } from "@/context/Locale";
 import ProductDisplay from "./ProductDisplay";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import EmptySlot from "./base/EmptySlot";
@@ -31,8 +31,6 @@ export default function OrderDisplay({
   onEdit,
   onDelete,
 }: OrderDisplayProps) {
-  const { i18n } = useLocale();
-
   const formDefs = useFormDefs({ def });
 
   /** 拆分成基础字段 & 产品字段 */

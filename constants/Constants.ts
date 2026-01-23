@@ -45,6 +45,8 @@ export const constants = {
     tokenRefresh: "/api/token/refresh/",
     userProfile: "/api/auth/user-detail/",
     setPasswd: "/auth/users/set_password/",
+    register: "/api/auth/register/",
+    profileUpdate: "/api/auth/profile/update/",
 
     listDownloads: "/api/download/download-tasks/",
     crmDownload: "/api/sea-saw-crm/download/",

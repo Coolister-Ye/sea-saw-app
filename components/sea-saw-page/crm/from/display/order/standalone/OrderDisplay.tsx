@@ -1,8 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
+import i18n from '@/locale/i18n';
 import { View, ScrollView } from "react-native";
 import { Button } from "antd";
-import { useLocale } from "@/context/Locale";
-
 import Drawer from "../../../base/Drawer.web";
 
 import OrderSection from "./sections/OrderSection";
@@ -21,7 +20,6 @@ export default function OrderDisplay({
   def = [],
   data,
 }: OrderDisplayProps) {
-  const { i18n } = useLocale();
   const parentNodeRef = useRef<any>(null);
 
   const order = data ?? {};

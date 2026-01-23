@@ -1,6 +1,6 @@
 import { View, Pressable } from "react-native";
+import i18n from '@/locale/i18n';
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
 import {
   BanknotesIcon,
   PlusIcon,
@@ -15,8 +15,6 @@ export default function PaymentEmptySlot({
   onCreate,
   disabled = false,
 }: Props) {
-  const { i18n } = useLocale();
-
   return (
     <View className="m-3">
       <View

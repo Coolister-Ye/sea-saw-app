@@ -1,9 +1,8 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { Dropdown, Button, Space } from "antd";
 import type { MenuProps } from "antd";
 import { EllipsisOutlined } from "@ant-design/icons";
-import { useLocale } from "@/context/Locale";
-
 export interface ActionDropdownProps {
   /** Handler for the primary create action */
   onPrimaryAction: () => void;
@@ -27,8 +26,6 @@ export function ActionDropdown({
   copyDisabled = false,
   deleteDisabled = true,
 }: ActionDropdownProps) {
-  const { i18n } = useLocale();
-
   const menuItems: MenuProps["items"] = useMemo(() => {
     const items: MenuProps["items"] = [];
 

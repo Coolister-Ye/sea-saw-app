@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
 import { UserIcon } from "react-native-heroicons/outline";
 import { EnvelopeIcon } from "@heroicons/react/20/solid";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/ui/text";
@@ -27,7 +27,6 @@ export default function ContactInput({
   onChange,
   multiple = false,
 }: ContactInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const contactViewSet = useMemo(() => getViewSet("contact"), [getViewSet]);
   const [isOpen, setIsOpen] = useState(false);

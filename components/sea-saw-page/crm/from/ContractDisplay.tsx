@@ -1,8 +1,7 @@
 import React, { useMemo, useRef } from "react";
+import i18n from '@/locale/i18n';
 import { View, Text, ScrollView } from "react-native";
 import { Button } from "@/components/ui/button";
-import { useLocale } from "@/context/Locale";
-
 import Drawer from "./base/Drawer";
 import InputHeader from "./base/InputHeader";
 
@@ -26,7 +25,6 @@ export default function ContractDisplay({
   def = [],
   data,
 }: ContractDisplayProps) {
-  const { i18n } = useLocale();
   const parentNodeRef = useRef<any>(null);
 
   /** ==== 数据预处理 ==== */

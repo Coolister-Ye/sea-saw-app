@@ -17,7 +17,10 @@ import {
 } from "@/utils";
 import { ActionCell } from "@/components/table/ActionCell";
 import React from "react";
-import { useAppContext } from "@/context/App";
+import { useAuthStore } from "@/stores/authStore";
+import { useLocaleStore } from "@/stores/localeStore";
+import i18n from "@/locale/i18n";
+import { useToast } from "@/context/Toast";
 
 type TableConfigType = {
   table: string;
@@ -99,10 +102,12 @@ export function useTable({
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const hasMounted = useRef(false);
-  const { locale: _locale, toast, isAppReady } = useAppContext();
-  const { i18n, locale } = _locale;
+  const hasHydrated = useAuthStore(state => state._hasHydrated);
+  const isLocaleLoading = useLocaleStore(state => state.isLoading);
+  const isAppReady = hasHydrated && !isLocaleLoading;
+  const locale = useLocaleStore(state => state.locale);
   const prevLocale = useRef(locale);
-  const { showToast } = toast;
+  const { showToast } = useToast();
 
   const { paginationModel, columns, data, flatData, dataCount, editingKey } =
     state;

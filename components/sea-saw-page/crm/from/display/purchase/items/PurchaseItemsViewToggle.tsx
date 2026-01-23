@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Radio, Tooltip } from "antd";
 import type { AgGridReactProps } from "ag-grid-react";
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
 import PurchaseItemsCard from "./PurchaseItemsCard";
 import PurchaseItemsTable from "./PurchaseItemsTable";
-import { useLocale } from "@/context/Locale";
-
 type ViewMode = "card" | "table";
 
 interface PurchaseItemsViewToggleProps {
@@ -22,7 +21,6 @@ export default function PurchaseItemsViewToggle({
   agGridReactProps,
   onItemClick,
 }: PurchaseItemsViewToggleProps) {
-  const { i18n } = useLocale();
   const [viewMode, setViewMode] = useState<ViewMode>("card");
 
   return (

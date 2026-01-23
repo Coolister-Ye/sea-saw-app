@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
 import { devError } from "@/utils/logger";
@@ -36,7 +36,6 @@ export default function OrderInput({
   data = {},
   pipelineId,
 }: OrderInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
 
   const nestedOrderViewSet = useMemo(

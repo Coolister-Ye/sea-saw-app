@@ -11,12 +11,12 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import i18n from '@/locale/i18n';
 import { Modal, message } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { FormDef } from "@/hooks/useFormDefs";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { normalizeBoolean, stripIdsDeep } from "@/utils";
 
@@ -149,7 +149,6 @@ export function useCRMPage(config: CRMPageConfig): UseCRMPageReturn {
   const excludeFromCopyRef = useRef(config.excludeFromCopy ?? EMPTY_ARRAY);
   const filterMetaFieldsRef = useRef(config.filterMetaFields ?? EMPTY_ARRAY);
 
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const viewSet = useMemo(() => getViewSet(entity), [getViewSet, entity]);
 

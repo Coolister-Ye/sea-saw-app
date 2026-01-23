@@ -1,11 +1,10 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import "@/css/tableStyle.css";
 import { View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { useLocale } from "@/context/Locale";
-
 import { useCRMPage } from "@/hooks/useCRMPage";
 import { CRMPageLoading } from "@/components/sea-saw-page/crm/common/CRMPageLoading";
 
@@ -17,8 +16,6 @@ import { OrderInput } from "@/components/sea-saw-page/crm/from/input/order";
 import { OrderDisplay } from "@/components/sea-saw-page/crm/from/display/order";
 
 export default function OrderScreen() {
-  const { i18n } = useLocale();
-
   const {
     loadingMeta,
     metaError,

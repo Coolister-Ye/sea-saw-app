@@ -1,4 +1,5 @@
 import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
+import i18n from '@/locale/i18n';
 import {
   arrayMove,
   SortableContext,
@@ -16,7 +17,6 @@ import {
 } from "@dnd-kit/modifiers";
 import View from "../themed/View";
 import Text from "../themed/Text";
-import { useLocale } from "@/context/Locale";
 import { StarIcon } from "react-native-heroicons/solid";
 import { Pressable } from "react-native";
 import useDataService from "@/hooks/useDataService";
@@ -57,7 +57,6 @@ export function ColumnsToolBar({
       const bp = b.dataIndex === "operation" ? 0 : 1;
       return bv - av || bp - ap; // Prioritize visible columns / 优先显示未隐藏的列
     });
-  const { i18n } = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null); // State to track the active dragged item / 跟踪当前正在拖动的项目的状态
   const rankedColumns = forwardChecked(columns); // Sort columns initially by hidden state / 初始时根据hidden状态对列进行排序
   const [items, setItems] = useState(rankedColumns); // State to manage columns list after dragging / 用于管理拖动后的列列表

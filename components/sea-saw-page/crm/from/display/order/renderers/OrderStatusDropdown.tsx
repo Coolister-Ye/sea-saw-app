@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
+import i18n from '@/locale/i18n';
 import { Dropdown, MenuProps, Button, Space, message } from "antd";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 
 interface Props {
@@ -14,7 +14,6 @@ export default function OrderStatusDropdown({
   stateActions,
   onSuccess,
 }: Props) {
-  const { i18n } = useLocale();
   const { request } = useDataService();
   const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState(false);

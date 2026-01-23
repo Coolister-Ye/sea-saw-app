@@ -2,7 +2,8 @@
 import { useCallback, useMemo } from "react";
 import { DataService, ViewSet } from "@/services/DataService";
 import { AuthError } from "@/services/AuthService";
-import { useLocale } from "@/context/Locale";
+import { useLocaleStore } from '@/stores/localeStore';
+import i18n from '@/locale/i18n';
 import { usePathname, useRouter } from "expo-router";
 
 /**
@@ -12,7 +13,7 @@ import { usePathname, useRouter } from "expo-router";
 export default function useDataService() {
   const router = useRouter();
   const pathname = usePathname();
-  const { locale, i18n } = useLocale();
+  const locale = useLocaleStore(state => state.locale);
 
   const commonHeaders = useMemo(
     () => ({ "Accept-Language": locale }),
@@ -33,7 +34,7 @@ export default function useDataService() {
       if (err instanceof Error) throw err;
       throw new Error(i18n.t("An unknown error occurred"));
     },
-    [i18n, pathname, router]
+    [pathname, router]
   );
 
   const wrapCall = useCallback(

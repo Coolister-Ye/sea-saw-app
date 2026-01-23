@@ -6,9 +6,9 @@ import React, {
   useMemo,
 } from "react";
 import { ScrollView, View } from "react-native";
+import i18n from '@/locale/i18n';
 import { Form, message } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
 import Drawer from "../../../base/Drawer.web";
@@ -38,7 +38,6 @@ export default function PipelineInput({
   def,
   data = {},
 }: PipelineInputProps) {
-  const { i18n } = useLocale();
   const { getViewSet } = useDataService();
   const pipelineViewSet = useMemo(() => getViewSet("pipeline"), [getViewSet]);
   const [form] = Form.useForm();

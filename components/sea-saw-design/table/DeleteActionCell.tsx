@@ -1,7 +1,7 @@
 import { View } from "react-native";
+import i18n from '@/locale/i18n';
 import { TrashIcon } from "react-native-heroicons/outline";
 
-import { useLocale } from "@/context/Locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +26,6 @@ type DeleteActionCellProps = {
 };
 
 function DeleteActionCell({ handleDelete, handleCancel }: DeleteActionCellProps) {
-  const { i18n } = useLocale();
-
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>

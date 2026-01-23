@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import i18n from '@/locale/i18n';
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
-import { useLocale } from "@/context/Locale";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import Drawer from "../../../../base/Drawer.web";
@@ -28,8 +28,6 @@ function PurchaseOrderItemsInput({
   showToolbar = true,
   readOnly = false,
 }: PurchaseOrderItemsInputProps) {
-  const { i18n } = useLocale();
-
   /* ========================
    * State Management
    * ======================== */

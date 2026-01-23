@@ -1,4 +1,5 @@
 import React, { forwardRef, useCallback } from "react";
+import i18n from '@/locale/i18n';
 import { View, Pressable } from "react-native";
 import { Form } from "antd";
 import {
@@ -11,7 +12,6 @@ import EntitySelector, {
   type EntityItem,
 } from "@/components/sea-saw-design/selector/EntitySelector";
 import type { ColDefinition } from "@/components/sea-saw-design/table/interface";
-import { useLocale } from "@/context/Locale";
 import { Text } from "@/components/ui/text";
 import type { FormDef } from "@/hooks/useFormDefs";
 
@@ -40,7 +40,6 @@ const COL_DEFINITIONS: Record<string, ColDefinition> = {
 
 const CompanySelector = forwardRef<View, CompanySelectorProps>(
   ({ def, value, onChange, multiple = false }, ref) => {
-    const { i18n } = useLocale();
     const form = Form.useFormInstance();
     const readOnly = def?.read_only;
 

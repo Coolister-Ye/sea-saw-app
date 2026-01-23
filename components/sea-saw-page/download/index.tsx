@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import i18n from '@/locale/i18n';
 import {
   View,
   Text,
@@ -9,17 +10,17 @@ import {
   Linking,
 } from "react-native";
 import { getBaseUrl } from "@/utils";
-import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";
 import Divider from "@/components/sea-saw-design/divider";
 import { ArrowDownCircleIcon } from "react-native-heroicons/solid";
+import { devError } from "@/utils/logger";
 
 type DownloadTask = {
   pk: number;
   task_id: string;
   file_name: string;
   download_url: string;
-  status: string;
+  status: "pending" | "processing" | "completed" | "failed";
   created_at: string;
 };
 
@@ -30,17 +31,24 @@ type SectionData = {
 
 const PAGE_SIZE = 50;
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toISOString().split("T")[0]; // 仅保留日期
+/**
+ * Format date to YYYY-MM-DD format
+ */
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toISOString().split("T")[0];
 };
 
-const formatDateTime = (dateString: string) => {
+/**
+ * Format time to HH:MM:SS format
+ */
+const formatDateTime = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toISOString().split("T")[1].split(".")[0]; // 仅保留时分秒
+  const timeStr = date.toISOString().split("T")[1].split(".")[0];
+  return timeStr;
 };
 
 export default function DownloadScreen() {
-  const { i18n } = useLocale();
   const { request } = useDataService();
   const [sections, setSections] = useState<SectionData[]>([]);
   const [page, setPage] = useState(1);
@@ -48,10 +56,37 @@ export default function DownloadScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
+  const isMountedRef = useRef(true);
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const lastPageRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const fetchTasks = useCallback(
     async (pageNum: number, isRefresh = false) => {
-      if (loading) return;
+      // Prevent concurrent requests
+      if (loadingRef.current || !isMountedRef.current) return;
+
+      // Don't fetch if no more data (unless it's a refresh or first page)
+      if (!isRefresh && pageNum > 1 && !hasMoreRef.current) {
+        devError(`Skipping fetch for page ${pageNum} - no more data available`);
+        return;
+      }
+
+      // Prevent duplicate requests for the same page (unless it's a refresh)
+      if (!isRefresh && lastPageRef.current === pageNum) {
+        devError(`Skipping duplicate fetch for page ${pageNum}`);
+        return;
+      }
+
+      loadingRef.current = true;
       setLoading(true);
+      lastPageRef.current = pageNum;
 
       try {
         const response = await request({
@@ -64,13 +99,10 @@ export default function DownloadScreen() {
           },
         });
 
-        const fetchedTasks: DownloadTask[] = response.data.results.sort(
-          (
-            a: { created_at: string | number | Date },
-            b: { created_at: string | number | Date }
-          ) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        if (!isMountedRef.current) return;
+
+        // Backend already sorts by -created_at, no need to sort again
+        const fetchedTasks: DownloadTask[] = response.data.results;
 
         const groupedTasks = fetchedTasks.reduce<
           Record<string, DownloadTask[]>
@@ -94,7 +126,10 @@ export default function DownloadScreen() {
             : [...prev, ...newSections].reduce<SectionData[]>((acc, sec) => {
                 const existing = acc.find((s) => s.title === sec.title);
                 if (existing) {
-                  existing.data = [...existing.data, ...sec.data];
+                  // Avoid duplicates by checking pk
+                  const existingIds = new Set(existing.data.map(t => t.pk));
+                  const newItems = sec.data.filter(t => !existingIds.has(t.pk));
+                  existing.data = [...existing.data, ...newItems];
                 } else {
                   acc.push(sec);
                 }
@@ -102,88 +137,169 @@ export default function DownloadScreen() {
               }, [])
         );
 
-        setHasMore(!!response.data.next);
-      } catch (error) {
-        console.error("Failed to fetch tasks:", error);
+        const hasMoreData = !!response.data.next;
+        hasMoreRef.current = hasMoreData;
+        setHasMore(hasMoreData);
+      } catch (error: any) {
+        if (!isMountedRef.current) return;
+
+        if (error?.response?.status === 404) {
+          // Invalid page - no more data
+          hasMoreRef.current = false;
+          setHasMore(false);
+          devError(`Page ${pageNum} not found - reached end of data`);
+        } else {
+          devError("Failed to fetch download tasks:", error);
+        }
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+        loadingRef.current = false;
       }
     },
-    [loading, request]
+    [request]
   );
 
   useEffect(() => {
     fetchTasks(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    setPage(1);
-    await fetchTasks(1, true);
-    setRefreshing(false);
-  };
+  const handleRefresh = useCallback(async () => {
+    if (loadingRef.current) return;
 
-  const handleLoadMore = () => {
-    if (!loading && hasMore) {
+    setRefreshing(true);
+    hasMoreRef.current = true;
+    lastPageRef.current = 0;
+    setHasMore(true);
+
+    try {
+      await fetchTasks(1, true);
+      setPage(1);
+    } catch (error) {
+      devError("Failed to refresh download tasks:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchTasks]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingRef.current && hasMoreRef.current && hasMore && !refreshing) {
       setPage((prev) => prev + 1);
     }
-  };
+  }, [hasMore, refreshing]);
 
-  const renderItem = ({ item }: { item: DownloadTask }) => {
-    const isDownloadEnabled = item.status === "completed";
+  const handleDownload = useCallback((item: DownloadTask) => {
+    if (item.status === "completed" && item.download_url) {
+      const url = item.download_url.startsWith('http')
+        ? item.download_url
+        : `${getBaseUrl()}/${item.download_url}`;
+      Linking.openURL(url).catch(error => {
+        devError("Failed to open download URL:", error);
+      });
+    }
+  }, []);
 
-    return (
-      <View className="w-full h-full flex items-center px-5">
-        <View className="p-4 mx-4 my-2 bg-[#fff] rounded-lg flex-row items-center shadow-xs w-full max-w-3xl">
-          <View className="flex-1 px-1">
-            <Text className="font-semibold leading-[2]">{item.file_name}</Text>
-            <Text className="text-gray-600">
-              {formatDateTime(item.created_at)}
-            </Text>
+  const renderItem = useCallback(
+    ({ item }: { item: DownloadTask }) => {
+      const isCompleted = item.status === "completed";
+      const isFailed = item.status === "failed";
+
+      return (
+        <View className="w-full h-full flex items-center px-5">
+          <View className="p-4 mx-4 my-2 bg-[#fff] rounded-lg flex-row items-center shadow-xs w-full max-w-3xl">
+            <View className="flex-1 px-1">
+              <Text className="font-semibold leading-[2]">{item.file_name}</Text>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-gray-600">
+                  {formatDateTime(item.created_at)}
+                </Text>
+                {isFailed && (
+                  <Text className="text-red-600 text-xs">
+                    {i18n.t("Failed")}
+                  </Text>
+                )}
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => handleDownload(item)}
+              disabled={!isCompleted}
+            >
+              {isCompleted ? (
+                <ArrowDownCircleIcon
+                  size={24}
+                  className="text-sky-800"
+                />
+              ) : isFailed ? (
+                <Text className="text-red-500 text-xl">✕</Text>
+              ) : (
+                <ActivityIndicator size="small" />
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() =>
-              isDownloadEnabled &&
-              Linking.openURL(`${getBaseUrl()}/${item.download_url}`)
-            }
-            disabled={!isDownloadEnabled}
-          >
-            {isDownloadEnabled ? (
-              <ArrowDownCircleIcon
-                size={24}
-                className="text-sky-800 hover:text-sky-900"
-              />
-            ) : (
-              <ActivityIndicator size="small" />
-            )}
-          </TouchableOpacity>
         </View>
+      );
+    },
+    [handleDownload]
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section: { title } }: { section: SectionData }) => (
+      <View className="p-5">
+        <Text className="font-bold text-gray-800 dark:text-gray-200">{title}</Text>
       </View>
-    );
-  };
+    ),
+    []
+  );
+
+  const keyExtractor = useCallback((item: DownloadTask) => item.pk.toString(), []);
+
+  const listEmptyComponent = useMemo(
+    () =>
+      !loading && !refreshing ? (
+        <View className="flex-1 justify-center items-center p-10">
+          <Text className="text-gray-500 text-center">
+            {i18n.t("No download tasks")}
+          </Text>
+        </View>
+      ) : null,
+    [loading, refreshing]
+  );
+
+  const listFooterComponent = useMemo(
+    () =>
+      loading && !refreshing ? (
+        <View className="p-5">
+          <ActivityIndicator size="small" color="gray" />
+        </View>
+      ) : !hasMore && sections.length > 0 ? (
+        <Divider textClassName="rounded-lg">{i18n.t("No more data")}</Divider>
+      ) : null,
+    [loading, refreshing, hasMore, sections.length]
+  );
+
+  const refreshControl = useMemo(
+    () => <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />,
+    [refreshing, handleRefresh]
+  );
 
   return (
     <SectionList
       sections={sections}
-      keyExtractor={(item) => item.pk.toString()}
+      keyExtractor={keyExtractor}
       renderItem={renderItem}
-      renderSectionHeader={({ section: { title } }) => (
-        <View className="p-5">
-          <Text className="font-bold">{title}</Text>
-        </View>
-      )}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-      }
-      ListFooterComponent={
-        loading ? (
-          <ActivityIndicator size="small" color="gray" className="p-5" />
-        ) : !hasMore ? (
-          <Divider label={i18n.t("No more data")} labelClassName="rounded-lg" />
-        ) : null
-      }
+      renderSectionHeader={renderSectionHeader}
+      refreshControl={refreshControl}
+      ListEmptyComponent={listEmptyComponent}
+      ListFooterComponent={listFooterComponent}
       onEndReached={handleLoadMore}
-      onEndReachedThreshold={0.1}
+      onEndReachedThreshold={0.5}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={10}
+      windowSize={5}
     />
   );
 }

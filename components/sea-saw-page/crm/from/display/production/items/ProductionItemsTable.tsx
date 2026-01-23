@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
+import i18n from '@/locale/i18n';
 import type { AgGridReactProps } from "ag-grid-react";
-import { useLocale } from "@/context/Locale";
 import { FormDef } from "@/hooks/useFormDefs";
 import { ItemsTable, type ColumnConfig } from "../../../base";
 
@@ -17,8 +17,6 @@ export default function ProductionItemsTable({
   className = "",
   agGridReactProps,
 }: ProductionItemsTableProps) {
-  const { i18n } = useLocale();
-
   // Only override columns that need special formatting
   const columnOverrides = useMemo<Record<string, Partial<ColumnConfig>>>(
     () => ({

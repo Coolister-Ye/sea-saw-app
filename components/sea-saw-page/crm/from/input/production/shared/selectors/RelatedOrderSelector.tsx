@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from '@/locale/i18n';
 import { ColDef } from "ag-grid-community";
 import { View } from "react-native";
 import { Tag } from "antd";
@@ -6,7 +7,6 @@ import { Tag } from "antd";
 import EntitySelector, {
   EntityItem,
 } from "@/components/sea-saw-design/selector/EntitySelector";
-import { useLocale } from "@/context/Locale";
 import { Text } from "@/components/ui/text";
 import { FormDef } from "@/hooks/useFormDefs";
 
@@ -53,8 +53,6 @@ export default function RelatedOrderSelector({
   onChange,
   multiple = false,
 }: RelatedOrderSelectorProps) {
-  const { i18n } = useLocale();
-
   /* ========================
    * Column Definitions
    * ======================== */

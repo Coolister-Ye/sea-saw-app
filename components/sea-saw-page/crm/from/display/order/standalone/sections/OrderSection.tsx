@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useLocale } from "@/context/Locale";
+import i18n from '@/locale/i18n';
 import Section from "../../../../base/Section";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { OrderInputStandalone as OrderInput } from "../../../../input/order";
@@ -19,8 +19,6 @@ export default function OrderSection({
   onCreate,
   onUpdate,
 }: OrderSectionProps) {
-  const { i18n } = useLocale();
-
   const {
     production_orders,
     outbound_orders,
