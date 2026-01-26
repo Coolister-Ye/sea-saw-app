@@ -266,9 +266,11 @@ jobs:
           fi
 
       - name: Send WeChat Work notification
-        if: secrets.WECHAT_WEBHOOK_URL != ''
+        if: ${{ env.WECHAT_WEBHOOK_URL != '' }}
+        env:
+          WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
         run: |
-          curl -X POST "${{ secrets.WECHAT_WEBHOOK_URL }}" \
+          curl -X POST "${{ env.WECHAT_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d "{
               \"msgtype\": \"markdown\",
