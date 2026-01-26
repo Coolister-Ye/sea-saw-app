@@ -1,6 +1,5 @@
 import {
   AutoComplete,
-  Checkbox,
   ConfigProvider,
   DatePicker,
   Form,
@@ -11,7 +10,7 @@ import { BasicFrame } from "../sea-saw-page/BasicFrame";
 import i18n from '@/locale/i18n';
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
-import { ScrollView, TextInput } from "react-native";
+import { ScrollView } from "react-native";
 import { DebounceSelect } from "./DebounceSelect";
 import { useState } from "react";
 import { NumberRangeInput } from "./NumberRangeInput";
@@ -58,7 +57,7 @@ export function SearchToolBar({
   const handleReset = () => form.resetFields();
 
   // 根据列的配置渲染输入框和选择框
-  const renderInputWithSelect = ({
+  const RenderInputWithSelect = ({
     operations,
     dataIndex,
     variant,
@@ -284,7 +283,7 @@ export function SearchToolBar({
             .filter((col) => col.operations) // 只渲染有操作选项的列
             .map((col) => (
               <Form.Item label={col.title} key={col.dataIndex}>
-                {renderInputWithSelect(col)} {/* 渲染输入框和选择框 */}
+                <RenderInputWithSelect {...col} /> {/* 渲染输入框和选择框 */}
               </Form.Item>
             ))}
         </Form>
