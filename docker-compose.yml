@@ -3,6 +3,7 @@ version: "3.8"
 services:
   # 前端服务
   web-app:
+    image: hkccr.ccs.tencentyun.com/sea-saw/frontend:latest
     build:
       context: .
       dockerfile: nginx/Dockerfile
