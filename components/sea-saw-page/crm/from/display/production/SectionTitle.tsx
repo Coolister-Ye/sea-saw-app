@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 interface SectionTitleProps {
   children: React.ReactNode;

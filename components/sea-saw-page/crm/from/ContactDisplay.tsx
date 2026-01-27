@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { UserIcon } from "react-native-heroicons/outline";
 import { FormDef } from "@/hooks/useFormDefs";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { Popover } from "antd";
 import clsx from "clsx";
 
@@ -27,7 +27,7 @@ export default function ContactDisplay({
   parentNode,
 }: ContactDisplayProps) {
   const key2name = Object.fromEntries(
-    Object.entries(def?.children || {}).map(([k, v]) => [k, v.label])
+    Object.entries(def?.children || {}).map(([k, v]) => [k, v.label]),
   );
 
   const renderCompany = (v: any) => {
@@ -102,7 +102,7 @@ export default function ContactDisplay({
       <Text
         className={clsx(
           "text-blue-600 underline underline-offset-2 cursor-pointer hover:text-blue-800 index-99",
-          className
+          className,
         )}
       >
         {value.name}

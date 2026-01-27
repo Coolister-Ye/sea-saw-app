@@ -1,5 +1,9 @@
-import { DrawerDescriptor } from "@react-navigation/drawer/lib/typescript/commonjs/src/types";
+import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { ReactNode } from "react";
+
+// Infer types from DrawerContentComponentProps (publicly exported)
+type DrawerDescriptorMap = DrawerContentComponentProps["descriptors"];
+type DrawerDescriptor = DrawerDescriptorMap[string];
 
 /**
  * Shared types for drawer components

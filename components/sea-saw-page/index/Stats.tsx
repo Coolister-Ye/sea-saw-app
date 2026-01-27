@@ -1,8 +1,8 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import React from "react";
-import View from "../../themed/View";
-import Text from "../../themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
 
 type StatsProps = {
   title: string;
@@ -47,7 +47,7 @@ export default function Stats({ title, stats }: StatsProps) {
                   "flex flex-row items-center rounded-full px-2.5 py-0.5 text-sm font-medium mt-2",
                   item.changeType === "increase"
                     ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    : "bg-red-100 text-red-800",
                 )}
               >
                 {item.changeType === "increase" ? (
@@ -64,7 +64,7 @@ export default function Stats({ title, stats }: StatsProps) {
                   className={clsx(
                     item.changeType === "increase"
                       ? "text-green-800"
-                      : "text-red-800"
+                      : "text-red-800",
                   )}
                 >
                   {item.change}

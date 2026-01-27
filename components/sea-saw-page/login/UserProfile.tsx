@@ -1,7 +1,7 @@
 import { Avatar } from "@/components/sea-saw-design/avatar";
 import i18n from "@/locale/i18n";
-import View from "@/components/themed/View";
-import Text from "@/components/themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
 import { useAuthStore, selectUser } from "@/stores/authStore";
 import {
   PowerIcon,
@@ -50,8 +50,12 @@ export function UserProfile({ setVisible: _setVisible }: { setVisible?: any }) {
     : "-";
 
   const staffBadge = (
-    <View className={`px-3 py-1 rounded-lg ${is_staff ? "bg-green-100" : "bg-red-100"}`}>
-      <Text className={`text-xs font-bold ${is_staff ? "text-green-600" : "text-red-600"}`}>
+    <View
+      className={`px-3 py-1 rounded-lg ${is_staff ? "bg-green-100" : "bg-red-100"}`}
+    >
+      <Text
+        className={`text-xs font-bold ${is_staff ? "text-green-600" : "text-red-600"}`}
+      >
         {is_staff ? i18n.t("Yes") : i18n.t("No")}
       </Text>
     </View>
@@ -98,7 +102,9 @@ export function UserProfile({ setVisible: _setVisible }: { setVisible?: any }) {
             {/* Account Info */}
             <View>
               <SectionHeader
-                icon={<UserCircleIcon size={18} color="#3b82f6" strokeWidth={2.5} />}
+                icon={
+                  <UserCircleIcon size={18} color="#3b82f6" strokeWidth={2.5} />
+                }
                 title={i18n.t("Account Information")}
               />
 
@@ -110,10 +116,7 @@ export function UserProfile({ setVisible: _setVisible }: { setVisible?: any }) {
                 label={i18n.t("Full Name")}
                 value={displayName(first_name, last_name)}
               />
-              <InfoRow
-                label={i18n.t("Is Staff")}
-                value={staffBadge}
-              />
+              <InfoRow label={i18n.t("Is Staff")} value={staffBadge} />
               <InfoRow
                 label={i18n.t("Date Joined")}
                 value={formattedDate}
@@ -128,18 +131,14 @@ export function UserProfile({ setVisible: _setVisible }: { setVisible?: any }) {
           {/* Contact Information Card */}
           <View className="bg-white rounded-xl p-6 border border-slate-200 shadow-lg">
             <SectionHeader
-              icon={<EnvelopeIcon size={18} color="#3b82f6" strokeWidth={2.5} />}
+              icon={
+                <EnvelopeIcon size={18} color="#3b82f6" strokeWidth={2.5} />
+              }
               title={i18n.t("Contact Information")}
             />
 
-            <InfoRow
-              label={i18n.t("email")}
-              value={email || "-"}
-            />
-            <InfoRow
-              label={i18n.t("Phone")}
-              value={phone || "-"}
-            />
+            <InfoRow label={i18n.t("email")} value={email || "-"} />
+            <InfoRow label={i18n.t("Phone")} value={phone || "-"} />
             <InfoRow
               label={i18n.t("Department")}
               value={department || "-"}

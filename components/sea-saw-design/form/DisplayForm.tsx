@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/sea-saw-design/button";
 import { PencilSquareIcon } from "react-native-heroicons/outline";
 import FileDisplay from "./FileDisplay";
 

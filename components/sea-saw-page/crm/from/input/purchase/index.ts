@@ -10,7 +10,7 @@ export { default as PurchaseOrderInputNested } from "./nested/PurchaseOrderInput
 // Shared selectors
 export { default as PurchaseOrderStatusSelector } from "./shared/selectors/PurchaseOrderStatusSelector";
 export { default as SupplierSelector } from "./shared/selectors/SupplierSelector";
-export { default as RelatedOrderSelector } from "./shared/selectors/RelatedOrderSelector";
+export { default as PurchaseRelatedOrderSelector } from "./shared/selectors/PurchaseRelatedOrderSelector";
 
 // Shared items
 export { default as PurchaseOrderItemsInput } from "./shared/items/PurchaseOrderItemsInput";

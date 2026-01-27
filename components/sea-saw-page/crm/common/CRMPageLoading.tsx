@@ -4,7 +4,7 @@
 
 import React from "react";
 import { View, ActivityIndicator } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 interface CRMPageLoadingProps {
   loading: boolean;

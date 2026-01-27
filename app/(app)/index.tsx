@@ -1,8 +1,8 @@
 import { Calendar } from "@/components/sea-saw-design/calendar";
 import useDataService from "@/hooks/useDataService";
 import { useEffect, useState } from "react";
-import Text from "@/components/themed/Text";
-import View from "@/components/themed/View";
+import { Text } from "@/components/sea-saw-design/text";
+import { View } from "@/components/sea-saw-design/view";
 import { ScrollView } from "react-native";
 import { PlanList } from "@/components/sea-saw-page/index/PlanList";
 import { useRootNavigationState } from "expo-router";
@@ -14,11 +14,11 @@ import i18n from "@/locale/i18n";
 const POSLIST = ["已完成生产", "运输中", "支付中", "完成"];
 
 export default function Index() {
-  const hasHydrated = useAuthStore(state => state._hasHydrated);
-  const isLocaleLoading = useLocaleStore(state => state.isLoading);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const isLocaleLoading = useLocaleStore((state) => state.isLoading);
   const isAppBaseReady = hasHydrated && !isLocaleLoading;
-  const user = useAuthStore(state => state.user);
-  const locale = useLocaleStore(state => state.locale);
+  const user = useAuthStore((state) => state.user);
+  const locale = useLocaleStore((state) => state.locale);
   const { request } = useDataService();
 
   const [switchableStats, setSwitchableStats] = useState<any[]>([]);
@@ -48,39 +48,39 @@ export default function Index() {
       const stats = [
         filterValidStats(
           "Contracts Count by Month",
-          contractResponse.data?.contracts_count_by_month
+          contractResponse.data?.contracts_count_by_month,
         ),
         filterValidStats(
           "Contracts Count by Year",
-          contractResponse.data?.contracts_count_by_year
+          contractResponse.data?.contracts_count_by_year,
         ),
         filterValidStats(
           "Orders Count by Month",
-          orderResponse.data?.orders_count_by_month
+          orderResponse.data?.orders_count_by_month,
         ),
         filterValidStats(
           "Orders Count by Year",
-          orderResponse.data?.orders_count_by_year
+          orderResponse.data?.orders_count_by_year,
         ),
         filterValidStats(
           "Orders Received by Month",
-          orderResponse.data?.orders_received_by_month
+          orderResponse.data?.orders_received_by_month,
         ),
         filterValidStats(
           "Orders Received by Year",
-          orderResponse.data?.orders_received_by_year
+          orderResponse.data?.orders_received_by_year,
         ),
         filterValidStats(
           "Orders Receivable by Year",
-          orderResponse.data?.orders_receivable_by_year
+          orderResponse.data?.orders_receivable_by_year,
         ),
         filterValidStats(
           "Orders Total Amount by Year",
-          orderResponse.data?.orders_total_amount_by_year
+          orderResponse.data?.orders_total_amount_by_year,
         ),
         filterValidStats(
           "Orders Total Amount by Month",
-          orderResponse.data?.orders_total_amount_by_month
+          orderResponse.data?.orders_total_amount_by_month,
         ),
       ].filter(Boolean); // 过滤掉 null 值
 
@@ -109,7 +109,7 @@ export default function Index() {
 
   // 处理月份变化
   const handleMonthChange = async (
-    month: { year: string; month: string } | null
+    month: { year: string; month: string } | null,
   ) => {
     if (!month) return;
     await getStatDataS2(month.year, month.month);

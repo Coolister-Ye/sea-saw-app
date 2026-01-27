@@ -1,7 +1,7 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { PaymentInput } from "../../../../input/finance";
 import { PaymentEmptySlot, PaymentAddDivider } from "../../shared";
 import { PaymentsSectionProps } from "../../../order/types";

@@ -13,7 +13,7 @@ import { PortalProvider } from "@gorhom/portal";
 import { SafeAreaProviderCompat } from "@react-navigation/elements";
 import { useAuthStore } from "@/stores/authStore";
 import { useLocaleStore } from "@/stores/localeStore";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { LoadingScreen } from "@/components/sea-saw-page/LoadingScreen";
 
 const isWeb = Platform.OS === "web";
 

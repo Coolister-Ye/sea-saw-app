@@ -1,14 +1,14 @@
 import React from "react";
-import i18n from '@/locale/i18n';
-import { ColDef } from "ag-grid-community";
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Tag } from "antd";
 
 import EntitySelector, {
   EntityItem,
 } from "@/components/sea-saw-design/selector/EntitySelector";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { FormDef } from "@/hooks/useFormDefs";
+import type { ColDefinition } from "@/components/sea-saw-design/table/interface";
 
 /* ========================
  * Types
@@ -22,7 +22,7 @@ export interface Order extends EntityItem {
   total_amount?: string | number;
 }
 
-interface RelatedOrderSelectorProps {
+interface ProductionRelatedOrderSelectorProps {
   def?: FormDef;
   value?: Order | Order[] | null;
   onChange?: (v: Order | Order[] | null) => void;
@@ -47,53 +47,48 @@ const getStatusColor = (status?: string): string => {
 /* ========================
  * Component
  * ======================== */
-export default function RelatedOrderSelector({
+export default function ProductionRelatedOrderSelector({
   def,
   value,
   onChange,
   multiple = false,
-}: RelatedOrderSelectorProps) {
+}: ProductionRelatedOrderSelectorProps) {
   /* ========================
    * Column Definitions
    * ======================== */
-  const columns: ColDef[] = [
-    {
-      field: "pk",
+  const colDefinitions: Record<string, ColDefinition> = {
+    pk: {
       headerName: "ID",
       width: 80,
       filter: false,
     },
-    {
-      field: "order_code",
+    order_code: {
       headerName: i18n.t("Order Code"),
       flex: 1,
       filter: "agTextColumnFilter",
     },
-    {
-      field: "status",
+    status: {
       headerName: i18n.t("Status"),
       width: 120,
       filter: "agSetColumnFilter",
       cellRenderer: (params: any) => {
         const status = params.value;
-        return (
-          <Tag color={getStatusColor(status)}>{status || "-"}</Tag>
-        );
+        return <Tag color={getStatusColor(status)}>{status || "-"}</Tag>;
       },
     },
-    {
-      field: "order_date",
+    order_date: {
       headerName: i18n.t("Order Date"),
       width: 120,
       filter: "agDateColumnFilter",
     },
-    {
-      field: "total_amount",
+    total_amount: {
       headerName: i18n.t("Total Amount"),
       width: 120,
       filter: "agNumberColumnFilter",
     },
-  ];
+  };
+
+  const columnOrder = ["pk", "order_code", "status", "order_date", "total_amount"];
 
   /* ========================
    * Custom chip renderer
@@ -144,7 +139,8 @@ export default function RelatedOrderSelector({
       onChange={onChange}
       multiple={multiple}
       contentType="order"
-      columns={columns}
+      colDefinitions={colDefinitions}
+      columnOrder={columnOrder}
       displayField="order_code"
       searchPlaceholder={i18n.t("Search order...")}
       title={i18n.t("Select Order")}
@@ -154,4 +150,4 @@ export default function RelatedOrderSelector({
   );
 }
 
-export { RelatedOrderSelector };
+export { ProductionRelatedOrderSelector };

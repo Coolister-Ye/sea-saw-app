@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Tag } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { getFieldLabelMap } from "@/utils";
 import { formatNumberTrim } from "@/utils";
 import EmptySlot from "../../../base/EmptySlot";
@@ -23,11 +23,12 @@ export default function PurchaseItemsCard({
 }: PurchaseItemsCardProps) {
   const fieldLabelMap = useMemo(
     () => getFieldLabelMap(def?.child?.children ?? {}),
-    [def]
+    [def],
   );
 
   const getLabel = (field: string, fallback?: string) =>
-    fieldLabelMap[field] ?? (fallback ? i18n.t?.(fallback) ?? fallback : field);
+    fieldLabelMap[field] ??
+    (fallback ? (i18n.t?.(fallback) ?? fallback) : field);
 
   const clickable = typeof onItemClick === "function";
 

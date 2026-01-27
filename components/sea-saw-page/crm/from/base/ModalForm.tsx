@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, FlatList, ScrollView } from "react-native";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/sea-saw-design/button";
 import Drawer from "./Drawer";
 import { Form } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import InputHeader from "./InputHeader";
 import InputFooter from "./InputFooter";
 
@@ -16,7 +16,7 @@ interface ModalFormProps<T> {
   renderItem?: (
     data: T,
     onEdit: () => void,
-    onDelete: () => void
+    onDelete: () => void,
   ) => React.ReactNode;
   renderForm: (form: any, def: any) => React.ReactNode;
 }
@@ -61,7 +61,7 @@ function ModalForm<T>({
       form.setFieldsValue(item);
       setIsOpen(true);
     },
-    [form]
+    [form],
   );
 
   /** 保存（新增或编辑） */
@@ -89,7 +89,7 @@ function ModalForm<T>({
       setList(updated);
       onChange?.(updated);
     },
-    [list, onChange]
+    [list, onChange],
   );
 
   /** 单条项目展示组件 */
@@ -99,7 +99,7 @@ function ModalForm<T>({
         ? renderItem(
             item,
             () => handleEdit(item, index),
-            () => handleDelete(index)
+            () => handleDelete(index),
           )
         : Object.entries(item as Record<string, any>).map(([k, v]) => (
             <Text key={k} className="text-sm text-gray-600">

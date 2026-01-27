@@ -9,13 +9,13 @@ import {
   mergeData,
   unFlattenData,
 } from "@/utils";
-import { EllipsisTooltip } from "@/components/table/EllipsisTooltip";
+import { EllipsisTooltip } from "@/components/sea-saw-design/table/antd/EllipsisTooltip";
 import {
   changeToPlural,
   formatCurrency,
   formatPercentage,
 } from "@/utils";
-import { ActionCell } from "@/components/table/ActionCell";
+import { ActionCell } from "@/components/sea-saw-design/table/antd/AntdActionCell";
 import React from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useLocaleStore } from "@/stores/localeStore";

@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 interface CardMetaItemProps {
   icon: React.ComponentType<{ size: number; color: string }>;

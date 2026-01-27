@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import View from "@/components/themed/View";
-import Text from "@/components/themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
 
 /**
  * Reusable Section Header Component

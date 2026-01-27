@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
 import { UserIcon } from "react-native-heroicons/outline";
 import { EnvelopeIcon } from "@heroicons/react/20/solid";
 import useDataService from "@/hooks/useDataService";
 import { FormDef } from "@/hooks/useFormDefs";
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { Text } from "@/components/sea-saw-design/text";
+import { Button } from "@/components/sea-saw-design/button";
 
 interface Contact {
   pk: string | number;
@@ -59,7 +59,7 @@ export default function ContactInput({
         setLoading(false);
       }
     },
-    [contactViewSet]
+    [contactViewSet],
   );
 
   useEffect(() => {

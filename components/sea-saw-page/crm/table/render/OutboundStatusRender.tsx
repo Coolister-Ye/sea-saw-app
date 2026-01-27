@@ -1,7 +1,7 @@
 import React from "react";
 import { Text } from "react-native";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import OutboundStatusTag from "../../from/display/order/outbound/OutboundStatusTag";
+import OutboundStatusTag from "@/components/sea-saw-page/crm/from/display/warehouse/renderers/OutboundStatusTag";
 
 function OutboundStatusRender(props: CustomCellRendererProps) {
   const statusValue = props.value as string | null;

@@ -126,7 +126,7 @@ type InputFormProps = {
 /** ForeignKeyCell component props */
 type ForeignKeyCellProps = {
   dataType: HeaderMetaProps;
-  data: Record<string, any> | Array<Record<string, any>> | null | undefined;
+  data: Record<string, any> | Record<string, any>[] | null | undefined;
   displayContent?: (data: Record<string, any>) => JSX.Element;
   usePopover?: boolean;
 };

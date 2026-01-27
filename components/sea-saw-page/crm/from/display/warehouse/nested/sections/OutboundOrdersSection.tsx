@@ -1,7 +1,7 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { OutboundOrderInput } from "../../../../input/warehouse";
 import { OutboundOrderEmptySlot, OutboundAddDivider } from "../../shared";
 import { OutboundOrdersSectionProps } from "../../../order/types";
@@ -80,7 +80,9 @@ export default function OutboundOrdersSection({
               <OutboundOrderItemsCard
                 def={defs.outboundOrders}
                 value={outboundOrders}
-                onItemClick={(index: number) => setEditingOb(outboundOrders[index])}
+                onItemClick={(index: number) =>
+                  setEditingOb(outboundOrders[index])
+                }
                 orderStatus={pipelineStatus}
                 activeEntity={pipeline?.active_entity}
               />

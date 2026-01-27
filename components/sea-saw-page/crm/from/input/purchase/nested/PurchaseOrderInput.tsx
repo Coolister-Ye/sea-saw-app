@@ -8,7 +8,7 @@ import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import PurchaseOrderItemsInput from "../shared/items/PurchaseOrderItemsInput";
 import PurchaseOrderStatusSelector from "../shared/selectors/PurchaseOrderStatusSelector";
-import RelatedOrderSelector from "../shared/selectors/RelatedOrderSelector";
+import PurchaseRelatedOrderSelector from "../shared/selectors/PurchaseRelatedOrderSelector";
 import SupplierSelector from "../shared/selectors/SupplierSelector";
 
 import useDataService from "@/hooks/useDataService";
@@ -109,7 +109,7 @@ export default function PurchaseOrderInput({
     // Only add related_order selector in standalone mode
     if (isStandalone) {
       baseConfig.related_order = {
-        render: (def: any) => <RelatedOrderSelector def={def} />,
+        render: (def: any) => <PurchaseRelatedOrderSelector def={def} />,
       };
     }
 

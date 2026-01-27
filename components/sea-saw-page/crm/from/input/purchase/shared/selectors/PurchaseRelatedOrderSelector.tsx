@@ -3,17 +3,17 @@ import { Select, Spin } from "antd";
 import { FormDef } from "@/hooks/useFormDefs";
 import useDataService from "@/hooks/useDataService";
 
-interface RelatedOrderSelectorProps {
+interface PurchaseRelatedOrderSelectorProps {
   def: FormDef;
   value?: number;
   onChange?: (value: number) => void;
 }
 
-export default function RelatedOrderSelector({
+export default function PurchaseRelatedOrderSelector({
   def,
   value,
   onChange,
-}: RelatedOrderSelectorProps) {
+}: PurchaseRelatedOrderSelectorProps) {
   const { getViewSet } = useDataService();
   const order = useMemo(() => getViewSet("order"), [getViewSet]);
 

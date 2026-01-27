@@ -9,7 +9,7 @@ export { default as ProductionOrderInputNested } from "./nested/ProductionOrderI
 
 // Shared selectors
 export { default as ProductionOrderStatusSelector } from "./shared/selectors/ProductionOrderStatusSelector";
-export { default as RelatedOrderSelector } from "./shared/selectors/RelatedOrderSelector";
+export { default as ProductionRelatedOrderSelector } from "./shared/selectors/ProductionRelatedOrderSelector";
 
 // Shared items
 export { default as ProductionOrderItemsInput } from "./shared/items/ProductionOrderItemsInput";

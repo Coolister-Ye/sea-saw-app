@@ -1,5 +1,5 @@
 import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import {
   arrayMove,
   SortableContext,
@@ -10,32 +10,29 @@ import { forwardRef, useState } from "react";
 import { Checkbox } from "expo-checkbox";
 import { EllipsisVerticalIcon } from "react-native-heroicons/outline";
 import { CSS } from "@dnd-kit/utilities";
-import { BasicFrame } from "../sea-saw-page/BasicFrame";
+import { BasicFrame } from "../../frame/BasicFrame";
 import {
   restrictToParentElement,
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
-import View from "../themed/View";
-import Text from "../themed/Text";
+import { View } from "../../view";
+import { Text } from "../../text";
 import { StarIcon } from "react-native-heroicons/solid";
 import { Pressable } from "react-native";
 import useDataService from "@/hooks/useDataService";
-import { StringChain } from "lodash";
 import { useToast } from "@/context/Toast";
 
 // Type definition for ColumnsToolBar props
 // ColumnsToolBar组件的Props类型定义
 export type ColumnsToolBarProps = {
   table: string;
-  columns: Array<{
+  columns: {
     id: string;
     label: string;
     hidden: boolean;
     dataIndex: string;
-  }>; // Columns data / 列数据
-  onSubmit?: (
-    values: Array<{ id: string; label: string; hidden: boolean }>
-  ) => void; // Callback for submitting the columns' state / 提交列状态的回调
+  }[]; // Columns data / 列数据
+  onSubmit?: (values: { id: string; label: string; hidden: boolean }[]) => void; // Callback for submitting the columns' state / 提交列状态的回调
   onCancel?: () => void; // Callback for canceling the changes / 取消更改的回调
 };
 
@@ -114,8 +111,10 @@ export function ColumnsToolBar({
           </>
         )}
       </div>
-    )
+    ),
   );
+
+  Item.displayName = "Item";
 
   // Sortable item component for each column
   // 每个列的可排序项组件
@@ -180,7 +179,7 @@ export function ColumnsToolBar({
     setItems((items) => {
       // Update the hidden state of the clicked item / 更新点击项的hidden状态
       const newItems = items.map((item) =>
-        item.id === id ? { ...item, hidden: !item.hidden } : item
+        item.id === id ? { ...item, hidden: !item.hidden } : item,
       );
       return forwardChecked(newItems); // Re-sort after checkbox change / 复选框变化后重新排序
     });
@@ -227,8 +226,8 @@ export function ColumnsToolBar({
             variant: "error",
           });
         }
-      } catch (error) {
-        // Handle errors gracefully (optional)
+      } catch {
+        // Handle errors gracefully
         showToast({
           message: "An error occurred. Please try again later.",
           variant: "error",
@@ -274,7 +273,7 @@ export function ColumnsToolBar({
                   ({ id, label, hidden }) =>
                     id !== undefined &&
                     label !== undefined &&
-                    hidden !== undefined
+                    hidden !== undefined,
                 )
                 .map(({ id, label, hidden }) => (
                   <SortableItem

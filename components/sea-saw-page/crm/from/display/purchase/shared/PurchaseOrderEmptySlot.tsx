@@ -1,13 +1,10 @@
 import { useState } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Pressable } from "react-native";
 import { Typography, message } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import useDataService from "@/hooks/useDataService";
-import {
-  ShoppingBagIcon,
-  PlusIcon,
-} from "react-native-heroicons/outline";
+import { ShoppingBagIcon, PlusIcon } from "react-native-heroicons/outline";
 
 type Props = {
   orderId: string | number;
@@ -110,7 +107,9 @@ export default function PurchaseOrderEmptySlot({
               >
                 <PlusIcon size={16} color="#ffffff" strokeWidth={2.5} />
                 <Text className="text-sm font-semibold text-white">
-                  {loading ? i18n.t("Creating...") : i18n.t("Create Purchase Order")}
+                  {loading
+                    ? i18n.t("Creating...")
+                    : i18n.t("Create Purchase Order")}
                 </Text>
               </Pressable>
             )}

@@ -1,7 +1,7 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { PipelineInput } from "../../../../input/pipeline";
 import { PipelineSectionProps } from "../../types";
 import {
@@ -19,7 +19,8 @@ export default function PipelineSection({
   onUpdate,
 }: PipelineSectionProps) {
   // Calculate summary statistics
-  const hasAttachments = pipeline.attachments && pipeline.attachments.length > 0;
+  const hasAttachments =
+    pipeline.attachments && pipeline.attachments.length > 0;
   const attachmentCount = pipeline.attachments?.length || 0;
 
   return (

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+import { Button } from "@/components/sea-saw-design/button";
+import { Text } from "@/components/sea-saw-design/text";
 import Drawer from "../../../../base/Drawer.web";
 import InputFooter from "../../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";

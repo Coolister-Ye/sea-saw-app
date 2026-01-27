@@ -1,8 +1,8 @@
 import { Table as BaseTable, ConfigProvider, Pagination } from "antd";
 import { useState, useCallback, useRef } from "react";
 import { createStyles } from "antd-style";
-import View from "@/components/themed/View";
-import Button from "@/components/themed/Button";
+import { View } from "@/components/sea-saw-design/view";
+import { Button } from "@/components/sea-saw-design/button";
 import EditableCell from "./EditableCell";
 import EditableRow from "./EditableRow";
 import { useTable } from "@/hooks/useTable";
@@ -16,7 +16,6 @@ import { ColumnsToolBar } from "./ColumnToolBar";
 import { Pressable } from "react-native";
 import { SearchToolBar } from "./SearchToolBar";
 import i18n from "@/locale/i18n";
-import { Toast } from "../themed/Toast";
 
 type TableProps = {
   table: string;
@@ -65,7 +64,6 @@ export function Table({
     loading,
     handleColsRerange,
     paginationModel,
-    error,
     handleDownload,
     handlePaginationChange: onPaginationChange,
     refreshData,
@@ -121,12 +119,6 @@ export function Table({
       variant="bg"
       className="h-full w-full flex-1 justify-between relative"
     >
-      {/* Notification */}
-      <Toast
-        variant="error"
-        message={error && (error?.message || "Unknown error")}
-      />
-
       {/* Column Selector */}
       <View className="z-50">
         {showColumnBar && (
@@ -201,7 +193,7 @@ export function Table({
                 index: recordIndex,
                 formula: formula,
                 record: record,
-              } as any)
+              }) as any
             }
           />
         </ConfigProvider>
@@ -215,7 +207,7 @@ export function Table({
         <View>
           {actionConfig?.allowCreate !== false ? (
             <Button
-              variant="primary"
+              type="primary"
               className="px-3 py-2 flex-row"
               // icon={<PlusCircleIcon className="text-zinc-100 mr-1" />}
               onPress={handleAdd}

@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import type { ColDef, Theme } from "ag-grid-community";
 
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { FormDef } from "@/hooks/useFormDefs";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { theme as defaultTheme } from "@/components/sea-saw-design/table/theme";

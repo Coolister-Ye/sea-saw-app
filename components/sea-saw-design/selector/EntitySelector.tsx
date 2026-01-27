@@ -15,7 +15,7 @@ import {
   ScrollView,
 } from "react-native";
 import { AgGridReact } from "ag-grid-react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import type { ColDef, GridApi } from "ag-grid-community";
 import {
   MagnifyingGlassIcon,
@@ -28,8 +28,8 @@ import {
 
 import useDataService from "@/hooks/useDataService";
 import type { FormDef } from "@/hooks/useFormDefs";
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { Text } from "@/components/sea-saw-design/text";
+import { Button } from "@/components/sea-saw-design/button";
 import { theme } from "@/components/sea-saw-design/table/theme";
 import {
   getAgFilterType,
@@ -92,14 +92,14 @@ export interface EntitySelectorProps<T extends EntityItem> {
 
 /** Type guard to check if meta is HeaderMetaProps (has 'type' field) */
 function isHeaderMetaProps(
-  meta: HeaderMetaProps | Record<string, HeaderMetaProps>
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps>,
 ): meta is HeaderMetaProps {
   return "type" in meta && typeof meta.type === "string";
 }
 
 /** Normalize header metadata from various response formats */
 function normalizeHeaderMeta(
-  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined,
 ): Record<string, HeaderMetaProps> {
   if (!meta) return {};
 
@@ -143,12 +143,12 @@ const EntitySelectorInner = <T extends EntityItem>(
     mapResponseToItems,
     renderSelectedChip,
   }: EntitySelectorProps<T>,
-  ref: React.Ref<View>
+  ref: React.Ref<View>,
 ) => {
   const { getViewSet } = useDataService();
   const viewSet = useMemo(
     () => getViewSet(contentType),
-    [getViewSet, contentType]
+    [getViewSet, contentType],
   );
 
   const readOnly = def?.read_only === true;
@@ -181,7 +181,7 @@ const EntitySelectorInner = <T extends EntityItem>(
             cellDataType: getCellDataType(fieldMeta.type),
             valueFormatter: getValueFormatter(
               fieldMeta.type,
-              fieldMeta.display_fields
+              fieldMeta.display_fields,
             ),
             sortable: true,
             resizable: true,
@@ -215,7 +215,7 @@ const EntitySelectorInner = <T extends EntityItem>(
 
       return allColumns;
     },
-    [colDefinitions, columnOrder]
+    [colDefinitions, columnOrder],
   );
 
   /** Build columns from def metadata */
@@ -252,7 +252,7 @@ const EntitySelectorInner = <T extends EntityItem>(
         setLoading(false);
       }
     },
-    [viewSet, contentType, mapResponseToItems]
+    [viewSet, contentType, mapResponseToItems],
   );
 
   /** Fetch when modal opens or search changes */
@@ -277,7 +277,7 @@ const EntitySelectorInner = <T extends EntityItem>(
           : [...prev, clickedItem];
       });
     },
-    [multiple]
+    [multiple],
   );
 
   const handleConfirm = useCallback(() => {
@@ -294,7 +294,7 @@ const EntitySelectorInner = <T extends EntityItem>(
         return next;
       });
     },
-    [multiple, onChange, readOnly]
+    [multiple, onChange, readOnly],
   );
 
   const handleClear = useCallback(() => {
@@ -308,7 +308,7 @@ const EntitySelectorInner = <T extends EntityItem>(
       const isSelected = selected.some((item) => item.id === params.data?.id);
       return isSelected ? "entity-selector-row-selected" : "";
     },
-    [selected]
+    [selected],
   );
 
   /** Refresh row styles when selection changes */
@@ -337,7 +337,7 @@ const EntitySelectorInner = <T extends EntityItem>(
         )}
       </View>
     ),
-    [displayField, readOnly]
+    [displayField, readOnly],
   );
 
   /* Derived values */
@@ -517,9 +517,9 @@ const EntitySelectorInner = <T extends EntityItem>(
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const EntitySelector = forwardRef(EntitySelectorInner) as <
-  T extends EntityItem
+  T extends EntityItem,
 >(
-  props: EntitySelectorProps<T> & { ref?: React.Ref<View> }
+  props: EntitySelectorProps<T> & { ref?: React.Ref<View> },
 ) => ReturnType<typeof EntitySelectorInner>;
 
 export default EntitySelector;

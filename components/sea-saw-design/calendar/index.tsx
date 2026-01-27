@@ -9,8 +9,8 @@ import {
   ArrowRightCircleIcon,
 } from "react-native-heroicons/solid";
 import { TouchableOpacity, View } from "react-native";
-import { useLocaleStore } from '@/stores/localeStore';
-import Text from "@/components/themed/Text";
+import { useLocaleStore } from "@/stores/localeStore";
+import { Text } from "@/components/sea-saw-design/text";
 // @ts-ignore
 import Lunar from "chinese-lunar";
 import clsx from "clsx";
@@ -101,7 +101,7 @@ LocaleConfig.locales["en"] = {
 };
 
 function Calendar({ markedDates, onDayPress, onMonthChange }: any) {
-  const locale = useLocaleStore(state => state.locale); // 获取当前语言环境
+  const locale = useLocaleStore((state) => state.locale); // 获取当前语言环境
   const [currentLocale, setCurrentLocale] = useState(locale);
 
   // 处理标记的日期，转换成符合react-native-calendars要求的格式
@@ -114,7 +114,7 @@ function Calendar({ markedDates, onDayPress, onMonthChange }: any) {
           acc[key] = { orderCount: val.length };
           return acc;
         },
-        {}
+        {},
       )
     );
   };
@@ -157,7 +157,7 @@ function Calendar({ markedDates, onDayPress, onMonthChange }: any) {
         onPress={() => onDayPress && onDayPress(date)} // 点击日期时触发 onDayPress
         className={clsx(
           "flex items-center p-2 hover:bg-zinc-100 relative", // 样式
-          state === "disabled" && "opacity-50" // 禁用状态下的样式
+          state === "disabled" && "opacity-50", // 禁用状态下的样式
         )}
       >
         {/* 显示订单数量 */}

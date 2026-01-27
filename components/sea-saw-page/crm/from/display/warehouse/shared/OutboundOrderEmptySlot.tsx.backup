@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Button, Typography, message } from "antd";
 import { PlusCircleFilled } from "@ant-design/icons";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import EmptySlot from "../../../base/EmptySlot";
 import { useLocale } from "@/context/Locale";
 import useDataService from "@/hooks/useDataService";

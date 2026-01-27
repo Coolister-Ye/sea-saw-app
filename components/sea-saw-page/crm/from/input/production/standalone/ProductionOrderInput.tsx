@@ -10,7 +10,7 @@ import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ProductionOrderItemsInput from "../shared/items/ProductionOrderItemsInput";
 import ProductionOrderStatusSelector from "../shared/selectors/ProductionOrderStatusSelector";
-import RelatedOrderSelector from "../shared/selectors/RelatedOrderSelector";
+import ProductionRelatedOrderSelector from "../shared/selectors/ProductionRelatedOrderSelector";
 import { AttachmentInput } from "../../shared";
 
 interface ProductionOrderInputProps {
@@ -86,7 +86,7 @@ export default function ProductionOrderInput({
         ),
       },
       related_order: {
-        render: (def: any) => <RelatedOrderSelector def={def} />,
+        render: (def: any) => <ProductionRelatedOrderSelector def={def} />,
       },
     }),
     [],

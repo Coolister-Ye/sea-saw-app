@@ -1,8 +1,8 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Tag, Button } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { PencilSquareIcon } from "react-native-heroicons/outline";
 import {
   useCardItemHelpers,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import {
   XMarkIcon,
@@ -13,8 +13,8 @@ import { Form } from "antd";
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
 import useDataService from "@/hooks/useDataService";
 import type { FormDef } from "@/hooks/useFormDefs";
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { Text } from "@/components/sea-saw-design/text";
+import { Button } from "@/components/sea-saw-design/button";
 
 /* Types */
 interface Contact {

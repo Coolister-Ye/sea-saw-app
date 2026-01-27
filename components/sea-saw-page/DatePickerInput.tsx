@@ -1,33 +1,53 @@
 import { ScrollView } from "react-native";
 import Dropdown, { DropdownProps } from "./Dropdown";
-import dayjs, { Dayjs } from "dayjs";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import dayjs from "dayjs";
+import { Calendar, DateData } from "react-native-calendars";
 
 export type DatePickInputProps = DropdownProps & {
-  selected?: any;
-  setSelected?: React.Dispatch<any>;
-  dateFormat?: string
+  selected?: string;
+  setSelected?: (date: string) => void;
+  dateFormat?: string;
 };
 
-// This version only support web
 export default function DatePickInput({
   selected,
   setSelected,
-  dateFormat="YYYY/MM/DD",
+  dateFormat = "YYYY/MM/DD",
   ...rest
 }: DatePickInputProps) {
-  const selectedDay: Dayjs = selected ? dayjs(selected) : dayjs();
+  // Convert selected date to YYYY-MM-DD format for react-native-calendars
+  const selectedDateString = selected ? dayjs(selected).format("YYYY-MM-DD") : "";
+
+  const handleDayPress = (day: DateData) => {
+    if (setSelected) {
+      // Format the date according to the specified format
+      setSelected(dayjs(day.dateString).format(dateFormat));
+    }
+  };
+
   return (
-    <Dropdown {...rest} value={selected} dropdownClassName="w-fit">
+    <Dropdown {...rest} value={selected} dropdownClassName="w-80">
       <ScrollView>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateCalendar
-            value={selectedDay}
-            onChange={(newValue) => setSelected && setSelected(newValue.format(dateFormat))}
-          />
-        </LocalizationProvider>
+        <Calendar
+          current={selectedDateString || undefined}
+          onDayPress={handleDayPress}
+          markedDates={
+            selectedDateString
+              ? {
+                  [selectedDateString]: {
+                    selected: true,
+                    selectedColor: "#3b82f6",
+                  },
+                }
+              : undefined
+          }
+          theme={{
+            todayTextColor: "#3b82f6",
+            selectedDayBackgroundColor: "#3b82f6",
+            selectedDayTextColor: "#ffffff",
+            arrowColor: "#3b82f6",
+          }}
+        />
       </ScrollView>
     </Dropdown>
   );

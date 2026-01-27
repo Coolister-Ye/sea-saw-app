@@ -6,8 +6,8 @@ import {
   InputNumber,
   Select,
 } from "antd";
-import { BasicFrame } from "../sea-saw-page/BasicFrame";
-import i18n from '@/locale/i18n';
+import { BasicFrame } from "../../frame/BasicFrame";
+import i18n from "@/locale/i18n";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { ScrollView } from "react-native";
@@ -58,16 +58,13 @@ export function SearchToolBar({
 
   // 根据列的配置渲染输入框和选择框
   const RenderInputWithSelect = ({
-    operations,
+    operations = [],
     dataIndex,
     variant,
     getOptions,
     type,
     options,
   }: Column) => {
-    // 如果没有操作选项，则不渲染
-    if (!operations) return null;
-
     // 格式化操作选项
     let operationOpts = operations.map((opr) => ({
       value: opr,
@@ -85,7 +82,7 @@ export function SearchToolBar({
     }
 
     const [currentOpr, setCurrentOpr] = useState<string>(
-      operationOpts[0]?.value
+      operationOpts[0]?.value,
     );
 
     // 替换数据字段中的"."为"__"以避免命名冲突

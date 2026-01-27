@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Sea-Saw Frontend 手动部署脚本 (Option 1)
-# 用法: ./deploy-manual.sh <server-user@server-ip> [server-path]
-# 示例: ./deploy-manual.sh appuser@123.456.789.0 /home/sea-saw/sea-saw-app
+# 用法: ./deploy-manual.sh <server-user@server-ip> [server-path] [ssh-key-path]
+# 示例: ./deploy-manual.sh appuser@123.456.789.0 /home/sea-saw/sea-saw-app ~/.ssh/github_actions_key
 
 set -e  # 遇到错误立即退出
 
@@ -15,13 +15,25 @@ NC='\033[0m' # No Color
 # 检查参数
 if [ -z "$1" ]; then
     echo -e "${RED}错误: 请提供服务器地址${NC}"
-    echo "用法: ./deploy-manual.sh <server-user@server-ip> [server-path]"
-    echo "示例: ./deploy-manual.sh appuser@123.456.789.0 /home/sea-saw/sea-saw-app"
+    echo "用法: ./deploy-manual.sh <server-user@server-ip> [server-path] [ssh-key-path]"
+    echo "示例: ./deploy-manual.sh appuser@123.456.789.0 /home/sea-saw/sea-saw-app ~/.ssh/github_actions_key"
     exit 1
 fi
 
 SERVER=$1
 SERVER_PATH=${2:-/home/sea-saw/sea-saw-app}
+SSH_KEY=${3:-~/.ssh/id_rsa}
+
+# 展开 ~ 路径
+SSH_KEY="${SSH_KEY/#\~/$HOME}"
+
+# 检查 SSH 密钥是否存在
+if [ ! -f "$SSH_KEY" ]; then
+    echo -e "${RED}错误: SSH 密钥文件不存在: ${SSH_KEY}${NC}"
+    exit 1
+fi
+
+SSH_OPTS="-i ${SSH_KEY}"
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Sea-Saw Frontend 手动部署${NC}"
@@ -66,7 +78,8 @@ echo ""
 
 # 步骤 3: 上传到服务器
 echo -e "${GREEN}[3/4] 正在上传到服务器...${NC}"
-scp dist.tar.gz "$SERVER:$SERVER_PATH/"
+# 先上传到用户 home 目录
+scp $SSH_OPTS dist.tar.gz "$SERVER:~/"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ 文件上传完成${NC}"
@@ -82,9 +95,32 @@ echo ""
 
 # 步骤 4: 在服务器上解压并部署
 echo -e "${GREEN}[4/4] 正在服务器上部署...${NC}"
-ssh "$SERVER" << EOF
+ssh $SSH_OPTS "$SERVER" bash -s "$SERVER_PATH" << 'EOF'
     set -e
-    cd $SERVER_PATH
+    DEPLOY_PATH=$1
+
+    # 检查部署目录
+    echo "检查部署目录..."
+    if [ ! -d "$DEPLOY_PATH" ]; then
+        echo "目录不存在，尝试创建..."
+        mkdir -p "$DEPLOY_PATH" 2>/dev/null || {
+            echo "错误: 无法创建目录 $DEPLOY_PATH"
+            echo "请在服务器上手动运行: sudo mkdir -p $DEPLOY_PATH && sudo chown -R \$(whoami):\$(whoami) $DEPLOY_PATH"
+            exit 1
+        }
+    fi
+
+    # 检查写权限
+    if [ ! -w "$DEPLOY_PATH" ]; then
+        echo "错误: 没有写入权限到 $DEPLOY_PATH"
+        echo "请在服务器上手动运行: sudo chown -R \$(whoami):\$(whoami) $DEPLOY_PATH"
+        exit 1
+    fi
+
+    # 移动文件到部署目录
+    echo "移动文件到部署目录..."
+    mv ~/dist.tar.gz "$DEPLOY_PATH/"
+    cd "$DEPLOY_PATH"
 
     # 解压文件
     echo "解压文件..."

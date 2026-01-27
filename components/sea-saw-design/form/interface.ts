@@ -1,5 +1,8 @@
 import { FormProps } from "antd";
 
+// Import for local use
+import type { HeaderMetaProps } from "../table/interface";
+
 // Re-export shared types from table interface to avoid duplication
 export type {
   FilterType,
@@ -14,9 +17,6 @@ export type {
   ForeignKeyInputProps as BaseForeignKeyInputProps,
   ActionCellProps,
 } from "../table/interface";
-
-// Import for local use
-import type { HeaderMetaProps } from "../table/interface";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FORM-SPECIFIC TYPES

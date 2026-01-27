@@ -5,7 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/sea-saw-design/dropdown-menu";
 import {
   PencilSquareIcon,
   EllipsisVerticalIcon,

@@ -1,7 +1,7 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { OrderInputNested as OrderInput } from "../../../../input/order";
 import { ShoppingCartIcon, CubeIcon } from "react-native-heroicons/outline";
 import OrderCard from "../../items/OrderCard";

@@ -1,6 +1,6 @@
 import React from "react";
-import View from "../../themed/View";
-import Text from "../../themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
 import SwitchStatCard from "./SwitchStatCard";
 import { ActivityIndicator } from "react-native";
 

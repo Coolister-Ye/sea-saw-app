@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import "@/css/tableStyle.css";
 import { View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+import { Button } from "@/components/sea-saw-design/button";
+import { Text } from "@/components/sea-saw-design/text";
 import { useCRMPage } from "@/hooks/useCRMPage";
 import { CRMPageLoading } from "@/components/sea-saw-page/crm/common/CRMPageLoading";
 
@@ -47,8 +47,8 @@ export default function OrderScreen() {
       base: formDefs.filter(
         (d) =>
           !["production_orders", "outbound_orders", "payments"].includes(
-            d.field
-          )
+            d.field,
+          ),
       ),
       productionOrders: pick("production_orders"),
       outboundOrders: pick("outbound_orders"),
@@ -61,7 +61,7 @@ export default function OrderScreen() {
     () => ({
       contact: { cellRenderer: ContactRender },
     }),
-    []
+    [],
   );
 
   return (

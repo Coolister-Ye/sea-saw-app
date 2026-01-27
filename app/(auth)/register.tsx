@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { Platform, Alert, ScrollView } from "react-native";
-import View from "@/components/themed/View";
-import Image from "@/components/themed/Image";
-import Text from "@/components/themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import { Image } from "expo-image";
+import { Text } from "@/components/sea-saw-design/text";
 import { Formik } from "formik";
 import LoginInputGroup from "@/components/sea-saw-page/login/InputGroup";
-import { Button } from "@/components/themed/Button";
+import { Button } from "@/components/sea-saw-design/button";
 import * as Yup from "yup";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter, Link } from "expo-router";
@@ -25,14 +25,14 @@ export default function RegisterScreen() {
   // Helper to show messages on both web and native
   const showMessage = (
     msg: string,
-    type: "error" | "success" | "warning" = "error"
+    type: "error" | "success" | "warning" = "error",
   ) => {
     if (Platform.OS === "web" && messageApi) {
       messageApi[type](msg);
     } else {
       Alert.alert(
         type === "error" ? "Error" : type === "warning" ? "Warning" : "Success",
-        msg
+        msg,
       );
     }
   };
@@ -53,14 +53,14 @@ export default function RegisterScreen() {
       if (response.status) {
         showMessage(
           i18n.t("Registration successful! Please log in."),
-          "success"
+          "success",
         );
         // Redirect to login page after successful registration
         router.replace("/login");
       } else {
         showMessage(
           response.errorMsg || i18n.t("Registration failed, please try again."),
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -220,7 +220,7 @@ export default function RegisterScreen() {
                     {/* Register button */}
                     <View className="mt-6">
                       <Button
-                        variant="primary"
+                        type="primary"
                         onPress={() => handleSubmit()}
                         loading={loading}
                         className="w-full h-10 justify-center rounded-md px-3 py-1.5 text-base font-semibold leading-6 text-white shadow-sm"

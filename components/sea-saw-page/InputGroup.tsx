@@ -1,9 +1,8 @@
 import clsx from "clsx";
-import Text from "../themed/Text";
-import TextInput from "../themed/TextInput";
+import { Text } from "@/components/sea-saw-design/text";
+import { TextInput, View } from "react-native";
 import SelectList, { SelectListProps } from "./SelectList";
 import DatePickerInput from "./DatePickerInput";
-import { View } from "react-native";
 
 export type InputGroupProps = Omit<SelectListProps, "variant"> & {
   variant?: "text-input" | "select-list" | "date-picker";
@@ -23,7 +22,7 @@ export default function InputGroup({
 }: InputGroupProps) {
   const _className = clsx(
     "flex flex-row items-center w-full",
-    containerClassName
+    containerClassName,
   );
 
   let variantContent;
@@ -54,7 +53,12 @@ export default function InputGroup({
           {variantContent}
         </View>
       </View>
-      <Text variant="error" className="text-xs h-5 w-full text-right pr-2 drop-shadow-md">{error}</Text>
+      <Text
+        variant="error"
+        className="text-xs h-5 w-full text-right pr-2 drop-shadow-md"
+      >
+        {error}
+      </Text>
     </View>
   );
 }

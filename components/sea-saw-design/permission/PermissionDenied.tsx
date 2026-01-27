@@ -1,7 +1,7 @@
 import React from "react";
-import i18n from '@/locale/i18n';
-import View from "@/components/themed/View";
-import Text from "@/components/themed/Text";
+import i18n from "@/locale/i18n";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
 import { ShieldExclamationIcon } from "react-native-heroicons/outline";
 
 interface PermissionDeniedProps {
@@ -30,7 +30,7 @@ export function PermissionDenied({
   variant = "inline",
 }: PermissionDeniedProps) {
   const defaultMessage = i18n.t(
-    "You don't have permission to access this resource"
+    "You don't have permission to access this resource",
   );
 
   if (variant === "inline") {
@@ -59,7 +59,7 @@ export function PermissionDenied({
         </Text>
         <Text variant="secondary" className="text-sm text-center">
           {i18n.t(
-            "If you believe this is an error, please contact your administrator."
+            "If you believe this is an error, please contact your administrator.",
           )}
         </Text>
       </View>

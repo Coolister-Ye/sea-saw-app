@@ -1,20 +1,19 @@
 import {
   AutoComplete,
-  Checkbox,
   ConfigProvider,
   DatePicker,
   Form,
   InputNumber,
   Select,
 } from "antd";
-import { BasicFrame } from "../sea-saw-page/BasicFrame";
+import { BasicFrame } from "../frame/BasicFrame";
 import i18n from '@/locale/i18n';
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
-import { ScrollView, TextInput } from "react-native";
-import { DebounceSelect } from "./DebounceSelect";
-import { useState } from "react";
-import { NumberRangeInput } from "./NumberRangeInput";
+import { ScrollView } from "react-native";
+import { DebounceSelect } from "@/components/sea-saw-design/table/antd/DebounceSelect";
+import { useMemo } from "react";
+import { NumberRangeInput } from "@/components/sea-saw-design/table/antd/NumberRangeInput";
 
 // OptionType 定义了每个选项的类型
 type OptionType = {
@@ -40,6 +39,146 @@ type SearchToolBarProps = {
   onCancel: () => void; // 取消时调用的函数
 };
 
+// 根据列的配置渲染输入框和选择框
+function InputWithSelect({
+  operations = [],
+  dataIndex,
+  variant,
+  getOptions,
+  type,
+  options,
+}: Column) {
+  const { styles } = useStyle();
+
+  // 格式化操作选项
+  let operationOpts = operations.map((opr) => ({
+    value: opr,
+    label: i18n.t(opr), // 使用国际化的标签
+    key: opr,
+  }));
+
+  const rangeOpt = { value: "range", label: i18n.t("between"), key: "range" };
+
+  if (
+    variant === "datepicker" ||
+    ["decimal", "float", "integer"].includes(type || "")
+  ) {
+    operationOpts = [...operationOpts, rangeOpt];
+  }
+
+  // 使用第一个操作作为默认值（因为此版本没有操作选择器）
+  const currentOpr = useMemo(
+    () => operationOpts[0]?.value || "exact",
+    [operationOpts]
+  );
+
+  // 替换数据字段中的"."为"__"以避免命名冲突
+  const formatedDi = dataIndex.replace(/\./g, "__");
+
+  // 渲染不同类型的可编辑单元格
+  const inputComponent = () => {
+    if (currentOpr === "isnull") {
+      return (
+        <Select
+          options={[
+            { value: true, label: i18n.t("true") },
+            { value: false, label: i18n.t("false") },
+          ]}
+          allowClear
+          style={{ minWidth: 80, flex: 1 }}
+        />
+      );
+    } else if (variant === "picklist") {
+      return (
+        <Select
+          options={options}
+          allowClear
+          style={{ minWidth: 80, flex: 1 }}
+        />
+      );
+    } else if (variant === "lookup") {
+      return (
+        getOptions && (
+          <DebounceSelect
+            fetchOptions={getOptions} // 异步获取选项
+            showSearch
+            allowClear
+            style={{ minWidth: 80, flex: 1 }}
+          />
+        )
+      );
+    } else if (variant === "datepicker") {
+      if (currentOpr === "range") {
+        const { RangePicker } = DatePicker;
+        return <RangePicker style={{ minWidth: 80 }} />;
+      }
+      return <DatePicker style={{ minWidth: 80, flex: 1 }} />;
+    } else if (["decimal", "float", "integer"].includes(type || "")) {
+      if (currentOpr === "range") {
+        return <NumberRangeInput className={`${styles.customRangeInput}`} />;
+      }
+      return <InputNumber style={{ minWidth: 80, flex: 1 }} />;
+    } else {
+      return (
+        <AutoComplete
+          options={options}
+          style={{
+            minWidth: 80,
+            flex: 1,
+          }}
+        />
+      );
+    }
+  };
+
+  return (
+    <div className={`flex flex-row`}>
+      <ConfigProvider
+        theme={{
+          components: {
+            Select: {
+              selectorBg: "#ffffff",
+            },
+          },
+        }}
+      >
+        <div className={`${styles.customInput} w-full`}>
+          <Form.Item
+            name={formatedDi}
+            getValueProps={(value) => {
+              if (variant === "datepicker") {
+                if (Array.isArray(value)) {
+                  return value
+                    .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
+                    .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
+                } else {
+                  return `${dayjs(value).format("YYYY-MM-DD")}`;
+                }
+              }
+              return {};
+            }}
+            normalize={(value) => {
+              if (variant === "datepicker") {
+                if (Array.isArray(value)) {
+                  return value
+                    .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
+                    .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
+                } else {
+                  return `${dayjs(value).format("YYYY-MM-DD")}`;
+                }
+              }
+              return value;
+            }}
+            noStyle
+          >
+            {inputComponent()}
+          </Form.Item>
+        </div>
+      </ConfigProvider>
+    </div>
+  );
+}
+
 // SearchToolBar 组件：用于显示搜索工具栏，包含表单和搜索逻辑
 export function SearchToolBar({
   columns,
@@ -48,7 +187,6 @@ export function SearchToolBar({
 }: SearchToolBarProps) {
   // 获取国际化对象
   const [form] = Form.useForm(); // 创建表单实例
-  const { styles } = useStyle(); // 获取样式
 
   // 提交表单
   const handlePressSubmit = () => form.submit();
@@ -56,145 +194,6 @@ export function SearchToolBar({
   const handlePressCancel = () => onCancel && onCancel();
   // 重置表单
   const handleReset = () => form.resetFields();
-
-  // 根据列的配置渲染输入框和选择框
-  const renderInputWithSelect = ({
-    operations,
-    dataIndex,
-    variant,
-    getOptions,
-    type,
-    options,
-  }: Column) => {
-    // 如果没有操作选项，则不渲染
-    if (!operations) return null;
-
-    // 格式化操作选项
-    let operationOpts = operations.map((opr) => ({
-      value: opr,
-      label: i18n.t(opr), // 使用国际化的标签
-      key: opr,
-    }));
-
-    const rangeOpt = { value: "range", label: i18n.t("between"), key: "range" };
-
-    if (
-      variant === "datepicker" ||
-      ["decimal", "float", "integer"].includes(type || "")
-    ) {
-      operationOpts = [...operationOpts, rangeOpt];
-    }
-
-    const [currentOpr, setCurrentOpr] = useState<string>(
-      operationOpts[0]?.value
-    );
-
-    // 替换数据字段中的"."为"__"以避免命名冲突
-    const formatedDi = dataIndex.replace(/\./g, "__");
-
-    // 渲染不同类型的可编辑单元格
-    const inputComponent = () => {
-      if (currentOpr === "isnull") {
-        return (
-          <Select
-            options={[
-              { value: true, label: i18n.t("true") },
-              { value: false, label: i18n.t("false") },
-            ]}
-            allowClear
-            style={{ minWidth: 80, flex: 1 }}
-          />
-        );
-      } else if (variant === "picklist") {
-        return (
-          <Select
-            options={options}
-            allowClear
-            style={{ minWidth: 80, flex: 1 }}
-          />
-        );
-      } else if (variant === "lookup") {
-        return (
-          getOptions && (
-            <DebounceSelect
-              fetchOptions={getOptions} // 异步获取选项
-              showSearch
-              allowClear
-              style={{ minWidth: 80, flex: 1 }}
-            />
-          )
-        );
-      } else if (variant === "datepicker") {
-        if (currentOpr === "range") {
-          const { RangePicker } = DatePicker;
-          return <RangePicker style={{ minWidth: 80 }} />;
-        }
-        return <DatePicker style={{ minWidth: 80, flex: 1 }} />;
-      } else if (["decimal", "float", "integer"].includes(type || "")) {
-        if (currentOpr === "range") {
-          return <NumberRangeInput className={`${styles.customRangeInput}`} />;
-        }
-        return <InputNumber style={{ minWidth: 80, flex: 1 }} />;
-      } else {
-        return (
-          <AutoComplete
-            options={options}
-            style={{
-              minWidth: 80,
-              flex: 1,
-            }}
-          />
-        );
-      }
-    };
-
-    return (
-      <div className={`flex flex-row`}>
-        <ConfigProvider
-          theme={{
-            components: {
-              Select: {
-                selectorBg: "#ffffff",
-              },
-            },
-          }}
-        >
-          <div className={`${styles.customInput} w-full`}>
-            <Form.Item
-              name={formatedDi}
-              getValueProps={(value) => {
-                if (variant === "datepicker") {
-                  if (Array.isArray(value)) {
-                    return value
-                      .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
-                      .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
-                  } else {
-                    return `${dayjs(value).format("YYYY-MM-DD")}`;
-                  }
-                }
-                return {};
-              }}
-              normalize={(value) => {
-                if (variant === "datepicker") {
-                  if (Array.isArray(value)) {
-                    return value
-                      .filter((v) => dayjs(v).isValid()) // 过滤无效的日期
-                      .map((v) => `${dayjs(v).format("YYYY-MM-DD")}`);
-                  } else {
-                    return `${dayjs(value).format("YYYY-MM-DD")}`;
-                  }
-                }
-                return value;
-              }}
-              noStyle
-            >
-              {inputComponent()}
-            </Form.Item>
-          </div>
-        </ConfigProvider>
-      </div>
-    );
-  };
 
   // 构建搜索参数
   const buildFilterParams = (values: Record<string, any>) => {
@@ -260,7 +259,7 @@ export function SearchToolBar({
             .filter((col) => col.operations) // 只渲染有操作选项的列
             .map((col) => (
               <Form.Item label={col.title} key={col.dataIndex}>
-                {renderInputWithSelect(col)} {/* 渲染输入框和选择框 */}
+                <InputWithSelect {...col} /> {/* 渲染输入框和选择框 */}
               </Form.Item>
             ))}
         </Form>

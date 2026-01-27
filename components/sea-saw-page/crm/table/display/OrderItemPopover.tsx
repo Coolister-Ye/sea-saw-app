@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Popover, Button } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { InfoRow } from "@/components/sea-saw-page/crm/from/base/InfoRow";
 
 interface OrderItemPopoverProps {
@@ -13,15 +13,11 @@ export default function OrderItemPopover({
   value,
   def,
 }: OrderItemPopoverProps) {
-  if (!value) {
-    return <Text>-</Text>;
-  }
-
   /** 主标题字段（只在按钮中展示） */
   const titleField = "product_name";
 
   const content = useMemo(() => {
-    if (!def) return null;
+    if (!def || !value) return null;
 
     return (
       <View className="p-3 w-[300px] space-y-2">
@@ -54,6 +50,10 @@ export default function OrderItemPopover({
       </View>
     );
   }, [value, def]);
+
+  if (!value) {
+    return <Text>-</Text>;
+  }
 
   return (
     <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>

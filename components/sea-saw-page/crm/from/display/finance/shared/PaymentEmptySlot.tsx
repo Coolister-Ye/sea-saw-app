@@ -1,10 +1,7 @@
 import { View, Pressable } from "react-native";
-import i18n from '@/locale/i18n';
-import { Text } from "@/components/ui/text";
-import {
-  BanknotesIcon,
-  PlusIcon,
-} from "react-native-heroicons/outline";
+import i18n from "@/locale/i18n";
+import { Text } from "@/components/sea-saw-design/text";
+import { BanknotesIcon, PlusIcon } from "react-native-heroicons/outline";
 
 type Props = {
   onCreate?: () => void;

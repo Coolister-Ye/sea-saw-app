@@ -8,7 +8,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { ViewToggle, type ViewToggleOption } from "./ViewToggle";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import {
   AppstoreOutlined,
   TableOutlined,
@@ -65,7 +65,9 @@ export function ViewToggleExamples() {
 
         <View className="gap-4">
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Small (sm)</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Small (sm)
+            </Text>
             <ViewToggle
               options={basicOptions}
               value={viewMode}
@@ -76,7 +78,9 @@ export function ViewToggleExamples() {
           </View>
 
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Medium (md) - Default</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Medium (md) - Default
+            </Text>
             <ViewToggle
               options={basicOptions}
               value={viewMode}
@@ -87,7 +91,9 @@ export function ViewToggleExamples() {
           </View>
 
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Large (lg)</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Large (lg)
+            </Text>
             <ViewToggle
               options={basicOptions}
               value={viewMode}
@@ -101,7 +107,9 @@ export function ViewToggleExamples() {
 
       {/* Style Variants */}
       <View className="gap-6">
-        <Text className="text-2xl font-bold text-slate-900">Style Variants</Text>
+        <Text className="text-2xl font-bold text-slate-900">
+          Style Variants
+        </Text>
 
         <View className="gap-4">
           <View className="gap-2">
@@ -138,11 +146,15 @@ export function ViewToggleExamples() {
 
       {/* Three Options */}
       <View className="gap-6">
-        <Text className="text-2xl font-bold text-slate-900">Multiple Options</Text>
+        <Text className="text-2xl font-bold text-slate-900">
+          Multiple Options
+        </Text>
 
         <View className="gap-4">
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Default Style</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Default Style
+            </Text>
             <ViewToggle
               options={layoutOptions}
               value={layoutMode}
@@ -152,7 +164,9 @@ export function ViewToggleExamples() {
           </View>
 
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Pill Style</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Pill Style
+            </Text>
             <ViewToggle
               options={layoutOptions}
               value={layoutMode}
@@ -162,7 +176,9 @@ export function ViewToggleExamples() {
           </View>
 
           <View className="gap-2">
-            <Text className="text-sm font-medium text-slate-600">Minimal Style</Text>
+            <Text className="text-sm font-medium text-slate-600">
+              Minimal Style
+            </Text>
             <ViewToggle
               options={layoutOptions}
               value={layoutMode}
@@ -202,7 +218,9 @@ export function ViewToggleExamples() {
 
       {/* Combined: Large + Pill */}
       <View className="gap-6">
-        <Text className="text-2xl font-bold text-slate-900">Showcase: Large Pill</Text>
+        <Text className="text-2xl font-bold text-slate-900">
+          Showcase: Large Pill
+        </Text>
 
         <ViewToggle
           options={layoutOptions}

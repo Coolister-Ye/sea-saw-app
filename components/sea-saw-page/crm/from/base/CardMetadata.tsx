@@ -40,12 +40,12 @@ export default function CardMetadata({
   };
 
   // Collect all metadata items to render
-  const metadataItems: Array<{
+  const metadataItems: {
     icon: React.ComponentType<{ size: number; color: string }>;
     value: string;
     key: string;
     label: string; // Label for tooltip
-  }> = [];
+  }[] = [];
 
   // Add owner or created_by
   if (owner) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Tag, Popover } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 interface ProductionItem {
   id?: number;

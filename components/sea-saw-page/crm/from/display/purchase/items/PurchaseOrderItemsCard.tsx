@@ -1,9 +1,12 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { Button } from "antd";
-import { PencilSquareIcon, ShoppingBagIcon } from "react-native-heroicons/outline";
+import {
+  PencilSquareIcon,
+  ShoppingBagIcon,
+} from "react-native-heroicons/outline";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -222,7 +225,8 @@ export default function PurchaseOrderItemsCard({
             {item.purchase_items && item.purchase_items.length > 0 && (
               <CardSection>
                 <Text className="text-xs text-slate-400 uppercase tracking-wider mb-3">
-                  {getFieldLabel("purchase_items")} ({item.purchase_items.length})
+                  {getFieldLabel("purchase_items")} (
+                  {item.purchase_items.length})
                 </Text>
                 <PurchaseItemsViewToggle
                   def={def?.child?.children?.purchase_items}

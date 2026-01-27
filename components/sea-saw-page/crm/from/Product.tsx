@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+import { Button } from "@/components/sea-saw-design/button";
+import { Text } from "@/components/sea-saw-design/text";
 import Drawer from "./base/Drawer";
 import InputHeader from "./base/InputHeader";
 import InputFooter from "./base/InputFooter";
@@ -43,13 +43,10 @@ function ProductInput({ def, value = [], onChange }: ProductProps) {
   }, [gridApi]);
 
   /** 通用打开 Drawer：用于新增或编辑 */
-  const openDrawer = useCallback(
-    (index: number | null = null) => {
-      setEditingIndex(index);
-      setIsOpen(true);
-    },
-    []
-  );
+  const openDrawer = useCallback((index: number | null = null) => {
+    setEditingIndex(index);
+    setIsOpen(true);
+  }, []);
 
   const closeDrawer = useCallback(() => {
     form.resetFields();
@@ -68,7 +65,7 @@ function ProductInput({ def, value = [], onChange }: ProductProps) {
       if (index === null) return;
       openDrawer(index, list[index]);
     },
-    [list, openDrawer]
+    [list, openDrawer],
   );
 
   /** 删除选中行 */

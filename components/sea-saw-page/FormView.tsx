@@ -1,8 +1,8 @@
-import View from "@/components/themed/View";
+import { View } from "@/components/sea-saw-design/view";
 import Modal from "react-native-modal";
 import Form from "./Form";
 import useDataService from "@/hooks/useDataService";
-import Toast from "@/components/themed/Toast";
+import { message } from "antd";
 import { router } from "expo-router";
 
 type FormViewProps = {
@@ -14,7 +14,6 @@ type FormViewProps = {
   onSuccess?: () => void;
 };
 
-
 export default function FormView({
   visible,
   onVisibleChange,
@@ -23,7 +22,6 @@ export default function FormView({
   initialData,
   onSuccess,
 }: FormViewProps) {
-
   const { getViewSet } = useDataService();
 
   const handleSubmit = async (formData: Record<string, any>) => {
@@ -35,14 +33,15 @@ export default function FormView({
 
     if (response.status) {
       // Create or update successfully, close modal
+      message.success(id ? "更新成功" : "创建成功");
       onVisibleChange(false);
       onSuccess && onSuccess();
     } else if (response.error?.isAuthError) {
       onVisibleChange(false);
       router.navigate("/login");
-      console.error("Authenticate error:", response.error.message);
+      message.error("认证失败，请重新登录");
     } else {
-      console.error("Create error:", response.error?.message);
+      message.error(response.error?.message || "操作失败");
     }
   };
 

@@ -30,10 +30,10 @@ interface PaymentInputProps {
   pipeline: {
     id: number | string;
     order?: { id: number | string; order_code?: string };
-    purchase_orders?: Array<{
+    purchase_orders?: {
       id: number | string;
       purchase_order_code?: string;
-    }>;
+    }[];
   };
 }
 

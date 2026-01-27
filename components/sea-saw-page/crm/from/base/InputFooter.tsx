@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import i18n from '@/locale/i18n';
-import { Text } from "@/components/ui/text";
+import { Button } from "@/components/sea-saw-design/button";
+import i18n from "@/locale/i18n";
+import { Text } from "@/components/sea-saw-design/text";
 import clsx from "clsx";
 import { View } from "react-native";
 
@@ -21,7 +21,7 @@ function InputFooter({
     <View
       className={clsx(
         "flex flex-row justify-end gap-1 p-5 border-t border-gray-200 bg-white",
-        className
+        className,
       )}
     >
       <Button className="w-fit h-fit py-1" onPress={onSave} disabled={loading}>

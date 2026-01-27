@@ -1,5 +1,5 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Pressable } from "react-native";
 import { Switch, Tooltip } from "antd";
 import {
@@ -8,7 +8,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 /* ========================
  * Types
@@ -31,9 +31,10 @@ export default function AutoCreateOrderToggle({
     <View
       className={`
         mt-3 p-4 rounded-xl border
-        ${checked
-          ? "bg-indigo-50/80 border-indigo-200"
-          : "bg-gradient-to-br from-slate-50 to-purple-50/30 border-slate-200/60"
+        ${
+          checked
+            ? "bg-indigo-50/80 border-indigo-200"
+            : "bg-gradient-to-br from-slate-50 to-purple-50/30 border-slate-200/60"
         }
         ${disabled ? "opacity-50" : ""}
       `}
@@ -46,9 +47,10 @@ export default function AutoCreateOrderToggle({
             className={`
               w-10 h-10 rounded-lg mr-3
               items-center justify-center
-              ${checked
-                ? "bg-gradient-to-br from-indigo-500 to-purple-600"
-                : "bg-gradient-to-br from-slate-400 to-slate-500"
+              ${
+                checked
+                  ? "bg-gradient-to-br from-indigo-500 to-purple-600"
+                  : "bg-gradient-to-br from-slate-400 to-slate-500"
               }
             `}
             style={{
@@ -80,7 +82,7 @@ export default function AutoCreateOrderToggle({
               </Text>
               <Tooltip
                 title={i18n.t(
-                  "When enabled, a new order will be automatically created and linked to this pipeline"
+                  "When enabled, a new order will be automatically created and linked to this pipeline",
                 )}
                 placement="top"
               >

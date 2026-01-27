@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { ReactNode } from "react";
 
 interface InfoFieldProps {
@@ -23,7 +23,15 @@ interface InfoFieldProps {
  * @param blank_display - String to display for blank/null/undefined values (default: "-")
  * @param children - Custom content to render instead of formatted value
  */
-function InfoField({ label, value, format, prefix, suffix, blank_display = "-", children }: InfoFieldProps) {
+function InfoField({
+  label,
+  value,
+  format,
+  prefix,
+  suffix,
+  blank_display = "-",
+  children,
+}: InfoFieldProps) {
   const formatValue = () => {
     // Use custom format function if provided
     if (format) {

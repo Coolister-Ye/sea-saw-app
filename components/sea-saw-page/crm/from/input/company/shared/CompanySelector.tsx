@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Pressable } from "react-native";
 import { Form } from "antd";
 import {
@@ -12,7 +12,7 @@ import EntitySelector, {
   type EntityItem,
 } from "@/components/sea-saw-design/selector/EntitySelector";
 import type { ColDefinition } from "@/components/sea-saw-design/table/interface";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import type { FormDef } from "@/hooks/useFormDefs";
 
 /* Types */
@@ -71,7 +71,7 @@ const CompanySelector = forwardRef<View, CompanySelectorProps>(
           )}
         </View>
       ),
-      [readOnly]
+      [readOnly],
     );
 
     /** Map API response to Company items */
@@ -106,7 +106,7 @@ const CompanySelector = forwardRef<View, CompanySelectorProps>(
         }
         onChange?.(company);
       },
-      [form, multiple, onChange]
+      [form, multiple, onChange],
     );
 
     return (
@@ -125,7 +125,7 @@ const CompanySelector = forwardRef<View, CompanySelectorProps>(
         renderSelectedChip={renderSelectedChip}
       />
     );
-  }
+  },
 );
 
 CompanySelector.displayName = "CompanySelector";

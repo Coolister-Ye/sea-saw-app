@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 /* ========================
  * Section 组件

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, Animated } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 
 export type ViewToggleOption<T extends string = string> = {
   value: T;
@@ -87,7 +87,9 @@ export function ViewToggle<T extends string = string>({
   const styles = variantStyles[variant];
 
   return (
-    <View className={`flex-row ${styles.container} ${config.container} gap-0.5`}>
+    <View
+      className={`flex-row ${styles.container} ${config.container} gap-0.5`}
+    >
       {options.map((option) => {
         const isActive = option.value === value;
 

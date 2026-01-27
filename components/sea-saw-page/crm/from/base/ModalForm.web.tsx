@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, FlatList, ScrollView } from "react-native";
 import { Checkbox } from "antd";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/sea-saw-design/button";
 import Drawer from "./Drawer.web";
 import { Form } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import InputFooter from "./InputFooter";
 import EmptySlot from "./EmptySlot";
 
@@ -18,7 +18,7 @@ interface ModalFormProps<T> {
     data: T,
     onEdit: () => void,
     onDelete: () => void,
-    onCopy: () => void
+    onCopy: () => void,
   ) => React.ReactNode;
   renderForm: (form: any, def: any) => React.ReactNode;
 }
@@ -68,7 +68,7 @@ function ModalForm<T>({
       form.setFieldsValue(item);
       setIsOpen(true);
     },
-    [form]
+    [form],
   );
 
   /** 点击复制 → 填充 form，但不直接加入 list */
@@ -94,7 +94,7 @@ function ModalForm<T>({
       form.setFieldsValue(cloned);
       setIsOpen(true);
     },
-    [form]
+    [form],
   );
 
   /** 保存（新增/编辑/复制） */
@@ -106,7 +106,7 @@ function ModalForm<T>({
       if (editingIndex !== null) {
         // 编辑
         updatedList = list.map((item, i) =>
-          i === editingIndex ? values : item
+          i === editingIndex ? values : item,
         );
       } else if (pendingCopyItem) {
         // 复制确认
@@ -132,7 +132,7 @@ function ModalForm<T>({
       onChange?.(updated);
       if (selectedIndex === index) setSelectedIndex(null);
     },
-    [list, onChange, selectedIndex]
+    [list, onChange, selectedIndex],
   );
 
   /** ItemView 使用 React.memo 避免不必要的重渲染 */
@@ -145,7 +145,7 @@ function ModalForm<T>({
                 item,
                 () => handleEdit(item, index),
                 () => handleDelete(index),
-                () => handleCopy(item)
+                () => handleCopy(item),
               )
             : Object.entries(item as any).map(([k, v]) => (
                 <Text key={k}>

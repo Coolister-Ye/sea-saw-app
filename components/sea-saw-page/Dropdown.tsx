@@ -1,19 +1,19 @@
 import { useRef, useState } from "react";
-import TextInput, { TextInputProps } from "../themed/TextInput";
-import { TextInput as BaseTextInput, View } from "react-native";
 import {
-  NativeSyntheticEvent,
-  NativeTouchEvent,
+  TextInput,
+  TextInputProps,
+  View,
+  GestureResponderEvent,
   Platform,
   Pressable,
-  TextInputFocusEventData,
 } from "react-native";
 import React from "react";
 import clsx from "clsx";
 
 export type DropdownProps = TextInputProps & {
   suffixIcon?: React.ReactNode;
-  dropdownClassName?: string
+  dropdownClassName?: string;
+  onPress?: (event: GestureResponderEvent) => void;
 };
 
 //   // Need to been used with ScrollView when this component is used in IOS/Android.
@@ -24,8 +24,8 @@ export type DropdownProps = TextInputProps & {
 //   //  <TextInput onBlur={() => console.log("blur")} />
 //   // </ScrollView>
 
-const Dropdown = React.forwardRef<BaseTextInput, DropdownProps>(
-  ({ onPress, onBlur, className, dropdownClassName, children, suffixIcon, onPressOutside, ...rest }, ref) => {
+const Dropdown = React.forwardRef<TextInput, DropdownProps>(
+  ({ onPress, onBlur, className, dropdownClassName, children, suffixIcon, ...rest }, ref) => {
     const [isHidden, setHidden] = useState(true);
     const innerRef = useRef<any>(ref);
     const dropdownContainerClassName = clsx(
@@ -35,7 +35,7 @@ const Dropdown = React.forwardRef<BaseTextInput, DropdownProps>(
     const suffixConatinerClassName =
       "pointer-events-none absolute inset-y-0 right-0 flex pr-2 justify-center";
 
-    const _onPress = (event: NativeSyntheticEvent<NativeTouchEvent>) => {
+    const _onPress = (event: GestureResponderEvent) => {
       onPress && onPress(event);
       setHidden(false);
     };
@@ -57,8 +57,8 @@ const Dropdown = React.forwardRef<BaseTextInput, DropdownProps>(
         <View className="w-full relative flex-row justify-center">
           <TextInput
             {...rest}
-            onPress={_onPress}
-            onPressOutside={() => setHidden(true)}
+            onPressIn={_onPress}
+            onBlur={() => setHidden(true)}
             ref={ref}
             {...(Platform.OS === "web" && { onClick })}
           />

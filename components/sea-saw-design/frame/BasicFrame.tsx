@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import i18n from '@/locale/i18n';
-import View from "../themed/View";
-import Text from "../themed/Text";
-import Button from "../themed/Button";
+import i18n from "@/locale/i18n";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
+import { Button } from "@/components/sea-saw-design/button";
 
 type BasicFrameProps = {
   headerText: string;
@@ -49,7 +49,6 @@ export function BasicFrame({
       >
         {handleReset && (
           <Button
-            variant="outlined"
             className="px-3.5 py-2.5 text-sm font-semibold mr-1 rounded-2xl hover:bg-neutral-100"
             onPress={handleReset}
           >
@@ -57,14 +56,12 @@ export function BasicFrame({
           </Button>
         )}
         <Button
-          variant="outlined"
           className="px-3.5 py-2.5 text-sm font-semibold mr-1 rounded-2xl hover:bg-neutral-100"
           onPress={handleCancel}
         >
           {i18n.t("Cancel")}
         </Button>
         <Button
-          variant="success"
           className="px-3.5 py-2.5 text-sm font-semibold rounded-2xl"
           onPress={handleSubmit}
         >

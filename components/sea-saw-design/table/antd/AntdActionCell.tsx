@@ -1,5 +1,5 @@
 import { Dropdown, Popconfirm, Typography } from "antd";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import React, { useContext, useMemo } from "react";
 import { EditableContext } from "./EditableRow";
 import { MenuProps } from "antd";
@@ -8,7 +8,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "react-native-heroicons/outline";
-import View from "@/components/themed/View";
+import { View } from "@/components/sea-saw-design/view";
 import _ from "lodash";
 import { useToast } from "@/context/Toast";
 import { Pressable } from "react-native";
@@ -74,7 +74,7 @@ const ActionCell = <T extends Record<string, any>>({
   // 过滤有效的添加选项 (非空的 key 和 label)
   const validAddOptions = useMemo(
     () => addOptions.filter(({ key, label }) => key && label),
-    [addOptions]
+    [addOptions],
   );
 
   // Handle the selection of an add option from the dropdown
@@ -118,7 +118,7 @@ const ActionCell = <T extends Record<string, any>>({
           {renderActionIcon(
             <Pressable onPress={startEditing}>
               <PencilSquareIcon className="text-zinc-500 hover:text-zinc-400 h-5" />
-            </Pressable>
+            </Pressable>,
           )}
 
           {/* Add options dropdown */}
@@ -136,7 +136,7 @@ const ActionCell = <T extends Record<string, any>>({
             >
               <div className="flex items-center">
                 {renderActionIcon(
-                  <PlusCircleIcon className="text-lg text-zinc-500 hover:text-zinc-400 h-5" />
+                  <PlusCircleIcon className="text-lg text-zinc-500 hover:text-zinc-400 h-5" />,
                 )}
               </div>
             </Dropdown>
@@ -152,7 +152,7 @@ const ActionCell = <T extends Record<string, any>>({
                 <TrashIcon
                   size={20}
                   className="text-zinc-500 hover:text-zinc-400 h-5"
-                />
+                />,
               )}
             </Popconfirm>
           )}

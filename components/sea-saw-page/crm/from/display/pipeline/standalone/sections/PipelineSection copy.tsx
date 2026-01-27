@@ -1,14 +1,17 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { PipelineInput } from "../../../../input/pipeline";
 import { PipelineSectionProps } from "../../types";
 import ContactPopover from "../../../contact/ContactPopover";
 import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
 import PipelineStatusTag from "../../renderers/PipelineStatusTag";
-import { QueueListIcon, DocumentTextIcon } from "react-native-heroicons/outline";
+import {
+  QueueListIcon,
+  DocumentTextIcon,
+} from "react-native-heroicons/outline";
 
 export default function PipelineSection({
   pipeline,

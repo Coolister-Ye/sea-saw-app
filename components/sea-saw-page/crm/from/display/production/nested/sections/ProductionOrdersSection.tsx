@@ -1,12 +1,15 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { ProductionOrderInputNested as ProductionOrderInput } from "../../../../input/production";
 import { ProductionOrderEmptySlot, ProductionAddDivider } from "../../shared";
 import { ProductionOrdersSectionProps } from "../../../order/types";
 import ProductionOrderItemsCard from "../../items/ProductionOrderItemsCard";
-import { WrenchScrewdriverIcon, CubeIcon } from "react-native-heroicons/outline";
+import {
+  WrenchScrewdriverIcon,
+  CubeIcon,
+} from "react-native-heroicons/outline";
 
 export default function ProductionOrdersSection({
   order,
@@ -80,7 +83,9 @@ export default function ProductionOrdersSection({
               <ProductionOrderItemsCard
                 def={defs.productionOrders}
                 value={productionOrders}
-                onItemClick={(index: number) => setEditingProd(productionOrders[index])}
+                onItemClick={(index: number) =>
+                  setEditingProd(productionOrders[index])
+                }
                 orderStatus={orderStatus}
                 activeEntity={order?.active_entity}
               />

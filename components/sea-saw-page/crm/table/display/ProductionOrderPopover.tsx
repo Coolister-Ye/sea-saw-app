@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Popover, Button } from "antd";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { InfoRow } from "@/components/sea-saw-page/crm/from/base/InfoRow";
 
 interface ProductionOrderPopoverProps {
@@ -13,13 +13,11 @@ export default function ProductionOrderPopover({
   value,
   def,
 }: ProductionOrderPopoverProps) {
-  if (!value) return <Text>-</Text>;
-
   /** 主标题字段（只在按钮中展示） */
   const titleField = "production_code";
 
   const content = useMemo(() => {
-    if (!def) return null;
+    if (!def || !value) return null;
 
     return (
       <View className="p-3 w-[350px] space-y-2">
@@ -57,6 +55,8 @@ export default function ProductionOrderPopover({
       </View>
     );
   }, [value, def]);
+
+  if (!value) return <Text>-</Text>;
 
   return (
     <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>

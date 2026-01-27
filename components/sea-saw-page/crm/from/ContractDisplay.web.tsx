@@ -1,8 +1,8 @@
 import React, { useMemo, useRef } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, ScrollView } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+import { Button } from "@/components/sea-saw-design/button";
+import { Text } from "@/components/sea-saw-design/text";
 import Drawer from "./base/Drawer.web";
 
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
@@ -53,7 +53,7 @@ export default function ContractDisplay({
         ),
       },
     }),
-    []
+    [],
   );
 
   /** ==== Footer ==== */

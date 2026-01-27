@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { AgGridReact } from "ag-grid-react";
 import type { AgGridReactProps } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
-import { Text } from "@/components/ui/text";
+import { Text } from "@/components/sea-saw-design/text";
 import { getFieldLabelMap } from "@/utils";
 import { myTableTheme } from "@/components/sea-saw-design/table/theme";
 import EmptySlot from "../../../base/EmptySlot";
@@ -24,11 +24,12 @@ export default function PurchaseItemsTable({
 }: PurchaseItemsTableProps) {
   const fieldLabelMap = useMemo(
     () => getFieldLabelMap(def?.child?.children ?? {}),
-    [def]
+    [def],
   );
 
   const getLabel = (field: string, fallback?: string) =>
-    fieldLabelMap[field] ?? (fallback ? i18n.t?.(fallback) ?? fallback : field);
+    fieldLabelMap[field] ??
+    (fallback ? (i18n.t?.(fallback) ?? fallback) : field);
 
   /** Default column definition */
   const defaultColDef = useMemo<ColDef>(
@@ -39,7 +40,7 @@ export default function PurchaseItemsTable({
       minWidth: 100,
       resizable: true,
     }),
-    []
+    [],
   );
 
   /** Column definitions */

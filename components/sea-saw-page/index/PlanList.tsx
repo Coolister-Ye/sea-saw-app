@@ -1,6 +1,6 @@
-import View from "../../themed/View";
-import i18n from '@/locale/i18n';
-import Text from "@/components/themed/Text";
+import { View } from "@/components/sea-saw-design/view";
+import i18n from "@/locale/i18n";
+import { Text } from "@/components/sea-saw-design/text";
 import clsx from "clsx";
 
 // 定义每个计划项的类型
@@ -36,7 +36,7 @@ export function PlanList({ plans, posList = [] }: PlanListProps) {
               className={clsx(
                 "flex w-10 shrink-0 items-center justify-center rounded-l-md",
                 // 先确保 item.stage 是有效的 string 再进行包含检查
-                posSet.has(item.stage || "") ? "bg-green-400" : "bg-red-400"
+                posSet.has(item.stage || "") ? "bg-green-400" : "bg-red-400",
               )}
             ></View>
 

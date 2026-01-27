@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, Text, ScrollView } from "react-native";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/sea-saw-design/button";
 import Drawer from "./base/Drawer";
 import InputHeader from "./base/InputHeader";
 
@@ -53,7 +53,7 @@ export default function ContractDisplay({
         ),
       },
     }),
-    []
+    [],
   );
 
   return (

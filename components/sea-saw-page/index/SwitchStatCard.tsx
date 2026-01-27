@@ -1,9 +1,9 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { ArrowDownIcon, ArrowUpIcon } from "react-native-heroicons/mini";
-import View from "../../themed/View";
-import Text from "../../themed/Text";
-import Select from "../../sea-saw-design/select";
+import { View } from "@/components/sea-saw-design/view";
+import { Text } from "@/components/sea-saw-design/text";
+import Select from "@/components/sea-saw-design/select";
 
 type SwitchStatCardProps = {
   name: string;
@@ -19,13 +19,13 @@ export default function SwitchStatCard({
 }: SwitchStatCardProps) {
   // 复制 & 排序数据，避免影响原始 `statArray`
   const sortedStatArray = [...statArray].sort((a, b) =>
-    a.date > b.date ? 1 : -1
+    a.date > b.date ? 1 : -1,
   );
 
   // 计算变化率
   const processedStatArray = sortedStatArray.map((item, index) => {
     const previousTotal = parseFloat(
-      sortedStatArray[index - 1]?.total.toString()
+      sortedStatArray[index - 1]?.total.toString(),
     );
     const currentTotal = parseFloat(item.total.toString());
     const change = ((currentTotal - previousTotal) / previousTotal) * 100;
@@ -46,7 +46,7 @@ export default function SwitchStatCard({
 
   // 选中状态
   const [showStat, setShowStat] = useState<number | null>(
-    processedStatArray.length - 1
+    processedStatArray.length - 1,
   );
   const currentStat =
     showStat !== null ? processedStatArray[showStat] : processedStatArray[0];
@@ -65,7 +65,7 @@ export default function SwitchStatCard({
           options={dateOptions}
           onChange={(value) => {
             const index = dateOptions.findIndex(
-              (option) => option.value === value
+              (option) => option.value === value,
             );
             setShowStat(index);
           }}
@@ -93,7 +93,7 @@ export default function SwitchStatCard({
             "flex flex-row items-center rounded-full px-2.5 py-0.5 text-sm font-medium mt-2",
             currentStat.changeType === "increase"
               ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              : "bg-red-100 text-red-800",
           )}
         >
           {currentStat.changeType === "increase" ? (
@@ -118,7 +118,7 @@ export default function SwitchStatCard({
               "ml-1",
               currentStat.changeType === "increase"
                 ? "text-green-800"
-                : "text-red-800"
+                : "text-red-800",
             )}
           >
             {currentStat.change.toString()}
