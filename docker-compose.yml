@@ -4,8 +4,18 @@ services:
   # 前端服务
   web-app:
     image: hkccr.ccs.tencentyun.com/sea-saw/frontend:latest
+    container_name: sea-saw-frontend
     build:
       context: .
       dockerfile: nginx/Dockerfile
-    ports:
-      - "80:80"
+    # Port removed - accessed via gateway
+    expose:
+      - 80
+    networks:
+      - sea-saw-network
+    restart: unless-stopped
+
+networks:
+  sea-saw-network:
+    external: true
+    name: sea-saw-network
