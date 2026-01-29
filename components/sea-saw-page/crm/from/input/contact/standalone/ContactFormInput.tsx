@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
@@ -64,7 +64,7 @@ export default function ContactFormInput({
         hidden: true, // Hidden - auto-updated by CompanySelector
       },
     }),
-    []
+    [],
   );
 
   /* ========================

@@ -28,7 +28,7 @@ function InputFooter({
         <Text className="text-white">{i18n.t("Save")}</Text>
       </Button>
       <Button
-        variant="outline"
+        type="primary"
         className="w-fit h-fit py-1 bg-white"
         onPress={onCancel}
       >
