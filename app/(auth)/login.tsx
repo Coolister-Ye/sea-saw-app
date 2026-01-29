@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import i18n from "@/locale/i18n";
 import { Pressable, StyleSheet, Platform, Alert } from "react-native";
-import { Image as ExpoImage } from "expo-image";
 import { View } from "@/components/sea-saw-design/view";
 import { Text } from "@/components/sea-saw-design/text";
 import { Button } from "@/components/sea-saw-design/button";
@@ -10,6 +9,7 @@ import { Divider } from "@/components/sea-saw-design/divider";
 import { Formik } from "formik";
 import Checkbox from "expo-checkbox";
 import LoginInputGroup from "@/components/sea-saw-page/login/InputGroup";
+import AuthLayout from "@/components/sea-saw-page/auth/AuthLayout";
 import * as Yup from "yup";
 import { useAuthStore } from "@/stores/authStore";
 import { getLocalData, setLocalData, removeLocalData } from "@/utils";
@@ -19,8 +19,6 @@ import { message } from "antd";
 // Define constants
 const REMEMBER_NAME = "remember-me";
 const CREDENTIAL_NAME = "credentials";
-const APP_NAME = "Sea-Cube ERP";
-const APP_LOGO = require("@/assets/images/app-logo.png");
 
 export default function LoginScreen() {
   const login = useAuthStore((state) => state.login);
@@ -117,102 +115,21 @@ export default function LoginScreen() {
   });
 
   return (
-    <View className="flex min-h-full flex-1 relative bg-slate-50 dark:bg-slate-950">
-      {contextHolder}
-
-      {/* Background decorative elements - only for web */}
-      <View
-        className="absolute inset-0 opacity-30"
-        style={styles.gridBackground}
-      />
-      <View className="absolute inset-0" style={styles.radialGlow} />
-
-      {/* Main content container */}
-      <View className="flex flex-1 flex-row min-h-full">
-        {/* Left side - Hero section (hidden on mobile) */}
-        <View className="hidden lg:flex lg:flex-1 relative items-center justify-center px-16 bg-gradient-to-br from-blue-600 to-blue-800">
-          <View className="max-w-lg z-10">
-            {/* Logo with white background and glow effect */}
-            <View
-              className="mb-5 items-center justify-center"
-              style={{ width: 120, height: 120 }}
-            >
-              <View
-                className="bg-white rounded-xl items-center justify-center"
-                style={{
-                  width: 100,
-                  height: 100,
-                  shadowColor: "#fff",
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 20,
-                  elevation: 10,
-                }}
-              >
-                <ExpoImage
-                  source={APP_LOGO}
-                  style={{ width: 120, aspectRatio: 2.5 }}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                />
-              </View>
-            </View>
-
-            {/* Hero text */}
-            <Text className="text-5xl font-bold mb-6 leading-tight text-white">
-              {i18n.t("Welcome to")} {"\n"}
-              {APP_NAME}
-            </Text>
-
-            <Text className="text-lg leading-relaxed text-blue-100 mb-12">
-              {i18n.t(
-                "Streamline your business operations with intelligent customer relationship management",
-              )}
-            </Text>
-
-            {/* Feature highlights */}
-            <View className="flex flex-row gap-6">
-              <View className="flex-1">
-                <View className="w-12 h-1 mb-3 bg-blue-300 rounded-full" />
-                <Text className="text-sm text-blue-100 font-medium">
-                  {i18n.t("Smart Analytics")}
-                </Text>
-              </View>
-              <View className="flex-1">
-                <View className="w-12 h-1 mb-3 bg-blue-300 rounded-full" />
-                <Text className="text-sm text-blue-100 font-medium">
-                  {i18n.t("Real-time Sync")}
-                </Text>
-              </View>
-              <View className="flex-1">
-                <View className="w-12 h-1 mb-3 bg-blue-300 rounded-full" />
-                <Text className="text-sm text-blue-100 font-medium">
-                  {i18n.t("Secure Access")}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Decorative circles */}
-          <View className="absolute top-20 right-20 w-64 h-64 bg-blue-500 rounded-full opacity-20 blur-3xl" />
-          <View className="absolute bottom-20 left-20 w-48 h-48 bg-blue-400 rounded-full opacity-20 blur-3xl" />
-        </View>
-
-        {/* Right side - Login form */}
-        <View className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-24 bg-white dark:bg-slate-900">
-          <View className="mx-auto w-full max-w-md mt-5">
-            {/* Mobile logo (visible only on mobile) */}
-            <View className="lg:hidden mb-12 items-center">
-              <ExpoImage
-                source={APP_LOGO}
-                style={{ width: 120, aspectRatio: 2.5 }}
-                contentFit="contain"
-                cachePolicy="memory-disk"
-              />
-            </View>
-
-            {/* Form header */}
-            <View className="mb-10">
+    <AuthLayout
+      heroTitle={i18n.t("Welcome to")}
+      heroSubtitle={i18n.t(
+        "Streamline your business operations with intelligent customer relationship management",
+      )}
+      features={[
+        i18n.t("Smart Analytics"),
+        i18n.t("Real-time Sync"),
+        i18n.t("Secure Access"),
+      ]}
+      themeColor="blue"
+      contextHolder={contextHolder}
+    >
+      {/* Form header */}
+      <View className="mb-10">
               <Text className="text-3xl sm:text-4xl font-bold mb-3 text-slate-900 dark:text-white">
                 {i18n.t("Sign in")}
               </Text>
@@ -334,34 +251,16 @@ export default function LoginScreen() {
 
             {/* Footer note */}
             <Text className="mt-12 text-xs text-center text-slate-500 dark:text-slate-500">
-              {i18n.t(
-                "By signing in, you agree to our Terms of Service and Privacy Policy",
-              )}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
+        {i18n.t(
+          "By signing in, you agree to our Terms of Service and Privacy Policy",
+        )}
+      </Text>
+    </AuthLayout>
   );
 }
 
-// Styles - Only for web-specific features that can't be done with Tailwind
+// Styles
 const styles = StyleSheet.create({
-  gridBackground: Platform.select({
-    web: {
-      backgroundImage:
-        "linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px)",
-      backgroundSize: "60px 60px",
-    } as any,
-    default: {},
-  }),
-  radialGlow: Platform.select({
-    web: {
-      backgroundImage:
-        "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)",
-    } as any,
-    default: {},
-  }),
   checkbox: {
     height: 18,
     width: 18,

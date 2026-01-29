@@ -272,5 +272,20 @@
     "profile_edit": "编辑资料",
     "password": "修改密码",
     "Failed": "失败",
-    "No download tasks": "暂无下载任务"
+    "No download tasks": "暂无下载任务",
+    "Registration successful! Please log in.": "注册成功！请登录。",
+    "Registration failed, please try again.": "注册失败，请重试。",
+    "Username must be at least 3 characters": "用户名必须至少3个字符",
+    "Join": "加入",
+    "Start managing your business more efficiently with our comprehensive CRM solution": "通过我们全面的CRM解决方案更高效地管理您的业务",
+    "Easy Setup": "简单设置",
+    "Free Trial": "免费试用",
+    "24/7 Support": "全天候支持",
+    "Create your account": "创建您的账户",
+    "Fill in your details to get started": "填写您的详细信息以开始使用",
+    "Confirm password": "确认密码",
+    "Optional Information": "可选信息",
+    "Creating account...": "正在创建账户...",
+    "Already have an account?": "已经有账号了？",
+    "By creating an account, you agree to our Terms of Service and Privacy Policy": "创建账号即表示您同意我们的服务条款和隐私政策"
 }

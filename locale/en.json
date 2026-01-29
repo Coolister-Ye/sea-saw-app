@@ -268,5 +268,20 @@
     "profile_edit": "Edit Profile",
     "password": "Change Password",
     "Failed": "Failed",
-    "No download tasks": "No download tasks"
+    "No download tasks": "No download tasks",
+    "Registration successful! Please log in.": "Registration successful! Please log in.",
+    "Registration failed, please try again.": "Registration failed, please try again.",
+    "Username must be at least 3 characters": "Username must be at least 3 characters",
+    "Join": "Join",
+    "Start managing your business more efficiently with our comprehensive CRM solution": "Start managing your business more efficiently with our comprehensive CRM solution",
+    "Easy Setup": "Easy Setup",
+    "Free Trial": "Free Trial",
+    "24/7 Support": "24/7 Support",
+    "Create your account": "Create your account",
+    "Fill in your details to get started": "Fill in your details to get started",
+    "Confirm password": "Confirm password",
+    "Optional Information": "Optional Information",
+    "Creating account...": "Creating account...",
+    "Already have an account?": "Already have an account?",
+    "By creating an account, you agree to our Terms of Service and Privacy Policy": "By creating an account, you agree to our Terms of Service and Privacy Policy"
 }
