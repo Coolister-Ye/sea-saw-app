@@ -7,10 +7,10 @@ import {
 } from "expo-router";
 import "../global.css";
 import "antd/dist/reset.css";
-import "ag-grid-enterprise";
 import "react-native-svg";
 import { PortalHost } from "@rn-primitives/portal";
-import { LicenseManager } from "ag-grid-enterprise";
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise";
 import { constants } from "@/constants/Constants";
 import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
@@ -20,6 +20,9 @@ import { SafeAreaProviderCompat } from "@react-navigation/elements";
 import { useAuthStore } from "@/stores/authStore";
 import { useLocaleStore } from "@/stores/localeStore";
 import { LoadingScreen } from "@/components/sea-saw-page/LoadingScreen";
+
+// Register AG Grid modules (must be done before any grid is rendered)
+ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule]);
 
 const isWeb = Platform.OS === "web";
 
