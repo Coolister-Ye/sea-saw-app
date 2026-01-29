@@ -20,18 +20,19 @@ function InputFooter({
   return (
     <View
       className={clsx(
-        "flex flex-row justify-end gap-1 p-5 border-t border-gray-200 bg-white",
+        "flex flex-row justify-end gap-1 py-1.5 bg-white",
         className,
       )}
     >
-      <Button className="w-fit h-fit py-1" onPress={onSave} disabled={loading}>
-        <Text className="text-white">{i18n.t("Save")}</Text>
-      </Button>
       <Button
         type="primary"
-        className="w-fit h-fit py-1 bg-white"
-        onPress={onCancel}
+        className="w-fit py-1"
+        onPress={onSave}
+        disabled={loading}
       >
+        <Text>{i18n.t("Save")}</Text>
+      </Button>
+      <Button className="w-fit py-1" onPress={onCancel}>
         <Text>{i18n.t("Cancel")}</Text>
       </Button>
     </View>
