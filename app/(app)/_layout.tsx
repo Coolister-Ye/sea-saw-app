@@ -30,11 +30,6 @@ const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "(setting)/password", label: "password" },
   { name: "(playground)/playground", label: "playground", staffOnly: true },
   { name: "(playground)/example", label: "playground", staffOnly: true },
-  {
-    name: "(playground)/hoverCardExample",
-    label: "playground",
-    staffOnly: true,
-  },
 ];
 
 export default function AppLayout() {

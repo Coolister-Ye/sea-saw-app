@@ -72,9 +72,24 @@ export interface ProfileUpdateData {
 // ==================== Error Types ====================
 
 export class AuthError extends Error {
-  constructor(message: string, public readonly originalError?: unknown) {
+  url?: string;
+  status?: number;
+  statusText?: string;
+  body?: unknown;
+
+  constructor(
+    message: string,
+    url?: string,
+    status?: number,
+    statusText?: string,
+    body?: unknown
+  ) {
     super(message);
     this.name = "AuthError";
+    this.url = url;
+    this.status = status;
+    this.statusText = statusText;
+    this.body = body;
 
     // Maintains proper stack trace for where error was thrown (only available on V8)
     if (Error.captureStackTrace) {

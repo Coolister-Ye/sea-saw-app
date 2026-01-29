@@ -1,5 +1,9 @@
 import { constants } from "@/constants/Constants";
 import { getLocalData, setLocalData } from "./storage";
+import { AuthError } from "@/types/auth";
+
+// Re-export AuthError for backward compatibility
+export { AuthError };
 
 /* =========================
  * Types
@@ -29,7 +33,6 @@ type FetchJsonDataProps = {
 
 export const USER_TOKEN_KEY = "user_token";
 const ERROR_NAME = "FetchError";
-const AUTH_ERROR_NAME = "AuthError";
 const RETRY_COUNT = 1;
 
 const DEFAULT_HEADERS = {
@@ -55,28 +58,6 @@ export class FetchError extends Error {
   ) {
     super(message);
     this.name = ERROR_NAME;
-    this.url = url;
-    this.status = status;
-    this.statusText = statusText;
-    this.body = body;
-  }
-}
-
-export class AuthError extends Error {
-  url: string;
-  status: number;
-  statusText: string;
-  body?: unknown;
-
-  constructor(
-    message: string,
-    url: string,
-    status: number,
-    statusText: string,
-    body?: unknown
-  ) {
-    super(message);
-    this.name = AUTH_ERROR_NAME;
     this.url = url;
     this.status = status;
     this.statusText = statusText;

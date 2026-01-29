@@ -288,7 +288,7 @@ export class AuthService {
    */
   private static createAuthError(message: string, error: unknown): AuthError {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return new AuthError(`${message}: ${errorMessage}`, error);
+    return new AuthError(`${message}: ${errorMessage}`);
   }
 }
 

@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { DataService, ViewSet } from "@/services/DataService";
 import { AuthError } from "@/services/AuthService";
 import { useLocaleStore } from '@/stores/localeStore';
+import { useAuthStore } from '@/stores/authStore';
 import i18n from '@/locale/i18n';
 import { usePathname, useRouter } from "expo-router";
 
@@ -14,6 +15,7 @@ export default function useDataService() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocaleStore(state => state.locale);
+  const setUser = useAuthStore(state => state._setUser);
 
   const commonHeaders = useMemo(
     () => ({ "Accept-Language": locale }),
@@ -28,13 +30,15 @@ export default function useDataService() {
   const handleError = useCallback(
     async (err: any) => {
       if (err instanceof AuthError) {
+        // Clear auth state immediately so Stack.Protected allows navigation to login
+        setUser(null);
         router.replace(`/login?next=${pathname}`);
         throw err;
       }
       if (err instanceof Error) throw err;
       throw new Error(i18n.t("An unknown error occurred"));
     },
-    [pathname, router]
+    [pathname, router, setUser]
   );
 
   const wrapCall = useCallback(

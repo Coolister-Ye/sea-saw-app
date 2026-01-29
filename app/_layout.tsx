@@ -1,4 +1,10 @@
-import { Stack, SplashScreen } from "expo-router";
+import {
+  Stack,
+  SplashScreen,
+  useRouter,
+  usePathname,
+  useSegments,
+} from "expo-router";
 import "../global.css";
 import "antd/dist/reset.css";
 import "ag-grid-enterprise";
@@ -6,7 +12,7 @@ import "react-native-svg";
 import { PortalHost } from "@rn-primitives/portal";
 import { LicenseManager } from "ag-grid-enterprise";
 import { constants } from "@/constants/Constants";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalProvider } from "@gorhom/portal";
@@ -23,11 +29,18 @@ if (!isWeb) {
 }
 
 export default function RootLayout() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const segments = useSegments();
+
   // Zustand store state
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const isLocaleLoading = useLocaleStore((state) => state.isLoading);
   const initializeLocale = useLocaleStore((state) => state.initialize);
   const isLogin = useAuthStore((state) => state.user !== null);
+
+  // Track previous login state to detect logout
+  const wasLoggedIn = useRef(isLogin);
 
   // Combined loading state: store hydration only
   const isAppReady = hasHydrated && !isLocaleLoading;
@@ -41,6 +54,20 @@ export default function RootLayout() {
   useEffect(() => {
     initializeLocale();
   }, [initializeLocale]);
+
+  // Handle auth state changes - redirect to login when logged out
+  useEffect(() => {
+    if (!isAppReady) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    // User was logged in but now logged out - redirect to login
+    if (wasLoggedIn.current && !isLogin && !inAuthGroup) {
+      router.replace(`/login?next=${pathname}`);
+    }
+
+    wasLoggedIn.current = isLogin;
+  }, [isAppReady, isLogin, segments, router, pathname]);
 
   // Hide splash screen after stores are ready
   useEffect(() => {
