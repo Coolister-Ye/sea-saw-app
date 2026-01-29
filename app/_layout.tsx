@@ -41,6 +41,7 @@ export default function RootLayout() {
   const isLocaleLoading = useLocaleStore((state) => state.isLoading);
   const initializeLocale = useLocaleStore((state) => state.initialize);
   const isLogin = useAuthStore((state) => state.user !== null);
+  const getUserProfile = useAuthStore((state) => state.getUserProfile);
 
   // Track previous login state to detect logout
   const wasLoggedIn = useRef(isLogin);
@@ -57,6 +58,15 @@ export default function RootLayout() {
   useEffect(() => {
     initializeLocale();
   }, [initializeLocale]);
+
+  // Refresh user profile on app start if logged in (to get latest data from server)
+  useEffect(() => {
+    if (isAppReady && isLogin) {
+      getUserProfile().catch((error) => {
+        console.error('Failed to refresh user profile on app start:', error);
+      });
+    }
+  }, [isAppReady, isLogin, getUserProfile]);
 
   // Handle auth state changes - redirect to login when logged out
   useEffect(() => {

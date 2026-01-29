@@ -37,83 +37,83 @@ export default function Index() {
   };
 
   // 获取合同和订单的统计数据
-  const getStatData = async () => {
-    setStatLoading(true);
-    try {
-      const [contractResponse, orderResponse] = await Promise.all([
-        request({ uri: "listContractsStats", method: "GET" }),
-        request({ uri: "listOrdersStats", method: "GET" }),
-      ]);
+  // const getStatData = async () => {
+  //   setStatLoading(true);
+  //   try {
+  //     const [contractResponse, orderResponse] = await Promise.all([
+  //       request({ uri: "listContractsStats", method: "GET" }),
+  //       request({ uri: "listOrdersStats", method: "GET" }),
+  //     ]);
 
-      const stats = [
-        filterValidStats(
-          "Contracts Count by Month",
-          contractResponse.data?.contracts_count_by_month,
-        ),
-        filterValidStats(
-          "Contracts Count by Year",
-          contractResponse.data?.contracts_count_by_year,
-        ),
-        filterValidStats(
-          "Orders Count by Month",
-          orderResponse.data?.orders_count_by_month,
-        ),
-        filterValidStats(
-          "Orders Count by Year",
-          orderResponse.data?.orders_count_by_year,
-        ),
-        filterValidStats(
-          "Orders Received by Month",
-          orderResponse.data?.orders_received_by_month,
-        ),
-        filterValidStats(
-          "Orders Received by Year",
-          orderResponse.data?.orders_received_by_year,
-        ),
-        filterValidStats(
-          "Orders Receivable by Year",
-          orderResponse.data?.orders_receivable_by_year,
-        ),
-        filterValidStats(
-          "Orders Total Amount by Year",
-          orderResponse.data?.orders_total_amount_by_year,
-        ),
-        filterValidStats(
-          "Orders Total Amount by Month",
-          orderResponse.data?.orders_total_amount_by_month,
-        ),
-      ].filter(Boolean); // 过滤掉 null 值
+  //     const stats = [
+  //       filterValidStats(
+  //         "Contracts Count by Month",
+  //         contractResponse.data?.contracts_count_by_month,
+  //       ),
+  //       filterValidStats(
+  //         "Contracts Count by Year",
+  //         contractResponse.data?.contracts_count_by_year,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Count by Month",
+  //         orderResponse.data?.orders_count_by_month,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Count by Year",
+  //         orderResponse.data?.orders_count_by_year,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Received by Month",
+  //         orderResponse.data?.orders_received_by_month,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Received by Year",
+  //         orderResponse.data?.orders_received_by_year,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Receivable by Year",
+  //         orderResponse.data?.orders_receivable_by_year,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Total Amount by Year",
+  //         orderResponse.data?.orders_total_amount_by_year,
+  //       ),
+  //       filterValidStats(
+  //         "Orders Total Amount by Month",
+  //         orderResponse.data?.orders_total_amount_by_month,
+  //       ),
+  //     ].filter(Boolean); // 过滤掉 null 值
 
-      setSwitchableStats(stats);
-    } catch (error) {
-      console.error("Error loading statistics data:", error);
-    } finally {
-      setStatLoading(false);
-    }
-  };
+  //     setSwitchableStats(stats);
+  //   } catch (error) {
+  //     console.error("Error loading statistics data:", error);
+  //   } finally {
+  //     setStatLoading(false);
+  //   }
+  // };
 
-  // 获取指定月份的订单数据
-  const getStatDataS2 = async (year?: string, month?: string) => {
-    try {
-      const params = year && month ? { date: `${year}-${month}` } : undefined;
-      const response = await request({
-        uri: "listOrdersByMonth",
-        method: "GET",
-        params,
-      });
-      setOrderStatByMonth(response.data);
-    } catch (error) {
-      console.error("Error loading orders by month:", error);
-    }
-  };
+  // // 获取指定月份的订单数据
+  // const getStatDataS2 = async (year?: string, month?: string) => {
+  //   try {
+  //     const params = year && month ? { date: `${year}-${month}` } : undefined;
+  //     const response = await request({
+  //       uri: "listOrdersByMonth",
+  //       method: "GET",
+  //       params,
+  //     });
+  //     setOrderStatByMonth(response.data);
+  //   } catch (error) {
+  //     console.error("Error loading orders by month:", error);
+  //   }
+  // };
 
-  // 处理月份变化
-  const handleMonthChange = async (
-    month: { year: string; month: string } | null,
-  ) => {
-    if (!month) return;
-    await getStatDataS2(month.year, month.month);
-  };
+  // // 处理月份变化
+  // const handleMonthChange = async (
+  //   month: { year: string; month: string } | null,
+  // ) => {
+  //   if (!month) return;
+  //   await getStatDataS2(month.year, month.month);
+  // };
 
   // 渲染计划列表
   const renderPlanList = () => {
@@ -124,8 +124,8 @@ export default function Index() {
 
   useEffect(() => {
     if (isAppReady) {
-      getStatData();
-      getStatDataS2();
+      // getStatData();
+      // getStatDataS2();
     }
   }, [isAppReady, locale, user]);
 
@@ -148,7 +148,7 @@ export default function Index() {
             <View className="p-3 rounded-md" variant="paper">
               <Calendar
                 markedDates={orderStatByMonth}
-                onMonthChange={handleMonthChange}
+                // onMonthChange={handleMonthChange}
                 onDayPress={(day: any) => setSelectedDay(day.dateString)}
               />
               {renderPlanList()}
