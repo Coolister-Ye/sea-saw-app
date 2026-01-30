@@ -19,6 +19,7 @@ import {
   CardHeader,
 } from "../../../base";
 import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
+import CompanyPopover from "../../company/CompanyPopover";
 import ContactPopover from "../../contact/ContactPopover";
 
 interface PipelineCardProps {
@@ -104,6 +105,7 @@ const FIELD_CONFIG = {
     "id",
     "pipeline_code",
     "status",
+    "company",
     "contact",
     "active_entity",
     "order",
@@ -195,19 +197,33 @@ export default function PipelineCard({
           }
           badgeStyle={item.status ? statusStyle : undefined}
           rightContent={
-            <View className="items-end">
-              <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                {getFieldLabel("contact")}
-              </Text>
-              <ContactPopover
-                value={
-                  typeof item.contact === "object"
-                    ? item.contact
-                    : item.contact_display_name
-                      ? { name: item.contact_display_name }
+            <View className="items-end gap-1">
+              <View className="items-end">
+                <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                  {getFieldLabel("company")}
+                </Text>
+                <CompanyPopover
+                  value={
+                    typeof item.company === "object"
+                      ? item.company
                       : null
-                }
-              />
+                  }
+                />
+              </View>
+              <View className="items-end">
+                <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                  {getFieldLabel("contact")}
+                </Text>
+                <ContactPopover
+                  value={
+                    typeof item.contact === "object"
+                      ? item.contact
+                      : item.contact_display_name
+                        ? { name: item.contact_display_name }
+                        : null
+                  }
+                />
+              </View>
             </View>
           }
         />

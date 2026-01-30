@@ -79,8 +79,11 @@ export default function OrderDisplay({
    * ======================== */
   const displayConfig = useMemo(
     () => ({
+      company_id: {
+        hidden: true,
+      },
       contact_id: {
-        hidden: true, // Hidden - only used for write operations
+        hidden: true,
       },
     }),
     []

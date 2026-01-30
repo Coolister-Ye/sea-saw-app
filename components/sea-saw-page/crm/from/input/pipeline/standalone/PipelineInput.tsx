@@ -14,6 +14,7 @@ import { prepareRequestBody } from "@/utils/form";
 import Drawer from "../../../base/Drawer.web";
 import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
+import CompanySelector from "../../company/shared/CompanySelector";
 import ContactSelector from "../../contact/shared/ContactSelector";
 import OrderSelector from "../../order/shared/selectors/OrderSelector";
 import AutoCreateOrderToggle from "../../order/shared/selectors/AutoCreateOrderToggle";
@@ -90,12 +91,19 @@ export default function PipelineInput({
    * ======================== */
   const config = useMemo(
     () => ({
+      company: {
+        read_only: false,
+        render: (def: any) => <CompanySelector def={def} />,
+      },
+      company_id: {
+        hidden: true,
+      },
       contact: {
-        read_only: false, // Override backend read_only to make it editable
+        read_only: false,
         render: (def: any) => <ContactSelector def={def} />,
       },
       contact_id: {
-        hidden: true, // Hidden - auto-updated by ContactSelector
+        hidden: true,
       },
       order: {
         read_only: false,
@@ -131,6 +139,7 @@ export default function PipelineInput({
   const normalizePayload = useCallback((values: any) => {
     // Remove read-only fields that are auto-updated by selectors
     const payload = { ...values };
+    delete payload.company;
     delete payload.contact;
     delete payload.order;
     return payload;

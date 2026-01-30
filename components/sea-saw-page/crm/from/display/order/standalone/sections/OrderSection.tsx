@@ -4,6 +4,7 @@ import Section from "../../../../base/Section";
 import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { OrderInputStandalone as OrderInput } from "../../../../input/order";
 import { OrderSectionProps } from "../../types";
+import CompanyPopover from "../../../company/CompanyPopover";
 import ContactPopover from "../../../contact/ContactPopover";
 import OrderStatusTag from "../../renderers/OrderStatusTag";
 import { ProductItemsViewToggle } from "../../../shared/items/ProductItemsViewToggle";
@@ -32,6 +33,9 @@ export default function OrderSection({
     () => ({
       status: {
         render: (f: any, v: any) => <OrderStatusTag def={f} value={v} />,
+      },
+      company: {
+        render: (f: any, v: any) => <CompanyPopover def={f} value={v} />,
       },
       contact: {
         render: (f: any, v: any) => <ContactPopover def={f} value={v} />,

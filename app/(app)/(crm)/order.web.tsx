@@ -8,6 +8,7 @@ import { CRMPageLoading } from "@/components/sea-saw-page/crm/common/CRMPageLoad
 import Table from "@/components/sea-saw-design/table";
 import { theme } from "@/components/sea-saw-design/table/theme";
 
+import CompanyRender from "@/components/sea-saw-page/crm/table/render/CompanyRender";
 import ContactRender from "@/components/sea-saw-page/crm/table/render/ContactRender";
 import OrderItemsRender from "@/components/sea-saw-page/crm/table/render/OrderItemsRender";
 import ProductionOrderRender from "@/components/sea-saw-page/crm/table/render/ProductionOrderRender";
@@ -77,6 +78,8 @@ export default function OrderScreen() {
   /* ================= Column Renderers ================= */
   const colRenderers = useMemo(
     () => ({
+      company: { cellRenderer: CompanyRender },
+      company_id: { hide: true },
       contact: { cellRenderer: ContactRender },
       contact_id: { hide: true },
       order_items: { cellRenderer: OrderItemsRender },

@@ -18,6 +18,7 @@ import {
 import { ProductItemsViewToggle } from "../../shared/items/";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import { canEditOrder } from "@/constants/PipelineStatus";
+import CompanyPopover from "../../company/CompanyPopover";
 import ContactPopover from "../../contact/ContactPopover";
 
 interface OrderCardProps {
@@ -74,6 +75,7 @@ const FIELD_CONFIG = {
     "pipeline",
     "order_code",
     "status",
+    "company",
     "contact",
     "order_items",
     "attachments",
@@ -162,19 +164,33 @@ export default function OrderCard({
               }
               badgeStyle={item.status ? statusStyle : undefined}
               rightContent={
-                <View className="items-end">
-                  <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                    {getFieldLabel("contact")}
-                  </Text>
-                  <ContactPopover
-                    value={
-                      typeof item.contact === "object"
-                        ? item.contact
-                        : item.contact_display_name
-                          ? { name: item.contact_display_name }
+                <View className="items-end gap-1">
+                  <View className="items-end">
+                    <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                      {getFieldLabel("company")}
+                    </Text>
+                    <CompanyPopover
+                      value={
+                        typeof item.company === "object"
+                          ? item.company
                           : null
-                    }
-                  />
+                      }
+                    />
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                      {getFieldLabel("contact")}
+                    </Text>
+                    <ContactPopover
+                      value={
+                        typeof item.contact === "object"
+                          ? item.contact
+                          : item.contact_display_name
+                            ? { name: item.contact_display_name }
+                            : null
+                      }
+                    />
+                  </View>
                 </View>
               }
             />

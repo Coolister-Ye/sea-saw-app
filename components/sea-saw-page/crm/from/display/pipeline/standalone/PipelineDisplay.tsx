@@ -86,8 +86,11 @@ export default function PipelineDisplay({
    * ======================== */
   const displayConfig = useMemo(
     () => ({
+      company_id: {
+        hidden: true,
+      },
       contact_id: {
-        hidden: true, // Hidden - only used for write operations
+        hidden: true,
       },
     }),
     []

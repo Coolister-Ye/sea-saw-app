@@ -489,15 +489,19 @@ const EntitySelectorInner = <T extends EntityItem>(
 
                 {/* Actions */}
                 <View className="flex-row items-center gap-1">
-                  <Button variant="ghost" onPress={handleClear}>
+                  <Button onPress={handleClear}>
                     <Text className="text-blue-500 underline">
                       {i18n.t("Clear")}
                     </Text>
                   </Button>
-                  <Button variant="outline" onPress={closeModal}>
+                  <Button onPress={closeModal}>
                     <Text>{i18n.t("Cancel")}</Text>
                   </Button>
-                  <Button onPress={handleConfirm} disabled={loading}>
+                  <Button
+                    type="primary"
+                    onPress={handleConfirm}
+                    disabled={loading}
+                  >
                     <Text className="text-white font-medium">
                       {i18n.t("Confirm")}
                     </Text>

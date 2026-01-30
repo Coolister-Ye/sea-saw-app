@@ -9,6 +9,7 @@ import { devError } from "@/utils/logger";
 import Drawer from "../../../base/Drawer.web";
 import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
+import CompanySelector from "../../company/shared/CompanySelector";
 import ContactSelector from "../../contact/shared/ContactSelector";
 import OrderItemsInput from "../shared/items/ProductInput";
 import OrderStatusSelector from "../shared/selectors/OrderStatusSelector";
@@ -113,6 +114,13 @@ export default function OrderInput({
    * ======================== */
   const config = useMemo(
     () => ({
+      company: {
+        read_only: false,
+        render: (def: any) => <CompanySelector def={def} />,
+      },
+      company_id: {
+        hidden: true,
+      },
       contact: {
         read_only: false,
         render: (def: any) => <ContactSelector def={def} />,
@@ -151,6 +159,7 @@ export default function OrderInput({
     // ContactSelector already sets contact_id directly
     // Just remove the contact field (read-only)
     const payload = { ...values };
+    delete payload.company;
     delete payload.contact;
     return payload;
   }, []);
