@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, ScrollView } from "react-native";
 import { Button } from "antd";
 import Drawer from "../../base/Drawer.web";
 import Section from "../../base/Section";
-import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { ContactFormInput } from "../../input/contact";
-import { CompanyPopover } from "../company";
+import ContactCard from "./ContactCard";
 
 interface ContactDisplayProps {
   isOpen: boolean;
@@ -34,18 +33,6 @@ export default function ContactDisplay({
    * ======================== */
   const [editingContact, setEditingContact] = useState<any | null>(null);
 
-  /* ========================
-   * DisplayForm custom config
-   * ======================== */
-  const displayConfig = {
-    company: {
-      render: (def: any, value: any) => <CompanyPopover value={value} />,
-    },
-    company_id: {
-      hidden: true,
-    },
-  };
-
   return (
     <Drawer
       open={isOpen}
@@ -65,12 +52,13 @@ export default function ContactDisplay({
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* ================= Contact Information ================= */}
-        <Section title={i18n.t("Contact Information")}>
-          <DisplayForm
-            table="contact"
+        <Section
+          title={i18n.t("Contact Information")}
+          contentClassName="border-gray-200"
+        >
+          <ContactCard
             def={def}
             data={contact}
-            config={displayConfig}
             onEdit={() => setEditingContact(contact)}
           />
           <ContactFormInput

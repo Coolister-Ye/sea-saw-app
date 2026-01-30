@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { View, ScrollView } from "react-native";
 import { Button } from "antd";
 import Drawer from "../../base/Drawer.web";
 import Section from "../../base/Section";
-import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
 import { CompanyFormInput } from "../../input/company";
+import CompanyCard from "./CompanyCard";
 
 interface CompanyDisplayProps {
   isOpen: boolean;
@@ -52,9 +52,11 @@ export default function CompanyDisplay({
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* ================= Company Information ================= */}
-        <Section title={i18n.t("Company Information")}>
-          <DisplayForm
-            table="company"
+        <Section
+          title={i18n.t("Company Information")}
+          contentClassName="border-gray-200"
+        >
+          <CompanyCard
             def={def}
             data={company}
             onEdit={() => setEditingCompany(company)}

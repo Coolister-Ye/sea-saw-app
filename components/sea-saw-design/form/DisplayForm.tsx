@@ -91,13 +91,18 @@ function DisplayForm({
   return (
     <View className={clsx("w-full relative bg-white p-5", className)}>
       {/* 操作编辑模块 */}
-      <View className="absolute top-0 right-0">
-        {onEdit && (
-          <Button size="sm" variant="ghost" onPress={() => onEdit(data)}>
-            <PencilSquareIcon size={16} />
+      {onEdit && (
+        <View className="absolute top-1 right-1 z-10">
+          <Button
+            type="text"
+            shape="circle"
+            onPress={() => onEdit(data)}
+            className="h-9 w-9 p-0 hover:bg-primary-bg"
+          >
+            <PencilSquareIcon size={15} className="text-primary" />
           </Button>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* 表单模块 */}
       <View className="flex-row flex-wrap justify-between">
