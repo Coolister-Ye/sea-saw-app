@@ -52,11 +52,10 @@ export default function OrderInput({
 
   /* ========================
    * Form Initialization
-   * Reset on close, populate on open
+   * Populate on open only (form will unmount when drawer closes)
    * ======================== */
   useEffect(() => {
     if (!isOpen) {
-      form.resetFields();
       return;
     }
 
@@ -64,7 +63,8 @@ export default function OrderInput({
       // Edit mode: populate with existing data
       form.setFieldsValue(data);
     } else {
-      // Create mode: set defaults
+      // Create mode: set defaults and reset previous values
+      form.resetFields();
       form.setFieldsValue({
         status: "draft",
         order_date: new Date().toISOString().split("T")[0],

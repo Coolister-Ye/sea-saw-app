@@ -137,11 +137,28 @@ export default function PipelineInput({
    * Helper Functions
    * ======================== */
   const normalizePayload = useCallback((values: any) => {
-    // Remove read-only fields that are auto-updated by selectors
     const payload = { ...values };
+
+    // Extract IDs from nested objects (only if _id field doesn't already exist)
+    // Note: Some selectors return arrays, some return objects
+    if (payload.company && !payload.company_id) {
+      const company = Array.isArray(payload.company) ? payload.company[0] : payload.company;
+      payload.company_id = company?.id ?? company?.pk;
+    }
+    if (payload.contact && !payload.contact_id) {
+      const contact = Array.isArray(payload.contact) ? payload.contact[0] : payload.contact;
+      payload.contact_id = contact?.id ?? contact?.pk;
+    }
+    if (payload.order && !payload.order_id) {
+      const order = Array.isArray(payload.order) ? payload.order[0] : payload.order;
+      payload.order_id = order?.id ?? order?.pk;
+    }
+
+    // Remove read-only nested objects (backend uses _id fields for write)
     delete payload.company;
     delete payload.contact;
     delete payload.order;
+
     return payload;
   }, []);
 

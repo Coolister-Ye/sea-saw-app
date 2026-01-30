@@ -68,10 +68,7 @@ export default function ProductionOrdersSection({
       <View
         className="rounded-2xl overflow-hidden border border-slate-200/60 bg-white"
         style={{
-          shadowColor: "#0f172a",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.03,
-          shadowRadius: 12,
+          boxShadow: "0 4px 12px rgba(15, 23, 42, 0.03)",
         }}
       >
         {/* Decorative top gradient line */}

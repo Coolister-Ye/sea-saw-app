@@ -61,10 +61,7 @@ export default function PurchaseOrderEmptySlot({
         <View
           className="py-10 px-6 border-2 border-dashed border-slate-200 rounded-2xl bg-gradient-to-br from-slate-50/50 to-white"
           style={{
-            shadowColor: "#64748b",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.03,
-            shadowRadius: 8,
+            boxShadow: "0 2px 8px rgba(100, 116, 139, 0.03)",
           }}
         >
           <View className="items-center">
@@ -72,10 +69,7 @@ export default function PurchaseOrderEmptySlot({
             <View
               className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 items-center justify-center mb-4 border border-purple-200/50"
               style={{
-                shadowColor: "#9333ea",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
+                boxShadow: "0 2px 4px rgba(147, 51, 234, 0.08)",
               }}
             >
               <ShoppingBagIcon size={28} color="#a855f7" />
@@ -99,10 +93,7 @@ export default function PurchaseOrderEmptySlot({
                 className="flex-row items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 active:opacity-80"
                 style={({ pressed }) => ({
                   opacity: loading ? 0.6 : pressed ? 0.85 : 1,
-                  shadowColor: "#9333ea",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 8,
+                  boxShadow: "0 4px 8px rgba(147, 51, 234, 0.25)",
                 })}
               >
                 <PlusIcon size={16} color="#ffffff" strokeWidth={2.5} />

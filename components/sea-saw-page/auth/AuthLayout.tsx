@@ -114,10 +114,7 @@ export default function AuthLayout({
                 style={{
                   width: 100,
                   height: 100,
-                  shadowColor: "#fff",
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 20,
+                  boxShadow: "0 0 20px rgba(255, 255, 255, 0.3)",
                   elevation: 10,
                 }}
               >

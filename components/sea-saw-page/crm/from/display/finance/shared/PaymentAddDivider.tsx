@@ -36,10 +36,9 @@ export default function PaymentAddDivider({
                 : "border-emerald-200 bg-emerald-50/50"
             }`}
             style={{
-              shadowColor: disabled ? "#64748b" : "#10b981",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: disabled ? 0.05 : 0.1,
-              shadowRadius: 4,
+              boxShadow: disabled
+                ? "0 1px 4px rgba(100, 116, 139, 0.05)"
+                : "0 1px 4px rgba(16, 185, 129, 0.1)",
             }}
           >
             <PlusCircleIcon

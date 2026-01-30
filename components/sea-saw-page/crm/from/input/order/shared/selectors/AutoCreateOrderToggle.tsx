@@ -54,10 +54,9 @@ export default function AutoCreateOrderToggle({
               }
             `}
             style={{
-              shadowColor: checked ? "#6366f1" : "#64748b",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
+              boxShadow: checked
+                ? "0 2px 4px rgba(99, 102, 241, 0.25)"
+                : "0 2px 4px rgba(100, 116, 139, 0.25)",
               elevation: 3,
             }}
           >

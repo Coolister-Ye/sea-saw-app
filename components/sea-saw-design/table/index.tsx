@@ -137,7 +137,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
       const sorter = convertAgGridSorterToDjangoParams(sortModel);
 
       // Show loading overlay
-      gridRef.current?.api?.showLoadingOverlay();
+      gridRef.current?.api?.setGridOption("loading", true);
 
       try {
         const response = await viewSet.list({
@@ -160,11 +160,11 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
         if (startRow === 0 && rowData.length === 0) {
           gridRef.current?.api?.showNoRowsOverlay();
         } else {
-          gridRef.current?.api?.hideOverlay();
+          gridRef.current?.api?.setGridOption("loading", false);
         }
       } catch (err) {
         devError("Table fetch failed:", err);
-        gridRef.current?.api?.hideOverlay();
+        gridRef.current?.api?.setGridOption("loading", false);
         params.fail();
       }
     },

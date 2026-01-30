@@ -36,10 +36,9 @@ export default function OutboundAddDivider({
                 : "border-indigo-200 bg-indigo-50/50"
             }`}
             style={{
-              shadowColor: disabled ? "#64748b" : "#6366f1",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: disabled ? 0.05 : 0.1,
-              shadowRadius: 4,
+              boxShadow: disabled
+                ? "0 1px 4px rgba(100, 116, 139, 0.05)"
+                : "0 1px 4px rgba(99, 102, 241, 0.1)",
             }}
           >
             <PlusCircleIcon

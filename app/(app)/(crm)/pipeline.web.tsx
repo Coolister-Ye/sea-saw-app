@@ -84,6 +84,7 @@ export default function PipelineScreen() {
       company_id: { hide: true },
       contact: { cellRenderer: ContactRender },
       contact_id: { hide: true },
+      active_entity: { hide: true },
       status: { cellRenderer: PipelineStatusRender },
       order: { cellRenderer: OrdersRender },
       purchase_orders: { cellRenderer: PurchaseOrderRender },

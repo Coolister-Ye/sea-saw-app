@@ -36,10 +36,9 @@ export default function ProductionAddDivider({
                 : "border-amber-200 bg-amber-50/50"
             }`}
             style={{
-              shadowColor: disabled ? "#64748b" : "#f59e0b",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: disabled ? 0.05 : 0.1,
-              shadowRadius: 4,
+              boxShadow: disabled
+                ? "0 1px 4px rgba(100, 116, 139, 0.05)"
+                : "0 1px 4px rgba(245, 158, 11, 0.1)",
             }}
           >
             <PlusCircleIcon

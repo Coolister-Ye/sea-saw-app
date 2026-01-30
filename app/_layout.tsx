@@ -109,15 +109,6 @@ export default function RootLayout() {
             {/* 已登录时显示应用页面 */}
             <Stack.Protected guard={isLogin}>
               <Stack.Screen name="(app)" options={{ headerShown: false }} />
-              <Stack.Screen name="(setting)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="user"
-                options={{
-                  presentation: "transparentModal",
-                  animation: "fade",
-                  headerShown: false,
-                }}
-              />
             </Stack.Protected>
 
             {/* 404 页面不需要保护 */}

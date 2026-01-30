@@ -50,11 +50,10 @@ export default function OutboundOrderInput({
 
   /* ========================
    * Form Initialization
-   * Reset on close, populate on open
+   * Populate on open only (form will unmount when drawer closes)
    * ======================== */
   useEffect(() => {
     if (!isOpen) {
-      form.resetFields();
       return;
     }
 
@@ -62,7 +61,8 @@ export default function OutboundOrderInput({
       // Edit mode: populate with existing data
       form.setFieldsValue(data);
     } else {
-      // Create mode: set defaults
+      // Create mode: reset and set defaults
+      form.resetFields();
       form.setFieldsValue({
         status: "pending",
       });

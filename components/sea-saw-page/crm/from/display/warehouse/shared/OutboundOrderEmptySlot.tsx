@@ -64,10 +64,7 @@ export default function OutboundOrderEmptySlot({
         <View
           className="py-10 px-6 border-2 border-dashed border-slate-200 rounded-2xl bg-gradient-to-br from-slate-50/50 to-white"
           style={{
-            shadowColor: "#64748b",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.03,
-            shadowRadius: 8,
+            boxShadow: "0 2px 8px rgba(100, 116, 139, 0.03)",
           }}
         >
           <View className="items-center">
@@ -75,10 +72,7 @@ export default function OutboundOrderEmptySlot({
             <View
               className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-indigo-50 items-center justify-center mb-4 border border-indigo-200/50"
               style={{
-                shadowColor: "#6366f1",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
+                boxShadow: "0 2px 4px rgba(99, 102, 241, 0.08)",
               }}
             >
               <TruckIcon size={28} color="#818cf8" />
@@ -102,10 +96,7 @@ export default function OutboundOrderEmptySlot({
                 className="flex-row items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 active:opacity-80"
                 style={({ pressed }) => ({
                   opacity: loading ? 0.6 : pressed ? 0.85 : 1,
-                  shadowColor: "#6366f1",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 8,
+                  boxShadow: "0 4px 8px rgba(99, 102, 241, 0.25)",
                 })}
               >
                 <PlusIcon size={16} color="#ffffff" strokeWidth={2.5} />

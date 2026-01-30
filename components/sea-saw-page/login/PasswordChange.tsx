@@ -248,10 +248,7 @@ const styles = StyleSheet.create({
   },
   accentBar: {
     backgroundColor: "#1890ff",
-    shadowColor: "#1890ff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: "0 0 8px rgba(24, 144, 255, 0.3)",
     elevation: 4,
   },
   headline: {
@@ -288,10 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#d9d9d9",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
     elevation: 2,
   },
   strengthLabel: {
@@ -304,10 +298,7 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: "#1890ff",
     borderRadius: 8,
-    shadowColor: "#1890ff",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    boxShadow: "0 2px 4px rgba(24, 144, 255, 0.2)",
     elevation: 3,
   },
   buttonText: {

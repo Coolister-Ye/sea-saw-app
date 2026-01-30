@@ -30,13 +30,14 @@ function OrderItemsInput({
   onTotalsChange,
   showToolbar = true,
 }: OrderItemsInputProps) {
-  const [form] = Form.useForm();
-
   const [list, setList] = useState<any[]>(value);
   const [gridApi, setGridApi] = useState<any>(null);
   const [hasSelection, setHasSelection] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // Create form instance only once, but it will only be connected when drawer opens
+  const [form] = Form.useForm();
 
   // Sync list with value prop changes
   useEffect(() => {
@@ -46,9 +47,13 @@ function OrderItemsInput({
   // Populate form when drawer opens
   useEffect(() => {
     if (!isOpen) return;
-    form.resetFields();
+
     if (editingIndex !== null && list[editingIndex]) {
+      // Edit mode: populate with existing data
       form.setFieldsValue(list[editingIndex]);
+    } else {
+      // Create mode: reset to clean state
+      form.resetFields();
     }
   }, [isOpen, editingIndex, list, form]);
 
@@ -79,10 +84,10 @@ function OrderItemsInput({
   }, []);
 
   const closeDrawer = useCallback(() => {
-    form.resetFields();
     setEditingIndex(null);
     setIsOpen(false);
-  }, [form]);
+    // Note: form.resetFields() not needed since form will unmount and remount fresh
+  }, []);
 
   // Auto-calculate derived fields on form value change
   const handleFormValuesChange = useCallback(
@@ -220,25 +225,27 @@ function OrderItemsInput({
         }}
       />
 
-      <Drawer
-        open={isOpen}
-        onClose={closeDrawer}
-        title={i18n.t("Order Item")}
-        footer={<InputFooter onSave={handleSave} onCancel={closeDrawer} />}
-      >
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: 100 }}
+      {isOpen && (
+        <Drawer
+          open={isOpen}
+          onClose={closeDrawer}
+          title={i18n.t("Order Item")}
+          footer={<InputFooter onSave={handleSave} onCancel={closeDrawer} />}
         >
-          <InputForm
-            table="product"
-            def={def as any}
-            form={form}
-            config={config}
-            onValuesChange={handleFormValuesChange}
-          />
-        </ScrollView>
-      </Drawer>
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 100 }}
+          >
+            <InputForm
+              table="product"
+              def={def as any}
+              form={form}
+              config={config}
+              onValuesChange={handleFormValuesChange}
+            />
+          </ScrollView>
+        </Drawer>
+      )}
     </View>
   );
 }

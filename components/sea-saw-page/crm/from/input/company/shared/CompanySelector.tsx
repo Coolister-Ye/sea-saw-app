@@ -67,7 +67,12 @@ const CompanySelector = forwardRef<View, CompanySelectorProps>(
           </View>
 
           {!readOnly && (
-            <XMarkIcon size={14} className="text-sky-300 hover:text-red-300" />
+            <Pressable
+              onPress={onRemove}
+              className="ml-1.5 p-0.5 rounded-full hover:bg-sky-100 active:bg-sky-200"
+            >
+              <XMarkIcon size={14} className="text-sky-400" />
+            </Pressable>
           )}
         </View>
       ),
