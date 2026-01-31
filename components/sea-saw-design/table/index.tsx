@@ -157,11 +157,12 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           rowCount: response.count,
         });
 
+        // Hide loading overlay
+        gridRef.current?.api?.setGridOption("loading", false);
+
         // Show no rows overlay when first page returns empty
         if (startRow === 0 && rowData.length === 0) {
           gridRef.current?.api?.showNoRowsOverlay();
-        } else {
-          gridRef.current?.api?.setGridOption("loading", false);
         }
       } catch (err) {
         devError("Table fetch failed:", err);

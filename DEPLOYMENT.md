@@ -59,7 +59,7 @@ vim .env.production
 ./deploy-manual.sh appuser@123.456.789.0
 
 # 示例 2: 指定自定义路径
-./deploy-manual.sh appuser@123.456.789.0 /opt/sea-saw/frontend
+./deploy-manual.sh appuser@123.456.789.0 /home/sea-saw/sea-saw-app
 
 # 示例 3: 使用域名
 ./deploy-manual.sh appuser@sea-saw.example.com
