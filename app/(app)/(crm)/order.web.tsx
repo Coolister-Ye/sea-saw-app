@@ -79,9 +79,7 @@ export default function OrderScreen() {
   const colRenderers = useMemo(
     () => ({
       company: { cellRenderer: CompanyRender },
-      company_id: { hide: true },
       contact: { cellRenderer: ContactRender },
-      contact_id: { hide: true },
       order_items: { cellRenderer: OrderItemsRender },
       production_orders: { cellRenderer: ProductionOrderRender },
       purchase_orders: { cellRenderer: PurchaseOrderRender },
@@ -135,6 +133,7 @@ export default function OrderScreen() {
           colDefinitions={colRenderers}
           context={{ meta: headerMeta }}
           rowSelection={{ mode: "singleRow" }}
+          hideWriteOnly={true}
           {...tableProps}
         />
       </View>

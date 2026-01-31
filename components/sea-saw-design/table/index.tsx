@@ -105,6 +105,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
     table,
     colDefinitions,
     headerMeta: initialHeaderMeta,
+    hideWriteOnly = false,
     onGridReady,
     ...gridProps
   },
@@ -183,7 +184,15 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
 
       // Build columns from metadata
       const metaColumns = Object.entries(meta)
-        .filter(([key]) => !colDefinitions?.[key]?.skip)
+        .filter(([key, fieldMeta]) => {
+          // Skip if explicitly configured to skip
+          if (colDefinitions?.[key]?.skip) return false;
+
+          // Skip if hideWriteOnly is enabled and field is write_only
+          if (hideWriteOnly && fieldMeta.write_only) return false;
+
+          return true;
+        })
         .map(([field, fieldMeta]) => {
           processedFields.add(field);
           const customDef = colDefinitions?.[field] ?? {};
@@ -218,7 +227,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
 
       return [...metaColumns, ...extraColumns];
     },
-    [colDefinitions]
+    [colDefinitions, hideWriteOnly]
   );
 
   /* ─────────────────────────────────────────────────────────────────────────

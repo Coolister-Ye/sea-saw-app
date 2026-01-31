@@ -67,7 +67,7 @@ export default function PipelineScreen() {
             "outbound_orders",
             "payments",
             "allowed_actions",
-          ].includes(d.field)
+          ].includes(d.field),
       ),
       orders: pick("orders"),
       productionOrders: pick("production_orders"),
@@ -80,11 +80,9 @@ export default function PipelineScreen() {
   /* ================= Column Renderers ================= */
   const colRenderers = useMemo(
     () => ({
-      company: { cellRenderer: CompanyRender },
-      company_id: { hide: true },
-      contact: { cellRenderer: ContactRender },
-      contact_id: { hide: true },
       active_entity: { hide: true },
+      company: { cellRenderer: CompanyRender },
+      contact: { cellRenderer: ContactRender },
       status: { cellRenderer: PipelineStatusRender },
       order: { cellRenderer: OrdersRender },
       purchase_orders: { cellRenderer: PurchaseOrderRender },
@@ -92,7 +90,7 @@ export default function PipelineScreen() {
       outbound_orders: { cellRenderer: OutboundOrdersRender },
       payments: { cellRenderer: PaymentsRender },
     }),
-    []
+    [],
   );
 
   return (
@@ -136,6 +134,7 @@ export default function PipelineScreen() {
           colDefinitions={colRenderers}
           context={{ meta: headerMeta }}
           rowSelection={{ mode: "singleRow" }}
+          hideWriteOnly={true}
           {...tableProps}
         />
       </View>

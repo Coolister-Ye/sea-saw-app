@@ -356,7 +356,6 @@ export default function ContactSelector({
                 <View className="flex-row items-center gap-2">
                   {selected.length > 0 && (
                     <Button
-                      variant="ghost"
                       onPress={() => setSelected([])}
                       className="hover:bg-red-50"
                     >
@@ -365,7 +364,7 @@ export default function ContactSelector({
                       </Text>
                     </Button>
                   )}
-                  <Button variant="outline" onPress={closeModal}>
+                  <Button type="primary" onPress={closeModal}>
                     <Text className="text-gray-600">{i18n.t("Cancel")}</Text>
                   </Button>
                   <Button onPress={handleConfirm} disabled={loading}>

@@ -174,12 +174,11 @@ function ModalForm<T>({
     <View className="gap-2">
       {/* Add / Copy / Delete 按钮 */}
       <View className="flex flex-row justify-end gap-1">
-        <Button variant="outline" size="sm" onPress={openAdd}>
+        <Button type="primary" size="small" onPress={openAdd}>
           <Text>{i18n.t("add")}</Text>
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          size="small"
           onPress={() => {
             if (selectedIndex !== null) handleCopy(list[selectedIndex]);
           }}
@@ -188,8 +187,7 @@ function ModalForm<T>({
           <Text>{i18n.t("copy")}</Text>
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          size="small"
           onPress={() => {
             if (selectedIndex !== null) handleDelete(selectedIndex);
           }}

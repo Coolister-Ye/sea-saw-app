@@ -63,9 +63,6 @@ export default function ContactScreen() {
       company: {
         cellRenderer: (params: any) => <CompanyPopover value={params.value} />,
       },
-      company_id: {
-        hide: true,
-      },
     }),
     []
   );
@@ -114,6 +111,7 @@ export default function ContactScreen() {
           theme={theme}
           context={{ meta: headerMeta }}
           rowSelection={{ mode: "singleRow" }}
+          hideWriteOnly={true}
           {...tableProps}
         />
       </View>

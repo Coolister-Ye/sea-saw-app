@@ -82,6 +82,7 @@ type HeaderMetaProps = {
   type: FieldType;
   required: boolean;
   read_only: boolean | string;
+  write_only?: boolean;
   label: string;
   help_text?: string;
   display_fields?: string[];
@@ -115,6 +116,8 @@ type TableProps = {
   suppressUpdate?: boolean;
   /** Hide delete button in action column */
   suppressDelete?: boolean;
+  /** Automatically hide columns marked as write_only in metadata (default: false) */
+  hideWriteOnly?: boolean;
 } & AgGridReactProps;
 
 /** InputForm component props */
