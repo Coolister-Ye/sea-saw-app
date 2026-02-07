@@ -249,7 +249,7 @@ export const CustomDrawerContent = React.memo<CustomDrawerContentProps>(
     }, [collapsed, setCollapsed]);
 
     return (
-      <View style={{ flex: 1, justifyContent: "space-between" }}>
+      <View style={{ flex: 1, position: "relative" }}>
         {/* Menu */}
         <Menu
           mode="inline"
@@ -257,26 +257,44 @@ export const CustomDrawerContent = React.memo<CustomDrawerContentProps>(
           selectedKeys={[selectedKey]}
           defaultOpenKeys={openKeys}
           inlineCollapsed={collapsed}
-          style={{ width: "100%", flex: 1 }}
+          style={{ width: "100%", flex: 1, borderRight: "none" }}
         />
+
+        {/* Footer */}
+        {footer}
 
         {/* Collapse Toggle Button */}
         <Pressable
           onPress={handleToggleCollapse}
-          className="absolute -right-5 bottom-3 bg-sky-900 p-2 rounded-full hover:bg-sky-600"
-          style={{ pointerEvents: "auto" }}
+          style={{
+            position: "absolute",
+            right: -12,
+            top: "50%",
+            transform: [{ translateY: -16 }],
+            width: 24,
+            height: 32,
+            backgroundColor: "#f0f0f0",
+            borderRadius: 4,
+            borderWidth: 1,
+            borderColor: "#d9d9d9",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "pointer",
+            zIndex: 100,
+          }}
           accessibilityLabel={collapsed ? "Expand menu" : "Collapse menu"}
           accessibilityRole="button"
         >
           {collapsed ? (
-            <ChevronDoubleRightIcon className="size-5 text-white" />
+            <ChevronDoubleRightIcon
+              style={{ width: 14, height: 14, color: "#595959" }}
+            />
           ) : (
-            <ChevronDoubleLeftIcon className="size-5 text-white" />
+            <ChevronDoubleLeftIcon
+              style={{ width: 14, height: 14, color: "#595959" }}
+            />
           )}
         </Pressable>
-
-        {/* Footer */}
-        {footer}
       </View>
     );
   },

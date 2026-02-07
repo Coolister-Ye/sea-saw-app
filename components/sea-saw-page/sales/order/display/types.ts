@@ -2,13 +2,14 @@ export interface OrderDisplayProps {
   isOpen: boolean;
   onClose: () => void;
   onEditOrder?: (order: any) => void;
-  onEditProductionOrder?: (prod: any) => void;
-  onEditOutboundOrder?: (ob: any) => void;
-  onEditPayment?: (payment: any) => void;
   onCreate?: (res: any) => void;
   onUpdate?: (res: any) => void;
+  /** Callback when a Pipeline is created for this Order */
+  onPipelineCreated?: (pipeline: any) => void;
   def?: any[];
   data?: Record<string, any> | null;
+  /** Column order for display fields */
+  columnOrder?: string[];
 }
 
 export interface OrderDefs {
@@ -17,17 +18,6 @@ export interface OrderDefs {
   outboundOrders: any;
   payments: any;
   purchaseOrders: any;
-}
-
-export interface OrderSectionProps {
-  order: any;
-  orderStatus: string;
-  defs: OrderDefs;
-  displayConfig: any;
-  editingOrder: any | null;
-  setEditingOrder: (order: any | null) => void;
-  onCreate?: (res: any) => void;
-  onUpdate?: (res: any) => void;
 }
 
 export interface ProductionOrdersSectionProps {

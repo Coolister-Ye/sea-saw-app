@@ -106,6 +106,8 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
     colDefinitions,
     headerMeta: initialHeaderMeta,
     hideWriteOnly = false,
+    queryParams,
+    columnOrder,
     onGridReady,
     ...gridProps
   },
@@ -148,6 +150,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
             pager: "limit_offset",
             ...filters,
             ...sorter,
+            ...queryParams,
           },
         });
 
@@ -170,7 +173,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
         params.fail();
       }
     },
-    [viewSet]
+    [viewSet, queryParams]
   );
 
   const datasource = useMemo(() => ({ getRows: fetchData }), [fetchData]);
@@ -226,9 +229,33 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           ...def,
         }));
 
-      return [...metaColumns, ...extraColumns];
+      const allColumns = [...metaColumns, ...extraColumns];
+
+      // Apply column ordering if specified
+      if (columnOrder && columnOrder.length > 0) {
+        const orderedColumns: ColDef[] = [];
+        const columnMap = new Map(allColumns.map((col) => [col.field, col]));
+
+        // Add columns in the specified order
+        columnOrder.forEach((fieldName) => {
+          const column = columnMap.get(fieldName);
+          if (column) {
+            orderedColumns.push(column);
+            columnMap.delete(fieldName);
+          }
+        });
+
+        // Add remaining columns that weren't in columnOrder
+        columnMap.forEach((column) => {
+          orderedColumns.push(column);
+        });
+
+        return orderedColumns;
+      }
+
+      return allColumns;
     },
-    [colDefinitions, hideWriteOnly]
+    [colDefinitions, hideWriteOnly, columnOrder]
   );
 
   /* ─────────────────────────────────────────────────────────────────────────

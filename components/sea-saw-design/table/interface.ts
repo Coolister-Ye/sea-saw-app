@@ -4,6 +4,7 @@ import {
   CustomCellEditorProps,
   CustomCellRendererProps,
 } from "ag-grid-react";
+import { JSX } from "react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FILTER TYPES
@@ -118,6 +119,10 @@ type TableProps = {
   suppressDelete?: boolean;
   /** Automatically hide columns marked as write_only in metadata (default: false) */
   hideWriteOnly?: boolean;
+  /** Additional query parameters to pass to the API */
+  queryParams?: Record<string, any>;
+  /** Column order: array of field names specifying display order. Unlisted fields appear last. */
+  columnOrder?: string[];
 } & AgGridReactProps;
 
 /** InputForm component props */

@@ -1,32 +1,15 @@
-import React, { useMemo } from "react";
+import React from "react";
 import "@/css/tableStyle.css";
 import { View } from "react-native";
 
-import { useCRMPage } from "@/hooks/useCRMPage";
-import { CRMPageLoading } from "@/components/sea-saw-page/crm/common/CRMPageLoading";
+import { useEntityPage } from "@/hooks/useEntityPage";
+import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 
-import Table from "@/components/sea-saw-design/table";
-import { theme } from "@/components/sea-saw-design/table/theme";
+import ContactTable from "@/components/sea-saw-page/crm/contact/table/ContactTable";
 
-import { ContactFormInput } from "@/components/sea-saw-page/crm/from/input/contact";
-import { ContactDisplay } from "@/components/sea-saw-page/crm/from/display/contact";
-import { CompanyPopover } from "@/components/sea-saw-page/crm/from/display/company";
+import { ContactFormInput } from "@/components/sea-saw-page/crm/contact/input";
+import { ContactDisplay } from "@/components/sea-saw-page/crm/contact/display";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
-
-/** Contact 的自定义 copy 逻辑 - 保留 company_id */
-function buildContactCopyData(contact: any) {
-  if (!contact) return null;
-
-  const { id, pk, created_at, updated_at, company, ...rest } = contact;
-
-  // 保留 company_id 用于 copy 操作
-  const copied = { ...rest };
-  if (contact.company?.id || contact.company?.pk) {
-    copied.company_id = contact.company.id ?? contact.company.pk;
-  }
-
-  return copied;
-}
 
 export default function ContactScreen() {
   const {
@@ -50,25 +33,14 @@ export default function ContactScreen() {
     tableRef,
     tableProps,
     contextHolder,
-  } = useCRMPage({
+  } = useEntityPage({
     entity: "contact",
     nameField: "name",
     enableDelete: true,
-    buildCopyData: buildContactCopyData,
   });
 
-  /* ================= Column Definitions ================= */
-  const colDefinitions = useMemo(
-    () => ({
-      company: {
-        cellRenderer: (params: any) => <CompanyPopover value={params.value} />,
-      },
-    }),
-    []
-  );
-
   return (
-    <CRMPageLoading loading={loadingMeta} error={metaError}>
+    <PageLoading loading={loadingMeta} error={metaError}>
       <View className="flex-1 bg-white">
         {contextHolder}
 
@@ -103,18 +75,12 @@ export default function ContactScreen() {
         />
 
         {/* Table */}
-        <Table
-          ref={tableRef}
-          table="contact"
+        <ContactTable
+          tableRef={tableRef}
           headerMeta={headerMeta}
-          colDefinitions={colDefinitions}
-          theme={theme}
-          context={{ meta: headerMeta }}
-          rowSelection={{ mode: "singleRow" }}
-          hideWriteOnly={true}
           {...tableProps}
         />
       </View>
-    </CRMPageLoading>
+    </PageLoading>
   );
 }

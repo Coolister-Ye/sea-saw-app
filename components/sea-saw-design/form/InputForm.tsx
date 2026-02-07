@@ -12,13 +12,12 @@ import {
 import { UploadOutlined } from "@ant-design/icons";
 import clsx from "clsx";
 import dayjs from "dayjs";
-import { useEffect, useCallback } from "react";
+import { useEffect, useMemo } from "react";
 
 import { InputFormProps } from "./interface";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
-/* ========================
- * 常量
- * ======================== */
+
+// Constants
 const NUMERIC_TYPES = new Set(["integer", "float", "double", "decimal"]);
 const DATE_TYPES = new Set(["date", "datetime"]);
 const FILE_TYPES = new Set(["file upload"]);
@@ -26,9 +25,7 @@ const FORM_LAYOUT = { labelCol: { xs: 24, sm: 6 } };
 const DATE_FORMAT = "YYYY-MM-DD";
 const DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
-/* ========================
- * 值处理工具函数
- * ======================== */
+// Value normalization utilities
 export const normalizeDateValue = (val: any, type: string = "date") => {
   if (!val || val === "") return null;
 
@@ -64,9 +61,59 @@ const createValueProps = (type: string) => (val: any) => ({
   value: DATE_TYPES.has(type) ? parseDateValue(val) : val,
 });
 
-/* ========================
- * Component
- * ======================== */
+// Input renderer
+const renderInput = (col: FormDef, placeholder?: string) => {
+  const { type, read_only: disabled, choices, min_value, max_value } = col;
+
+  if (FILE_TYPES.has(type)) {
+    return (
+      <Upload maxCount={1} beforeUpload={() => false} disabled={disabled}>
+        <Button icon={<UploadOutlined />} disabled={disabled}>
+          {i18n.t("Select file")}
+        </Button>
+      </Upload>
+    );
+  }
+
+  if (choices) {
+    return (
+      <Select
+        options={choices}
+        disabled={disabled}
+        placeholder={placeholder}
+        getPopupContainer={(node) => node.parentNode as HTMLElement}
+      />
+    );
+  }
+
+  if (NUMERIC_TYPES.has(type)) {
+    return (
+      <InputNumber
+        style={{ width: "100%" }}
+        disabled={disabled}
+        placeholder={placeholder}
+        min={min_value}
+        max={max_value}
+      />
+    );
+  }
+
+  if (DATE_TYPES.has(type)) {
+    return (
+      <DatePicker
+        style={{ width: "100%" }}
+        disabled={disabled}
+        placeholder={placeholder}
+        showTime={type === "datetime"}
+        format={type === "date" ? DATE_FORMAT : DATETIME_FORMAT}
+        getPopupContainer={(node) => node.parentNode as HTMLElement}
+      />
+    );
+  }
+
+  return <Input disabled={disabled} placeholder={placeholder} />;
+};
+
 export default function InputForm({
   table,
   def,
@@ -76,13 +123,14 @@ export default function InputForm({
   data,
   hideReadOnly = false,
   showHelpTextAsPlaceholder = true,
+  columnOrder,
   onValuesChange,
   onFieldsChange,
   onFinish,
   onFinishFailed,
   ...restFormProps
 }: InputFormProps & { data?: Record<string, any> }) {
-  const formDefs = useFormDefs({ table, def });
+  const formDefs = useFormDefs({ table, def, columnOrder });
 
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {
@@ -90,60 +138,35 @@ export default function InputForm({
     }
   }, [data, form]);
 
-  const renderInput = useCallback(
-    (col: FormDef, placeholder?: string) => {
-      const { type, read_only: disabled, choices, min_value, max_value } = col;
+  // Preprocess form items to avoid recreating objects on each render
+  const formItems = useMemo(() => {
+    return formDefs.map((col) => {
+      const fieldConfig = config?.[col.field] || {};
+      const {
+        render,
+        read_only: configReadOnly,
+        hidden: configHidden,
+        rules: configRules,
+        ...restConfig
+      } = fieldConfig;
 
-      if (FILE_TYPES.has(type)) {
-        return (
-          <Upload maxCount={1} beforeUpload={() => false} disabled={disabled}>
-            <Button icon={<UploadOutlined />} disabled={disabled}>
-              {i18n.t("Select file")}
-            </Button>
-          </Upload>
-        );
-      }
+      const isReadOnly = configReadOnly ?? col.read_only;
+      const isHidden = configHidden ?? (hideReadOnly && isReadOnly);
+      const formRules = configRules ?? (col.required ? [{ required: true }] : undefined);
+      const placeholder = showHelpTextAsPlaceholder ? col.help_text : undefined;
+      const modifiedCol = { ...col, read_only: isReadOnly };
 
-      if (choices) {
-        return (
-          <Select
-            options={choices}
-            disabled={disabled}
-            placeholder={placeholder}
-            getPopupContainer={(node) => node.parentNode as HTMLElement}
-          />
-        );
-      }
-
-      if (NUMERIC_TYPES.has(type)) {
-        return (
-          <InputNumber
-            style={{ width: "100%" }}
-            disabled={disabled}
-            placeholder={placeholder}
-            min={min_value}
-            max={max_value}
-          />
-        );
-      }
-
-      if (DATE_TYPES.has(type)) {
-        return (
-          <DatePicker
-            style={{ width: "100%" }}
-            disabled={disabled}
-            placeholder={placeholder}
-            showTime={type === "datetime"}
-            format={type === "date" ? DATE_FORMAT : DATETIME_FORMAT}
-            getPopupContainer={(node) => node.parentNode as HTMLElement}
-          />
-        );
-      }
-
-      return <Input disabled={disabled} placeholder={placeholder} />;
-    },
-    [i18n]
-  );
+      return {
+        col,
+        modifiedCol,
+        isHidden,
+        formRules,
+        placeholder,
+        render,
+        restConfig,
+      };
+    });
+  }, [formDefs, config, hideReadOnly, showHelpTextAsPlaceholder]);
 
   return (
     <View className={clsx("w-full flex-1", className)}>
@@ -160,42 +183,20 @@ export default function InputForm({
           {...FORM_LAYOUT}
           {...restFormProps}
         >
-          {formDefs.map((col) => {
-            const {
-              render,
-              fullWidth,
-              read_only: configReadOnly,
-              hidden: configHidden,
-              rules: configRules,
-              ...restConfig
-            } = config?.[col.field] || {};
-
-            const isReadOnly = configReadOnly ?? col.read_only;
-            const isHidden = configHidden ?? (hideReadOnly && isReadOnly);
-            const formRules =
-              configRules ?? (col.required ? [{ required: true }] : undefined);
-            const modifiedCol = { ...col, read_only: isReadOnly };
-            const placeholder = showHelpTextAsPlaceholder
-              ? col.help_text
-              : undefined;
-
-            return (
-              <Form.Item
-                key={col.field}
-                name={col.field}
-                label={col.label}
-                rules={formRules}
-                normalize={createNormalizer(col.type)}
-                getValueProps={createValueProps(col.type)}
-                hidden={isHidden}
-                {...restConfig}
-              >
-                {render
-                  ? render(modifiedCol)
-                  : renderInput(modifiedCol, placeholder)}
-              </Form.Item>
-            );
-          })}
+          {formItems.map(({ col, modifiedCol, isHidden, formRules, placeholder, render, restConfig }) => (
+            <Form.Item
+              key={col.field}
+              name={col.field}
+              label={col.label}
+              rules={formRules}
+              normalize={createNormalizer(col.type)}
+              getValueProps={createValueProps(col.type)}
+              hidden={isHidden}
+              {...restConfig}
+            >
+              {render ? render(modifiedCol) : renderInput(modifiedCol, placeholder)}
+            </Form.Item>
+          ))}
         </Form>
       </ScrollView>
     </View>

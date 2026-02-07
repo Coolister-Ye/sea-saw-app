@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Select, Space } from "antd";
 import type { SelectProps } from "antd";
-import ProductionStatusTag from "@/components/sea-saw-page/crm/from/display/production/renderers/ProductionStatusTag";
+import ProductionStatusTag from "@/components/sea-saw-page/production/production-order/display/renderers/ProductionStatusTag";
 
 interface ProductionOrderStatusSelectorProps {
   def?: any;

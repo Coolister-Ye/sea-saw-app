@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import i18n from '@/locale/i18n';
 import { View } from "react-native";
 import { Button, Upload } from "antd";
@@ -33,24 +33,21 @@ export default function AttachmentInput({
   value = [],
   onChange,
 }: AttachmentInputProps) {
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-
   /* ========================
-   * Initialize FileList from Value
+   * Derive FileList from Value (no useState to avoid sync loops)
    * ======================== */
-  useEffect(() => {
+  const fileList = useMemo<UploadFile[]>(() => {
     if (!value || value.length === 0) {
-      setFileList([]);
-      return;
+      return [];
     }
 
-    const newFileList: UploadFile[] = value.map((attachment, index) => {
+    return value.map((attachment, index) => {
       // Existing attachment with ID (from server)
       if (attachment.id && attachment.file_url) {
         return {
           uid: `${attachment.id}`,
           name: attachment.file_name || `file-${index}`,
-          status: "done",
+          status: "done" as const,
           url: attachment.file_url,
           size: attachment.file_size,
         };
@@ -60,7 +57,7 @@ export default function AttachmentInput({
         return {
           uid: `new-${index}`,
           name: attachment.file.name,
-          status: "done",
+          status: "done" as const,
           originFileObj: attachment.file as any,
           size: attachment.file.size,
         };
@@ -68,11 +65,9 @@ export default function AttachmentInput({
       return {
         uid: `unknown-${index}`,
         name: attachment.file_name || `file-${index}`,
-        status: "done",
+        status: "done" as const,
       };
     });
-
-    setFileList(newFileList);
   }, [value]);
 
   /* ========================
@@ -81,9 +76,8 @@ export default function AttachmentInput({
   const handleChange: UploadProps["onChange"] = useCallback(
     (info: any) => {
       const { fileList: newFileList } = info;
-      setFileList(newFileList);
 
-      // Convert fileList to Attachment array
+      // Convert fileList to Attachment array and notify parent
       const attachments: Attachment[] = newFileList.map((file: UploadFile) => {
         // If it's a new file being uploaded
         if (file.originFileObj) {

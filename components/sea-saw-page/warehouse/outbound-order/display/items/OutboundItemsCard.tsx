@@ -10,7 +10,7 @@ import {
   type TagConfig,
   CardSection,
   CardField,
-} from "../../../base";
+} from "@/components/sea-saw-page/base";
 
 interface OutboundItemsCardProps {
   def?: any;

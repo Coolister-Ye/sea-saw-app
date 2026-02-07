@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import type { AgGridReactProps } from "ag-grid-react";
 import { FormDef } from "@/hooks/useFormDefs";
-import { ItemsTable, type ColumnConfig } from "../../../base";
+import { ItemsTable, type ColumnConfig } from "@/components/sea-saw-page/base";
 
 interface OutboundItemsTableProps {
   def?: FormDef;
@@ -27,27 +27,51 @@ export default function OutboundItemsTable({
       // Format weight fields with trim
       gross_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
       net_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
       total_gross_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
       total_net_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
       outbound_net_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
       outbound_gross_weight: {
         valueFormatter: ({ value }) =>
-          value != null ? Number(value).toFixed(2).replace(/\.?0+$/, "") : "-",
+          value != null
+            ? Number(value)
+                .toFixed(2)
+                .replace(/\.?0+$/, "")
+            : "-",
       },
     }),
     [],

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Select, Space } from "antd";
 import type { SelectProps } from "antd";
-import OutboundStatusTag from "../../../../display/warehouse/renderers/OutboundStatusTag";
+import OutboundStatusTag from "../../../display/renderers/OutboundStatusTag";
 
 interface OutboundOrderStatusSelectorProps {
   def: any;

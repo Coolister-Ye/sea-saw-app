@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import OutboundOrderPopover from "../display/OutboundOrderPopover";
+import OutboundOrderPopover from "./OutboundOrderPopover";
 
 interface OutboundOrder {
   id?: string | number;
@@ -22,7 +22,7 @@ function OutboundOrdersRender(props: CustomCellRendererProps<OutboundOrder[]>) {
       {orders.map((item, index) =>
         item ? (
           <OutboundOrderPopover key={item.id ?? index} value={item} def={def} />
-        ) : null
+        ) : null,
       )}
     </>
   );

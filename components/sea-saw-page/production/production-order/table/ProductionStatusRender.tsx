@@ -1,7 +1,7 @@
 import React from "react";
 import { Text } from "react-native";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import ProductionStatusTag from "../../from/display/production/renderers/ProductionStatusTag";
+import ProductionStatusTag from "../display/renderers/ProductionStatusTag";
 
 function ProductionStatusRender(props: CustomCellRendererProps) {
   const statusValue = props.value as string | null;

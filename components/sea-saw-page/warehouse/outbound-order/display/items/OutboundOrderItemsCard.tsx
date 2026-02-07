@@ -2,8 +2,7 @@ import React from "react";
 import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
-import { Button } from "antd";
-import { PencilSquareIcon, TruckIcon } from "react-native-heroicons/outline";
+import { TruckIcon } from "react-native-heroicons/outline";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -14,7 +13,8 @@ import {
   CardMetadata,
   CardSection,
   CardHeader,
-} from "../../../base";
+  CardEditButton,
+} from "@/components/sea-saw-page/base";
 import OutboundItemsViewToggle from "./OutboundItemsViewToggle";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import { canEditOutboundOrder } from "@/constants/PipelineStatus";
@@ -242,21 +242,7 @@ export default function OutboundOrderItemsCard({
                   created_by={item.created_by}
                   updated_by={item.updated_by}
                 />
-                {canEdit && (
-                  <Button
-                    type="text"
-                    size="small"
-                    className="p-0 h-auto"
-                    onClick={() => onItemClick(index)}
-                  >
-                    <View className="flex-row items-center gap-1">
-                      <PencilSquareIcon size={14} color="#64748b" />
-                      <Text className="text-xs text-slate-500 font-medium">
-                        {i18n.t("Edit")}
-                      </Text>
-                    </View>
-                  </Button>
-                )}
+                {canEdit && <CardEditButton onClick={() => onItemClick(index)} />}
               </View>
             </CardSection>
           </View>

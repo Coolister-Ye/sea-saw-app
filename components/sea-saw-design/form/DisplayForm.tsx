@@ -13,6 +13,7 @@ interface DisplayFormProps {
   data?: Record<string, any>;
   className?: string;
   onEdit?: (data: any) => void;
+  columnOrder?: string[];
 }
 
 /* ========================
@@ -25,8 +26,9 @@ function DisplayForm({
   data = {},
   className,
   onEdit,
+  columnOrder,
 }: DisplayFormProps) {
-  const formDefs = useFormDefs({ table, def });
+  const formDefs = useFormDefs({ table, def, columnOrder });
 
   /* ========================
    * 字段宽度计算

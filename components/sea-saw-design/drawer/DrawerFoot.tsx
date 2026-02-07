@@ -5,11 +5,15 @@ import i18n from "@/locale/i18n";
 import { View } from "../view";
 import { Button } from "../button";
 
+type DrawerFooterProps = {
+  collapsed?: boolean;
+};
+
 /**
  * Drawer footer component with settings navigation.
  * Displays a settings button that navigates to the password/settings page.
  */
-export const DrawerFooter = React.memo(() => {
+export const DrawerFooter = React.memo<DrawerFooterProps>(({ collapsed }) => {
   const router = useRouter();
 
   const handlePress = useCallback(() => {
@@ -25,10 +29,10 @@ export const DrawerFooter = React.memo(() => {
         onPress={handlePress}
         icon={<Cog6ToothIcon className="size-5" />}
         iconPosition="start"
-        className="justify-start"
+        className={collapsed ? "justify-center" : "justify-start"}
         textClassName="text-sm font-medium"
       >
-        {i18n.t("Settings")}
+        {collapsed ? null : i18n.t("Settings")}
       </Button>
     </View>
   );

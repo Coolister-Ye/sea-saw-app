@@ -6,8 +6,8 @@ import type { AgGridReactProps } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { Text } from "@/components/sea-saw-design/text";
 import { getFieldLabelMap } from "@/utils";
-import { myTableTheme } from "@/components/sea-saw-design/table/theme";
-import EmptySlot from "../../../base/EmptySlot";
+import { theme } from "@/components/sea-saw-design/table/theme";
+import { EmptySlot } from "@/components/sea-saw-page/base";
 
 interface PurchaseItemsTableProps {
   def?: any;
@@ -163,7 +163,7 @@ export default function PurchaseItemsTable({
       {/* Table */}
       <View style={{ width: "100%", height: 400 }}>
         <AgGridReact
-          theme={myTableTheme}
+          theme={theme}
           rowData={value}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}

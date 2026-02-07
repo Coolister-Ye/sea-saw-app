@@ -2,11 +2,6 @@ import React from "react";
 import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
-import { Button } from "antd";
-import {
-  PencilSquareIcon,
-  QueueListIcon,
-} from "react-native-heroicons/outline";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -17,10 +12,11 @@ import {
   CardMetadata,
   CardSection,
   CardHeader,
-} from "../../../base";
+  CardEditButton,
+} from "@/components/sea-saw-page/base";
 import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
-import CompanyPopover from "../../company/CompanyPopover";
-import ContactPopover from "../../contact/ContactPopover";
+import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
+import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
 
 interface PipelineCardProps {
   def?: any;
@@ -105,8 +101,10 @@ const FIELD_CONFIG = {
     "id",
     "pipeline_code",
     "status",
-    "company",
+    "account",
+    "account_id",
     "contact",
+    "contact_id",
     "active_entity",
     "order",
     "production_orders",
@@ -200,14 +198,10 @@ export default function PipelineCard({
             <View className="items-end gap-1">
               <View className="items-end">
                 <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                  {getFieldLabel("company")}
+                  {getFieldLabel("account")}
                 </Text>
-                <CompanyPopover
-                  value={
-                    typeof item.company === "object"
-                      ? item.company
-                      : null
-                  }
+                <AccountPopover
+                  value={typeof item.account === "object" ? item.account : null}
                 />
               </View>
               <View className="items-end">
@@ -321,19 +315,7 @@ export default function PipelineCard({
               updated_by={item.updated_by}
             />
             {canEdit && typeof onItemClick === "function" && (
-              <Button
-                type="text"
-                size="small"
-                className="p-0 h-auto"
-                onClick={onItemClick}
-              >
-                <View className="flex-row items-center gap-1">
-                  <PencilSquareIcon size={14} color="#64748b" />
-                  <Text className="text-xs text-slate-500 font-medium">
-                    {i18n.t("Edit")}
-                  </Text>
-                </View>
-              </Button>
+              <CardEditButton onClick={onItemClick} />
             )}
           </View>
         </CardSection>

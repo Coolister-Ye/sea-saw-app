@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { Platform } from "react-native";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -10,6 +10,9 @@ import { DrawerFooter } from "@/components/sea-saw-design/drawer/DrawerFoot";
 import { DrawerHeader } from "@/components/sea-saw-design/header";
 import i18n from "@/locale/i18n";
 
+const DRAWER_WIDTH = 280;
+const DRAWER_COLLAPSED_WIDTH = 80;
+
 type ScreenConfig = {
   name: string;
   label: string;
@@ -19,12 +22,16 @@ type ScreenConfig = {
 
 const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "index", label: "Home" },
-  { name: "(crm)/contact", label: "customer", groups: ["Sale"] },
-  { name: "(crm)/company", label: "company", groups: ["Sale"] },
-  { name: "(crm)/order", label: "order", groups: ["Sale"] },
-  { name: "(crm)/production", label: "production", groups: ["Production"] },
-  { name: "(crm)/pipeline", label: "pipeline", groups: ["Sale"] },
-  { name: "(crm)/download", label: "download" },
+  { name: "(crm)/contact", label: "contact", groups: ["Sale"] },
+  { name: "(crm)/account", label: "account", groups: ["Sale"] },
+  { name: "(sales)/order", label: "order", groups: ["Sale"] },
+  {
+    name: "(production)/production",
+    label: "production",
+    groups: ["Production"],
+  },
+  { name: "(pipeline)/pipeline", label: "pipeline", groups: ["Sale"] },
+  { name: "(download)/download", label: "download" },
   { name: "(setting)/profile", label: "profile" },
   { name: "(setting)/profile-edit", label: "profile_edit" },
   { name: "(setting)/password", label: "password" },
@@ -38,11 +45,16 @@ export default function AppLayout() {
   const locale = useLocaleStore(selectLocale); // Subscribe to locale changes
   const { isLargeScreen } = useDevice();
   const isWeb = Platform.OS === "web";
+  const [collapsed, setCollapsed] = useState(false);
 
   const parentTitleMap = useMemo(
     () => ({
       "(playground)": i18n.t("playground"),
       "(crm)": i18n.t("crm"),
+      "(sales)": i18n.t("sales"),
+      "(download)": i18n.t("download"),
+      "(pipeline)": i18n.t("pipeline"),
+      "(production)": i18n.t("production"),
       "(setting)": i18n.t("setting"),
     }),
     [locale],
@@ -67,11 +79,13 @@ export default function AppLayout() {
     (props: any) => (
       <CustomDrawerContent
         parentTitleMap={parentTitleMap}
-        footer={<DrawerFooter />}
+        footer={<DrawerFooter collapsed={collapsed} />}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
         {...props}
       />
     ),
-    [parentTitleMap],
+    [parentTitleMap, collapsed],
   );
 
   const screenOptions = useMemo(
@@ -80,10 +94,17 @@ export default function AppLayout() {
       drawerType: (isLargeScreen ? "permanent" : "front") as
         | "permanent"
         | "front",
-      drawerStyle: { width: 280 },
+      drawerStyle: {
+        width: isWeb
+          ? collapsed
+            ? DRAWER_COLLAPSED_WIDTH
+            : DRAWER_WIDTH
+          : DRAWER_WIDTH,
+        overflow: "visible" as const,
+      },
       drawerItemStyle: { borderRadius: 8 },
     }),
-    [isLargeScreen],
+    [isLargeScreen, isWeb, collapsed],
   );
 
   return (

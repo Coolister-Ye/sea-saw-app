@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
 import { devError } from "@/utils/logger";
-import Drawer from "../../../base/Drawer.web";
-import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import OutboundOrderItemsInput from "../shared/items/OutboundOrderItemsInput";
 import OutboundOrderStatusSelector from "../shared/selectors/OutboundOrderStatusSelector";
-import { AttachmentInput } from "../../shared";
+import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
+import { InputFooter } from "@/components/sea-saw-page/base";
+import { Drawer } from "@/components/sea-saw-page/base";
 
 interface OutboundOrderInputProps {
   isOpen: boolean;

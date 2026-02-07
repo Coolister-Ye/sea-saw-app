@@ -6,18 +6,18 @@ import React, {
   useMemo,
 } from "react";
 import { ScrollView, View } from "react-native";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { Form, message } from "antd";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
-import Drawer from "../../../base/Drawer.web";
-import InputFooter from "../../../base/InputFooter";
+import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
+import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
+import OrderSelector from "@/components/sea-saw-page/sales/order/input/OrderSelector";
+import AutoCreateOrderToggle from "@/components/sea-saw-page/pipeline/input/AutoCreateOrderToggle";
+import { Drawer } from "@/components/sea-saw-page/base";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
-import CompanySelector from "../../company/shared/CompanySelector";
-import ContactSelector from "../../contact/shared/ContactSelector";
-import OrderSelector from "../../order/shared/selectors/OrderSelector";
-import AutoCreateOrderToggle from "../../order/shared/selectors/AutoCreateOrderToggle";
+import { InputFooter } from "@/components/sea-saw-page/base";
 
 interface PipelineInputProps {
   isOpen: boolean;
@@ -93,7 +93,7 @@ export default function PipelineInput({
     () => ({
       company: {
         read_only: false,
-        render: (def: any) => <CompanySelector def={def} />,
+        render: (def: any) => <AccountSelector def={def} />,
       },
       company_id: {
         hidden: true,
@@ -130,7 +130,7 @@ export default function PipelineInput({
       },
       order_id: { hidden: true },
     }),
-    [autoCreateOrder, isEdit, i18n, form]
+    [autoCreateOrder, isEdit, i18n, form],
   );
 
   /* ========================
@@ -142,15 +142,21 @@ export default function PipelineInput({
     // Extract IDs from nested objects (only if _id field doesn't already exist)
     // Note: Some selectors return arrays, some return objects
     if (payload.company && !payload.company_id) {
-      const company = Array.isArray(payload.company) ? payload.company[0] : payload.company;
+      const company = Array.isArray(payload.company)
+        ? payload.company[0]
+        : payload.company;
       payload.company_id = company?.id ?? company?.pk;
     }
     if (payload.contact && !payload.contact_id) {
-      const contact = Array.isArray(payload.contact) ? payload.contact[0] : payload.contact;
+      const contact = Array.isArray(payload.contact)
+        ? payload.contact[0]
+        : payload.contact;
       payload.contact_id = contact?.id ?? contact?.pk;
     }
     if (payload.order && !payload.order_id) {
-      const order = Array.isArray(payload.order) ? payload.order[0] : payload.order;
+      const order = Array.isArray(payload.order)
+        ? payload.order[0]
+        : payload.order;
       payload.order_id = order?.id ?? order?.pk;
     }
 
@@ -171,7 +177,7 @@ export default function PipelineInput({
         duration: type === "loading" ? 0 : undefined,
       });
     },
-    [messageApi]
+    [messageApi],
   );
 
   /* ========================
@@ -263,3 +269,5 @@ export default function PipelineInput({
     </Drawer>
   );
 }
+
+export { PipelineInput };

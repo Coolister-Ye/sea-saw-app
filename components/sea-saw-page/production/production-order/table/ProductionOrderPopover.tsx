@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Popover, Button } from "antd";
 import { Text } from "@/components/sea-saw-design/text";
-import { InfoRow } from "@/components/sea-saw-page/crm/from/base/InfoRow";
+import { InfoRow } from "@/components/sea-saw-page/base/InfoRow";
 
 interface ProductionOrderPopoverProps {
   value?: Record<string, any> | null;

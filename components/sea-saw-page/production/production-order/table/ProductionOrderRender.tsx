@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import ProductionOrderPopover from "../display/ProductionOrderPopover";
+import ProductionOrderPopover from "./ProductionOrderPopover";
 
 interface ProductionOrder {
   id?: string | number;
@@ -8,7 +8,7 @@ interface ProductionOrder {
 }
 
 function ProductionOrderRender(
-  props: CustomCellRendererProps<ProductionOrder[]>
+  props: CustomCellRendererProps<ProductionOrder[]>,
 ) {
   const orders = Array.isArray(props.value) ? props.value : [];
   const meta = props.context?.meta;
@@ -27,7 +27,7 @@ function ProductionOrderRender(
             value={order}
             def={def}
           />
-        ) : null
+        ) : null,
       )}
     </>
   );

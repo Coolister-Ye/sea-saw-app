@@ -6,21 +6,27 @@ import useDataService from "@/hooks/useDataService";
 interface Props {
   pipelineId: string | number;
   stateActions: string[];
+  statusDef?: { choices?: Array<{ value: string; label: string }> };
   onSuccess?: (data: any) => void;
 }
 
 export default function PipelineStatusDropdown({
   pipelineId,
   stateActions,
+  statusDef,
   onSuccess,
 }: Props) {
   const { request } = useDataService();
   const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState(false);
 
-  /* =========================
-   * Click handler
-   * ========================= */
+  const statusLabelMap = useMemo(() => {
+    if (!statusDef?.choices) return {};
+    return Object.fromEntries(
+      statusDef.choices.map(({ value, label }) => [value, label])
+    );
+  }, [statusDef?.choices]);
+
   const handleAction = async (action: string) => {
     try {
       setLoading(true);
@@ -32,7 +38,7 @@ export default function PipelineStatusDropdown({
       });
 
       const data = await request({
-        uri: "pipelineStatusTransition", // 映射到 /pipelines/{id}/transition/
+        uri: "pipelineStatusTransition",
         method: "POST",
         id: pipelineId,
         body: {
@@ -60,25 +66,19 @@ export default function PipelineStatusDropdown({
     }
   };
 
-  /* =========================
-   * Menu items
-   * ========================= */
   const menuProps: MenuProps = useMemo(
     () => ({
       items: stateActions.map((action) => ({
         key: action,
-        label: i18n.t(action),
+        label: statusLabelMap[action] || i18n.t(action),
       })),
       onClick: ({ key }) => handleAction(key),
     }),
-    [stateActions, i18n],
+    [stateActions, statusLabelMap],
   );
 
   if (!stateActions.length) return null;
 
-  /* =========================
-   * Render
-   * ========================= */
   return (
     <>
       {contextHolder}

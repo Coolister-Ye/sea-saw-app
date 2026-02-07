@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
 
 import { FormDef } from "@/hooks/useFormDefs";
 import { devError } from "@/utils/logger";
-import Drawer from "../../../../base/Drawer.web";
-import InputFooter from "../../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
-import ProductionItemsViewToggle from "@/components/sea-saw-page/crm/from/display/production/items/ProductionItemsViewToggle";
+import ProductionItemsViewToggle from "@/components/sea-saw-page/production/production-order/display/items/ProductionItemsViewToggle";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
+import { Drawer } from "@/components/sea-saw-page/base";
+import { InputFooter } from "@/components/sea-saw-page/base";
 
 interface ProductionOrderItemsInputProps {
   def: FormDef;

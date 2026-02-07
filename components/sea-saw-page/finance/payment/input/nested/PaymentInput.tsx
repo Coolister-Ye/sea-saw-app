@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form, Select, message } from "antd";
 
-import Drawer from "../../../base/Drawer.web";
-import InputFooter from "../../../base/InputFooter";
-import InputForm from "@/components/sea-saw-design/form/InputForm";
-import AttachmentInput from "../../shared/AttachmentInput";
-
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils";
+import { Drawer } from "@/components/sea-saw-page/base";
+import { InputFooter } from "@/components/sea-saw-page/base";
+import InputForm from "@/components/sea-saw-design/form/InputForm";
+import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
 
 // 关联实体类型
 type RelatedEntityType = "order" | "purchase_order";

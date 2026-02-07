@@ -12,22 +12,17 @@ import {
   Modal,
   TouchableWithoutFeedback,
   TextInput,
-  ScrollView,
 } from "react-native";
 import { AgGridReact } from "ag-grid-react";
-import i18n from "@/locale/i18n";
 import type { ColDef, GridApi } from "ag-grid-community";
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
-  ChevronDownIcon,
   CheckIcon,
   Squares2X2Icon,
   XCircleIcon,
 } from "react-native-heroicons/outline";
 
-import useDataService from "@/hooks/useDataService";
-import type { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/sea-saw-design/text";
 import { Button } from "@/components/sea-saw-design/button";
 import { theme } from "@/components/sea-saw-design/table/theme";
@@ -41,7 +36,11 @@ import type {
   HeaderMetaProps,
   ColDefinition,
 } from "@/components/sea-saw-design/table/interface";
+import { SelectorTrigger } from "@/components/sea-saw-page/base/SelectorTrigger";
+import useDataService from "@/hooks/useDataService";
+import type { FormDef } from "@/hooks/useFormDefs";
 import { devError } from "@/utils/logger";
+import i18n from "@/locale/i18n";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CONSTANTS
@@ -84,6 +83,9 @@ export interface EntitySelectorProps<T extends EntityItem> {
 
   /** Custom chip renderer for selected items */
   renderSelectedChip?: (item: T, onRemove: () => void) => React.ReactNode;
+
+  /** Additional query parameters to send with API requests */
+  queryParams?: Record<string, any>;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -142,6 +144,7 @@ const EntitySelectorInner = <T extends EntityItem>(
     title,
     mapResponseToItems,
     renderSelectedChip,
+    queryParams,
   }: EntitySelectorProps<T>,
   ref: React.Ref<View>,
 ) => {
@@ -234,7 +237,12 @@ const EntitySelectorInner = <T extends EntityItem>(
       setLoading(true);
       try {
         const res = await viewSet.list({
-          params: { page: 1, page_size: 100, search: keyword },
+          params: {
+            page: 1,
+            page_size: 100,
+            search: keyword,
+            ...queryParams,
+          },
         });
 
         const results = mapResponseToItems
@@ -252,7 +260,7 @@ const EntitySelectorInner = <T extends EntityItem>(
         setLoading(false);
       }
     },
-    [viewSet, contentType, mapResponseToItems],
+    [viewSet, contentType, mapResponseToItems, queryParams],
   );
 
   /** Fetch when modal opens or search changes */
@@ -351,38 +359,21 @@ const EntitySelectorInner = <T extends EntityItem>(
       {/* ═══════════════════════════════════════════════════════════════════
           TRIGGER INPUT
           ═══════════════════════════════════════════════════════════════════ */}
-      <Pressable
+      <SelectorTrigger
         disabled={readOnly}
-        onPress={() => !readOnly && setIsOpen(true)}
-        className="min-h-8 px-3 py-1 border border-gray-300 rounded-md bg-white flex-row flex-wrap items-center transition-all duration-200 hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 disabled:bg-black/5 disabled:cursor-not-allowed disabled:text-black/25"
-      >
-        {selected.length === 0 ? (
-          <View className="flex-row items-center flex-1">
-            <MagnifyingGlassIcon size={16} className="text-gray-400 mr-2" />
-            <Text className="text-gray-400 text-sm">{placeholderText}</Text>
-          </View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-1"
-            contentContainerStyle={{ alignItems: "center" }}
-          >
-            {selected.map((item) => (
-              <React.Fragment key={item.id}>
-                {renderSelectedChip
-                  ? renderSelectedChip(item, () => handleRemove(item.id))
-                  : defaultRenderChip(item, () => handleRemove(item.id))}
-              </React.Fragment>
-            ))}
-          </ScrollView>
-        )}
-        {!readOnly && (
-          <View className="ml-2">
-            <ChevronDownIcon size={18} className="text-gray-400" />
-          </View>
-        )}
-      </Pressable>
+        onPress={() => setIsOpen(true)}
+        placeholder={placeholderText}
+        hasSelection={selected.length > 0}
+        renderSelected={() =>
+          selected.map((item) => (
+            <React.Fragment key={item.id}>
+              {renderSelectedChip
+                ? renderSelectedChip(item, () => handleRemove(item.id))
+                : defaultRenderChip(item, () => handleRemove(item.id))}
+            </React.Fragment>
+          ))
+        }
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════
           MODAL

@@ -1,10 +1,10 @@
 import React from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import {
   ItemsCard,
   type ItemsCardFieldConfig,
   type TagConfig,
-} from "../../../base";
+} from "@/components/sea-saw-page/base";
 
 interface ProductItemsCardProps {
   def?: any;

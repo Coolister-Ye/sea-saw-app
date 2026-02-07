@@ -144,9 +144,13 @@ export default function DownloadScreen() {
         if (!isMountedRef.current) return;
 
         if (error?.response?.status === 404) {
-          // Invalid page - no more data
+          // Invalid page - no more data, reset to last valid page
           hasMoreRef.current = false;
           setHasMore(false);
+          // Reset page to last successful page to prevent further 404s
+          if (pageNum > 1) {
+            setPage(lastPageRef.current > 0 ? lastPageRef.current : 1);
+          }
           devError(`Page ${pageNum} not found - reached end of data`);
         } else {
           devError("Failed to fetch download tasks:", error);
@@ -162,7 +166,10 @@ export default function DownloadScreen() {
   );
 
   useEffect(() => {
-    fetchTasks(page);
+    // Only fetch if we have more data or it's the first page
+    if (page === 1 || hasMore) {
+      fetchTasks(page);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
@@ -185,10 +192,18 @@ export default function DownloadScreen() {
   }, [fetchTasks]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loadingRef.current && hasMoreRef.current && hasMore && !refreshing) {
-      setPage((prev) => prev + 1);
+    // Strict check: must have more data, not loading, not refreshing
+    if (!loadingRef.current && hasMoreRef.current && !refreshing) {
+      setPage((prev) => {
+        const nextPage = prev + 1;
+        // Double check we haven't already requested this page
+        if (nextPage > lastPageRef.current) {
+          return nextPage;
+        }
+        return prev;
+      });
     }
-  }, [hasMore, refreshing]);
+  }, [refreshing]);
 
   const handleDownload = useCallback((item: DownloadTask) => {
     if (item.status === "completed" && item.download_url) {

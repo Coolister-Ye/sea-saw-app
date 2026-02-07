@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
-import Drawer from "../../../base/Drawer.web";
-import InputFooter from "../../../base/InputFooter";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import PurchaseOrderItemsInput from "../shared/items/PurchaseOrderItemsInput";
 import PurchaseOrderStatusSelector from "../shared/selectors/PurchaseOrderStatusSelector";
 import PurchaseRelatedOrderSelector from "../shared/selectors/PurchaseRelatedOrderSelector";
-import SupplierSelector from "../shared/selectors/SupplierSelector";
+import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody, devError } from "@/utils";
-import { AttachmentInput } from "../../shared";
+import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
+import { Drawer } from "@/components/sea-saw-page/base";
+import { InputFooter } from "@/components/sea-saw-page/base";
 
 interface PurchaseOrderInputProps {
   isOpen: boolean;
@@ -85,7 +85,9 @@ export default function PurchaseOrderInput({
         render: (def: any) => <PurchaseOrderStatusSelector def={def} />,
       },
       supplier: {
-        render: (def: any) => <SupplierSelector def={def} />,
+        render: (def: any) => (
+          <AccountSelector def={def} roleFilter="supplier" />
+        ),
       },
       attachments: {
         fullWidth: true,

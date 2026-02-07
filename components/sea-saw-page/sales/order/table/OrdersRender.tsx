@@ -7,10 +7,18 @@ interface Order {
   [key: string]: any;
 }
 
-function OrdersRender(props: CustomCellRendererProps<Order[]>) {
-  const orders = Array.isArray(props.value) ? props.value : [];
+function OrdersRender(props: CustomCellRendererProps<Order | Order[]>) {
   const meta = props.context?.meta;
-  const def = meta?.orders?.child?.children;
+
+  // Handle both single object and array
+  const orders = Array.isArray(props.value)
+    ? props.value
+    : props.value
+      ? [props.value]
+      : [];
+
+  // Get def from either 'order' (single) or 'orders' (array) metadata
+  const def = meta?.order?.children ?? meta?.orders?.child?.children;
 
   if (orders.length === 0) {
     return null;
@@ -20,12 +28,8 @@ function OrdersRender(props: CustomCellRendererProps<Order[]>) {
     <>
       {orders.map((order, index) =>
         order ? (
-          <OrderPopover
-            key={order.id ?? index}
-            value={order}
-            def={def}
-          />
-        ) : null
+          <OrderPopover key={order.id ?? index} value={order} def={def} />
+        ) : null,
       )}
     </>
   );

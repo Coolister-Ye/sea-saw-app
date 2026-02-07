@@ -5,11 +5,12 @@ import { Form } from "antd";
 
 import { Button } from "@/components/sea-saw-design/button";
 import { Text } from "@/components/sea-saw-design/text";
-import Drawer from "../../../../base/Drawer.web";
-import InputFooter from "../../../../base/InputFooter";
+
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import { FormDef } from "@/hooks/useFormDefs";
-import PurchaseItemsViewToggle from "@/components/sea-saw-page/crm/from/display/purchase/items/PurchaseItemsViewToggle";
+import PurchaseItemsViewToggle from "@/components/sea-saw-page/procurement/purchase-order/display/items/PurchaseItemsViewToggle";
+import { Drawer } from "@/components/sea-saw-page/base";
+import { InputFooter } from "@/components/sea-saw-page/base";
 
 interface PurchaseOrderItemsInputProps {
   def: FormDef;
@@ -152,11 +153,7 @@ function PurchaseOrderItemsInput({
           <Button onPress={openEdit} disabled={getSelectedIndex() === null}>
             <Text>{i18n.t("Edit")}</Text>
           </Button>
-          <Button
-            onPress={handleDelete}
-            disabled={getSelectedIndex() === null}
-            variant="destructive"
-          >
+          <Button onPress={handleDelete} disabled={getSelectedIndex() === null}>
             <Text>{i18n.t("Delete")}</Text>
           </Button>
         </View>

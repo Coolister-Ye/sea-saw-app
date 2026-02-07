@@ -2,8 +2,6 @@ import React from "react";
 import i18n from "@/locale/i18n";
 import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
-import { Button } from "antd";
-import { PencilSquareIcon } from "react-native-heroicons/outline";
 import {
   useCardItemHelpers,
   filterVisibleFields,
@@ -14,12 +12,13 @@ import {
   CardMetadata,
   CardSection,
   CardHeader,
-} from "../../../base";
-import { ProductItemsViewToggle } from "../../shared/items/";
+  CardEditButton,
+} from "@/components/sea-saw-page/base";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import { canEditOrder } from "@/constants/PipelineStatus";
-import CompanyPopover from "../../company/CompanyPopover";
-import ContactPopover from "../../contact/ContactPopover";
+import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
+import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
+import ProductItemsViewToggle from "./ProductItemsViewToggle";
 
 interface OrderCardProps {
   def?: any;
@@ -75,8 +74,10 @@ const FIELD_CONFIG = {
     "pipeline",
     "order_code",
     "status",
-    "company",
+    "account",
+    "account_id",
     "contact",
+    "contact_id",
     "order_items",
     "attachments",
     "owner",
@@ -167,13 +168,11 @@ export default function OrderCard({
                 <View className="items-end gap-1">
                   <View className="items-end">
                     <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                      {getFieldLabel("company")}
+                      {getFieldLabel("account")}
                     </Text>
-                    <CompanyPopover
+                    <AccountPopover
                       value={
-                        typeof item.company === "object"
-                          ? item.company
-                          : null
+                        typeof item.account === "object" ? item.account : null
                       }
                     />
                   </View>
@@ -303,21 +302,7 @@ export default function OrderCard({
                   created_by={item.created_by}
                   updated_by={item.updated_by}
                 />
-                {canEdit && (
-                  <Button
-                    type="text"
-                    size="small"
-                    className="p-0 h-auto"
-                    onClick={() => onItemClick(index)}
-                  >
-                    <View className="flex-row items-center gap-1">
-                      <PencilSquareIcon size={14} color="#64748b" />
-                      <Text className="text-xs text-slate-500 font-medium">
-                        {i18n.t("Edit")}
-                      </Text>
-                    </View>
-                  </Button>
-                )}
+                {canEdit && <CardEditButton onClick={() => onItemClick(index)} />}
               </View>
             </CardSection>
           </View>

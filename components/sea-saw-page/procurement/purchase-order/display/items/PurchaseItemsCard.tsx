@@ -5,10 +5,12 @@ import { Tag } from "antd";
 import { Text } from "@/components/sea-saw-design/text";
 import { getFieldLabelMap } from "@/utils";
 import { formatNumberTrim } from "@/utils";
-import EmptySlot from "../../../base/EmptySlot";
-import InfoField from "../../../base/InfoField";
-import InfoSection from "../../../base/InfoSection";
-import ItemCard from "../../../base/ItemCard";
+import {
+  EmptySlot,
+  InfoField,
+  InfoSection,
+  ItemCard,
+} from "@/components/sea-saw-page/base";
 
 interface PurchaseItemsCardProps {
   def?: any;

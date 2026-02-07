@@ -2,6 +2,7 @@ import { FormProps } from "antd";
 
 // Import for local use
 import type { HeaderMetaProps } from "../table/interface";
+import { JSX } from "react";
 
 // Re-export shared types from table interface to avoid duplication
 export type {
@@ -32,6 +33,8 @@ type InputFormProps = FormProps & {
   hideReadOnly?: boolean;
   /** Show help_text as input placeholder (default: true) */
   showHelpTextAsPlaceholder?: boolean;
+  /** Column order for form fields */
+  columnOrder?: string[];
 };
 
 /** Extended ForeignKeyInput props with render option */

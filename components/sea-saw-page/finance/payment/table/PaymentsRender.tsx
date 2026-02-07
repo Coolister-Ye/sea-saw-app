@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import PaymentPopover from "../display/PaymentPopover";
+import PaymentPopover from "./PaymentPopover";
 
 interface Payment {
   id?: string | number;
@@ -19,7 +19,7 @@ function PaymentsRender(props: CustomCellRendererProps<Payment[]>) {
       {payments.map((item, index) =>
         item ? (
           <PaymentPopover key={item.id ?? index} value={item} def={def} />
-        ) : null
+        ) : null,
       )}
     </>
   );
