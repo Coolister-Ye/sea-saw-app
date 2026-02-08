@@ -1,11 +1,9 @@
 import React, { useMemo } from "react";
-import { View } from "react-native";
-import { BuildingOfficeIcon } from "react-native-heroicons/outline";
 import { Popover, Button } from "antd";
+import { BuildingOfficeIcon } from "react-native-heroicons/outline";
 
-import { FormDef } from "@/hooks/useFormDefs";
 import { Text } from "@/components/sea-saw-design/text";
-import { InfoRow } from "@/components/sea-saw-page/base/InfoRow";
+import { PopoverCard } from "@/components/sea-saw-page/base/popover";
 
 interface Account {
   id?: string | number;
@@ -16,53 +14,32 @@ interface Account {
 }
 
 interface AccountPopoverProps {
-  def?: FormDef;
+  def?: Record<string, any>;
   value?: Account | null;
 }
 
-export default function AccountPopover({ value }: AccountPopoverProps) {
-  /* ========================
-   * Popover 内容
-   * ======================== */
+export default function AccountPopover({ value, def }: AccountPopoverProps) {
   const content = useMemo(
     () =>
       value ? (
-        <View className="p-3 w-[240px] space-y-3">
-          {/* Header */}
-          <View className="flex flex-row items-center gap-3">
-            <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
-              <BuildingOfficeIcon size={16} className="text-blue-600" />
-            </View>
-
-            <View className="flex-1">
-              <Text className="text-sm font-semibold text-gray-900">
-                {value.account_name}
-              </Text>
-            </View>
-          </View>
-
-          {/* Divider */}
-          <View className="h-[1px] bg-gray-100" />
-
-          {/* Info */}
-          <View className="space-y-1.5">
-            {value.address && <InfoRow icon="📍" text={value.address} />}
-            {value.roles && value.roles.length > 0 && (
-              <InfoRow icon="🏷️" text={value.roles.join(", ")} />
-            )}
-          </View>
-        </View>
+        <PopoverCard
+          headerIcon={
+            <BuildingOfficeIcon size={16} className="text-blue-600" />
+          }
+          headerTitle={value.account_name}
+          value={value}
+          metaDef={def}
+          columnOrder={["address", "roles"]}
+          colDef={{ address: { icon: "📍" }, roles: { icon: "👤" } }}
+        />
       ) : null,
-    [value],
+    [value, def],
   );
 
   if (!value) {
     return <Text>-</Text>;
   }
 
-  /* ========================
-   * Trigger
-   * ======================== */
   return (
     <Popover
       content={content}

@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
-import { View } from "react-native";
 import { Popover, Button } from "antd";
+import { CubeIcon } from "react-native-heroicons/outline";
+
 import { Text } from "@/components/sea-saw-design/text";
-import { InfoRow } from "@/components/sea-saw-page/base/InfoRow";
+import { PopoverCard } from "@/components/sea-saw-page/base/popover";
 
 interface OrderItemPopoverProps {
   value?: Record<string, any> | null;
@@ -13,50 +14,31 @@ export default function OrderItemPopover({
   value,
   def,
 }: OrderItemPopoverProps) {
-  /** 主标题字段（只在按钮中展示） */
-  const titleField = "product_name";
-
-  const content = useMemo(() => {
-    if (!def || !value) return null;
-
-    return (
-      <View className="p-3 w-[300px] space-y-2">
-        {Object.entries(def).map(([key, fieldDef]) => {
-          // 标题字段 & 冗长字段不在明细中重复展示
-          if (key === titleField || key === "specification") {
-            return null;
-          }
-
-          const rawVal = value[key];
-          const displayValue =
-            rawVal === null || rawVal === undefined || rawVal === ""
-              ? "-"
-              : String(rawVal);
-
-          return (
-            <View key={key} className="flex flex-row items-start gap-2">
-              {/* Label */}
-              <Text className="text-xs text-gray-500 w-[90px] text-right leading-5">
-                {fieldDef.label}
-              </Text>
-
-              {/* Value */}
-              <View className="flex-1">
-                <InfoRow icon="•" text={displayValue} />
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    );
-  }, [value, def]);
+  const content = useMemo(
+    () =>
+      value ? (
+        <PopoverCard
+          headerIcon={<CubeIcon size={16} className="text-blue-600" />}
+          headerTitle={value.product_name}
+          value={value}
+          metaDef={def}
+          columnOrder={["size", "order_qty", "unit_price", "total_price"]}
+        />
+      ) : null,
+    [value, def],
+  );
 
   if (!value) {
     return <Text>-</Text>;
   }
 
   return (
-    <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>
+    <Popover
+      content={content}
+      trigger="hover"
+      placement="right"
+      mouseEnterDelay={0.15}
+    >
       <Button
         type="link"
         tabIndex={0}
@@ -65,9 +47,9 @@ export default function OrderItemPopover({
           height: "auto",
           lineHeight: "inherit",
         }}
-        className="text-blue-600 hover:text-blue-700 underline underline-offset-2"
+        className="text-blue-600 hover:text-blue-700"
       >
-        {value[titleField] ?? "-"}
+        {value.product_name ?? "-"}
       </Button>
     </Popover>
   );

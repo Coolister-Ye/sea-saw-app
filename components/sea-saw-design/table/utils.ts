@@ -130,9 +130,19 @@ function getCellEditor(type: string): string {
 /** Build value formatter for displaying field data */
 function getValueFormatter(
   type: string,
-  displayFields: string[] = ["id"]
+  displayFields: string[] = ["id"],
+  choices?: { value: string; label: string }[]
 ): (params: ValueFormatterParams) => string {
   const objectTypes = ["nested object", "field"];
+
+  // Handle choice type: map value to label
+  if (type === "choice" && choices && choices.length > 0) {
+    return ({ value }: ValueFormatterParams) => {
+      if (value === undefined || value === null) return "";
+      const choice = choices.find((c) => c.value === value);
+      return choice ? choice.label : String(value);
+    };
+  }
 
   if (objectTypes.includes(type)) {
     return ({ value }: ValueFormatterParams) => {

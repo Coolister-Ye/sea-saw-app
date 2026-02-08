@@ -15,5 +15,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-  ]
+, "components/sea-saw-page/crm/account/display/AccountPopover.tsx.bak"  ]
 }

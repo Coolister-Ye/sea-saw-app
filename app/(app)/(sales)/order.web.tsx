@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { useEntityPage } from "@/hooks/useEntityPage";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
+import { stripIdsDeep } from "@/utils";
 
 import OrderTable from "@/components/sea-saw-page/sales/order/table/OrderTable";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
@@ -42,6 +43,38 @@ export default function OrderScreen() {
   const [orderViewRow, setOrderViewRow] = useState<any>(null);
   const [isOrderViewOpen, setIsOrderViewOpen] = useState(false);
 
+  // Custom copy builder for order
+  const buildOrderCopyData = useCallback((data: any) => {
+    if (!data) return null;
+
+    // Remove metadata fields and extract account/contact for special handling
+    const {
+      id,
+      pk,
+      created_at,
+      updated_at,
+      attachments,
+      related_pipeline,
+      account,
+      contact,
+      ...rest
+    } = data;
+
+    // Strip IDs from rest of the data (like order_items)
+    const strippedRest = stripIdsDeep(rest);
+
+    // Build final copy data
+    return {
+      ...strippedRest,
+      // Keep account/contact objects for display in InputForm
+      account,
+      contact,
+      // Extract IDs for write operations
+      account_id: account?.id || data.account_id,
+      contact_id: contact?.id || data.contact_id,
+    };
+  }, []);
+
   const {
     loadingMeta,
     metaError,
@@ -60,7 +93,7 @@ export default function OrderScreen() {
   } = useEntityPage({
     entity: "order",
     nameField: "order_number",
-    excludeFromCopy: ["related_pipeline"],
+    buildCopyData: buildOrderCopyData,
     filterMetaFields: ["allowed_actions"],
   });
 

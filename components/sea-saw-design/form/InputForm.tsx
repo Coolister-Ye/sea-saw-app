@@ -147,6 +147,7 @@ export default function InputForm({
         read_only: configReadOnly,
         hidden: configHidden,
         rules: configRules,
+        fullWidth, // Destructure to prevent DOM prop warning
         ...restConfig
       } = fieldConfig;
 

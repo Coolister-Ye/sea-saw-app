@@ -209,7 +209,8 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
             cellDataType: getCellDataType(fieldMeta.type),
             valueFormatter: getValueFormatter(
               fieldMeta.type,
-              fieldMeta.display_fields
+              fieldMeta.display_fields,
+              fieldMeta.choices
             ),
             sortable: true,
             resizable: true,
