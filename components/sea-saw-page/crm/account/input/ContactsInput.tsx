@@ -5,7 +5,7 @@ import { Modal } from "antd";
 import { FormDef } from "@/hooks/useFormDefs";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 import ContactItemsTable from "../../contact/display/ContactItemsTable";
-import ContactSelector from "../../contact/input/ContactSelector";
+import { ContactSelector } from "../../contact/input";
 
 interface ContactsInputProps {
   def: FormDef;

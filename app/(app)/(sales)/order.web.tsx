@@ -51,6 +51,7 @@ export default function OrderScreen() {
     const {
       id,
       pk,
+      status,
       created_at,
       updated_at,
       attachments,

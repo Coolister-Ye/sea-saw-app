@@ -1,19 +1,21 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
-import { Form, message } from "antd";
+import { Form, message, Input } from "antd";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
 import { devError } from "@/utils/logger";
-import { Drawer } from "@/components/sea-saw-page/base";
+import { round2, toNumber } from "@/utils/number";
+import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
 import OrderItemsInput from "./OrderItemsInput";
 import OrderStatusSelector from "./OrderStatusSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
-import { InputFooter } from "@/components/sea-saw-page/base";
+
+const { TextArea } = Input;
 
 interface OrderInputProps {
   mode?: "nested" | "standalone";
@@ -29,6 +31,13 @@ interface OrderInputProps {
   pipelineId?: string | number;
   columnOrder?: string[];
 }
+
+const normalizePayload = (values: any) => {
+  const payload = { ...values };
+  delete payload.account;
+  delete payload.contact;
+  return payload;
+};
 
 export default function OrderInput({
   mode = "standalone",
@@ -54,10 +63,11 @@ export default function OrderInput({
 
   const isEdit = Boolean(data?.id);
 
+  const deposit = Form.useWatch("deposit", form);
+  const orderItems = Form.useWatch("order_items", form);
+
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
+    if (!isOpen) return;
 
     if (isEdit) {
       form.setFieldsValue(data);
@@ -69,30 +79,22 @@ export default function OrderInput({
         currency: "USD",
       });
     }
-  }, [isOpen, isEdit, data, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isEdit, form]);
 
-  const handleTotalsChange = useCallback(
-    (totals: { total_amount: number }) => {
-      form.setFieldsValue({ total_amount: totals.total_amount });
-    },
-    [form],
-  );
+  // 自动计算 total_amount 和 balance
+  useEffect(() => {
+    const totalAmount = (orderItems ?? []).reduce(
+      (sum: number, item: any) => sum + (parseFloat(item?.total_price) || 0),
+      0,
+    );
+    const depositNum = toNumber(deposit) ?? 0;
 
-  const calculateBalance = useCallback(() => {
-    const values = form.getFieldsValue(["deposit", "total_amount"]);
-    const deposit =
-      values.deposit !== undefined && values.deposit !== null
-        ? Number(values.deposit)
-        : null;
-    const totalAmount =
-      values.total_amount !== undefined && values.total_amount !== null
-        ? Number(values.total_amount)
-        : null;
-
-    if (deposit !== null && totalAmount !== null) {
-      form.setFieldsValue({ balance: totalAmount - deposit });
-    }
-  }, [form]);
+    form.setFieldsValue({
+      total_amount: round2(totalAmount),
+      balance: round2(totalAmount - depositNum),
+    });
+  }, [orderItems, deposit, form]);
 
   const config = useMemo(
     () => ({
@@ -100,48 +102,28 @@ export default function OrderInput({
         read_only: false,
         render: (def: any) => <AccountSelector def={def} />,
       },
-      account_id: {
-        hidden: true,
-      },
+      account_id: { hidden: true },
       contact: {
         read_only: false,
         render: (def: any) => <ContactSelector def={def} />,
       },
-      contact_id: {
-        hidden: true,
-      },
+      contact_id: { hidden: true },
       status: {
         render: (def: any) => <OrderStatusSelector def={def} />,
       },
       order_items: {
         fullWidth: true,
-        render: (def: any) => (
-          <OrderItemsInput def={def} onTotalsChange={handleTotalsChange} />
-        ),
+        render: (def: any) => <OrderItemsInput def={def} />,
       },
       attachments: {
         fullWidth: true,
         render: (def: any) => <AttachmentInput def={def} />,
       },
-      deposit: {
-        onBlur: calculateBalance,
-      },
-      total_amount: {
-        onBlur: calculateBalance,
-      },
-      related_pipeline: {
-        hidden: true,
-      },
+      total_amount: { read_only: true, hidden: false },
+      comment: { render: () => <TextArea rows={3} /> },
     }),
-    [handleTotalsChange, calculateBalance, mode],
+    [],
   );
-
-  const normalizePayload = useCallback((values: any) => {
-    const payload = { ...values };
-    delete payload.account;
-    delete payload.contact;
-    return payload;
-  }, []);
 
   const showMessage = useCallback(
     (type: "loading" | "success" | "error", content: string) => {
@@ -163,7 +145,6 @@ export default function OrderInput({
 
       showMessage("loading", i18n.t("saving"));
 
-      // Nested mode: add pipelineId to payload and params
       const params: Record<string, any> = {};
       if (mode === "nested") {
         if (!pipelineId) {
@@ -175,39 +156,35 @@ export default function OrderInput({
       }
 
       const requestBody = prepareRequestBody(payload);
+      const nestedParams = mode === "nested" ? { params } : {};
 
       const res = isEdit
         ? await orderViewSet.update({
             id: data.id!,
             body: requestBody,
-            ...(mode === "nested" && { params }),
+            ...nestedParams,
           })
         : await orderViewSet.create({
             body: requestBody,
-            ...(mode === "nested" && { params }),
+            ...nestedParams,
           });
 
       showMessage("success", i18n.t("save successfully"));
-
-      if (isEdit) {
-        onUpdate?.(res);
-      } else {
-        onCreate?.(res);
-      }
+      (isEdit ? onUpdate : onCreate)?.(res);
       onClose(res);
     } catch (err: any) {
       devError("Order save failed:", err);
-      const errorMessage =
+      showMessage(
+        "error",
         err?.message ||
-        err?.response?.data?.message ||
-        i18n.t("Save failed, please try again");
-      showMessage("error", errorMessage);
+          err?.response?.data?.message ||
+          i18n.t("Save failed, please try again"),
+      );
     } finally {
       setLoading(false);
     }
   }, [
     form,
-    normalizePayload,
     showMessage,
     mode,
     pipelineId,
@@ -219,13 +196,11 @@ export default function OrderInput({
     onClose,
   ]);
 
-  const drawerTitle = isEdit ? i18n.t("Edit Order") : i18n.t("Create Order");
-
   return (
     <Drawer
       open={isOpen}
       onClose={onClose}
-      title={drawerTitle}
+      title={isEdit ? i18n.t("Edit Order") : i18n.t("Create Order")}
       footer={
         <InputFooter loading={loading} onSave={handleSave} onCancel={onClose} />
       }
