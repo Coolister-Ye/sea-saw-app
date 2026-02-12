@@ -9,11 +9,10 @@ interface PurchaseOrderStatusTagProps {
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "default",
-  ordered: "processing",
-  in_transit: "warning",
-  received: "purple",
+  active: "processing",
   completed: "success",
   cancelled: "error",
+  issue_reported: "warning",
 };
 
 /* ========================

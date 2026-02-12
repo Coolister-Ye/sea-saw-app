@@ -32,6 +32,7 @@ export default function PurchaseOrderEmptySlot({
         uri: "createPurchaseOrder",
         method: "POST",
         id: orderId,
+        body: { auto_update_status: true },
       });
 
       messageApi.success(i18n.t("Purchase order created"));

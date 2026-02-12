@@ -23,10 +23,25 @@ export type {
    FORM-SPECIFIC TYPES
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/** Form definition with field name (read_only normalized to boolean) */
+type FormDef = Omit<HeaderMetaProps, "read_only"> & {
+  field: string;
+  read_only: boolean;
+};
+
+/** Nested structure with children field definitions */
+type NestedFormDef = {
+  children?: Record<string, HeaderMetaProps>;
+  child?: {
+    children?: Record<string, HeaderMetaProps>;
+  };
+  [key: string]: any;
+};
+
 /** InputForm component props (Ant Design form wrapper) */
 type InputFormProps = FormProps & {
   table?: string;
-  def?: Record<string, HeaderMetaProps>;
+  def?: Record<string, HeaderMetaProps> | NestedFormDef | FormDef[];
   config?: Record<string, any>;
   form: any;
   /** Hide read_only fields automatically (default: false) */
@@ -47,12 +62,6 @@ type ForeignKeyInputProps = {
   render?: (value: any) => JSX.Element;
 };
 
-/** Form definition with field name (read_only normalized to boolean) */
-type FormDef = Omit<HeaderMetaProps, "read_only"> & {
-  field: string;
-  read_only: boolean;
-};
-
 /** Display form field configuration */
 type DisplayFormConfig = {
   render?: (value: any, record: any) => React.ReactNode;
@@ -64,5 +73,6 @@ export type {
   InputFormProps,
   ForeignKeyInputProps,
   FormDef,
+  NestedFormDef,
   DisplayFormConfig,
 };

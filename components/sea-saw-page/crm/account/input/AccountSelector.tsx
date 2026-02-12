@@ -39,6 +39,10 @@ interface AccountSelectorProps {
   onChange?: (v: Account | Account[] | null) => void;
   multiple?: boolean;
   roleFilter?: "customer" | "supplier" | "prospect";
+  /** Form field name for the account object (default: "account") */
+  fieldName?: string;
+  /** Form field name for the account id (default: "account_id") */
+  idFieldName?: string;
 }
 
 interface AccountApiResponse {
@@ -77,7 +81,7 @@ const getRoleColors = (role?: AccountRole) => {
 };
 
 const AccountSelector = forwardRef<View, AccountSelectorProps>(
-  ({ def, value, onChange, multiple = false, roleFilter }, ref) => {
+  ({ def, value, onChange, multiple = false, roleFilter, fieldName = "account", idFieldName = "account_id" }, ref) => {
     const form = Form.useFormInstance();
     const readOnly = def?.read_only;
 
@@ -179,18 +183,18 @@ const AccountSelector = forwardRef<View, AccountSelectorProps>(
 
         const fieldValues = multiple
           ? {
-              account,
-              account_id: (account as Account[] | null)?.map((a) => a.id ?? a.pk),
+              [fieldName]: account,
+              [idFieldName]: (account as Account[] | null)?.map((a) => a.id ?? a.pk),
             }
           : {
-              account,
-              account_id: (account as Account | null)?.id ?? (account as Account | null)?.pk,
+              [fieldName]: account,
+              [idFieldName]: (account as Account | null)?.id ?? (account as Account | null)?.pk,
             };
 
         form.setFieldsValue(fieldValues);
         onChange?.(account);
       },
-      [form, multiple, onChange],
+      [form, multiple, onChange, fieldName, idFieldName],
     );
 
     /** Build query params for role filtering */

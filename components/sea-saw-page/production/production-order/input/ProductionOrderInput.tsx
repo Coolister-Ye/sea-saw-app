@@ -24,6 +24,7 @@ interface ProductionOrderInputProps {
     [key: string]: any;
   };
   pipelineId?: string | number;
+  columnOrder?: string[];
 }
 
 export default function ProductionOrderInput({
@@ -35,6 +36,7 @@ export default function ProductionOrderInput({
   def,
   data = {},
   pipelineId,
+  columnOrder,
 }: ProductionOrderInputProps) {
   const normalizePayload = useCallback(
     (values: any) => ({
@@ -112,6 +114,7 @@ export default function ProductionOrderInput({
           def={def}
           data={data}
           config={config}
+          columnOrder={columnOrder}
           hideReadOnly
         />
       </ScrollView>

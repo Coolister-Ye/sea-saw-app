@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
+import { Form } from "antd";
 
 import { FormDef } from "@/hooks/useFormDefs";
 import { useOrderItemsManager } from "@/hooks/useOrderItemsManager";
+import { round2, toNum } from "@/utils/number";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ProductionItemsViewToggle from "@/components/sea-saw-page/production/production-order/display/items/ProductionItemsViewToggle";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
@@ -39,6 +41,29 @@ function ProductionOrderItemsInput({
     handleRowClicked,
     handleGridReady,
   } = useOrderItemsManager({ value, onChange, readOnly });
+
+  // Watch source fields for auto-calculation
+  const glazing = Form.useWatch("glazing", form);
+  const grossWeight = Form.useWatch("gross_weight", form);
+  const plannedQty = Form.useWatch("planned_qty", form);
+
+  // Auto-calculate derived fields (only when drawer is open)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const g = toNum(glazing);
+    const gw = toNum(grossWeight);
+    const qty = toNum(plannedQty);
+
+    const netWeight = round2(gw * (1 - g));
+    const totalGrossWeight = round2(gw * qty);
+
+    form.setFieldsValue({
+      net_weight: netWeight,
+      total_net_weight: round2(netWeight * qty),
+      total_gross_weight: totalGrossWeight,
+    });
+  }, [isOpen, glazing, grossWeight, plannedQty, form]);
 
   return (
     <View className="gap-3">

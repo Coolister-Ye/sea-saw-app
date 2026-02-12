@@ -2,19 +2,19 @@ import React, { useMemo } from "react";
 import { Select } from "antd";
 import type { SelectProps } from "antd";
 import i18n from "@/locale/i18n";
-import OrderStatusTag from "@/components/sea-saw-page/sales/order/display/OrderStatusTag";
+import PurchaseOrderStatusTag from "@/components/sea-saw-page/procurement/purchase-order/display/renderers/PurchaseOrderStatusTag";
 
-interface OrderStatusSelectorProps {
+interface PurchaseOrderStatusSelectorProps {
   def?: { choices?: { value: string; label: string }[] };
   value?: string;
   onChange?: (value: string) => void;
 }
 
-export default function OrderStatusSelector({
+export default function PurchaseOrderStatusSelector({
   def,
   value,
   onChange,
-}: OrderStatusSelectorProps) {
+}: PurchaseOrderStatusSelectorProps) {
   const options = useMemo(() => {
     if (!def?.choices) return [];
     return def.choices.map((choice) => ({
@@ -24,11 +24,11 @@ export default function OrderStatusSelector({
   }, [def?.choices]);
 
   const optionRender: SelectProps["optionRender"] = (option) => (
-    <OrderStatusTag value={option.value as string} def={def} />
+    <PurchaseOrderStatusTag value={option.value as string} def={def} />
   );
 
   const labelRender: SelectProps["labelRender"] = (props) => (
-    <OrderStatusTag value={props.value as string} def={def} />
+    <PurchaseOrderStatusTag value={props.value as string} def={def} />
   );
 
   return (

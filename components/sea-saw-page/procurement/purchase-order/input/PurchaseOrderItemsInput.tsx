@@ -9,24 +9,24 @@ import { devError } from "@/utils/logger";
 import { round2, toNum } from "@/utils/number";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
-import OrderItemsTable from "../display/items/OrderItemsTable";
+import PurchaseItemsViewToggle from "@/components/sea-saw-page/procurement/purchase-order/display/items/PurchaseItemsViewToggle";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 
 const { TextArea } = Input;
 
-interface OrderItemsInputProps {
+interface PurchaseOrderItemsInputProps {
   def: FormDef;
   value?: any[];
   onChange?: (v: any[]) => void;
   showToolbar?: boolean;
 }
 
-function OrderItemsInput({
+function PurchaseOrderItemsInput({
   def,
   value = [],
   onChange,
   showToolbar = true,
-}: OrderItemsInputProps) {
+}: PurchaseOrderItemsInputProps) {
   const gridApiRef = useRef<any>(null);
   const pendingCopyRef = useRef<any | null>(null);
 
@@ -182,7 +182,7 @@ function OrderItemsInput({
         </View>
       )}
 
-      <OrderItemsTable
+      <PurchaseItemsViewToggle
         def={tableDef}
         value={value}
         agGridReactProps={{
@@ -196,7 +196,7 @@ function OrderItemsInput({
       <Drawer
         open={isOpen}
         onClose={closeDrawer}
-        title={i18n.t("Order Item")}
+        title={i18n.t("Purchase Item")}
         footer={<InputFooter onSave={handleSave} onCancel={closeDrawer} />}
       >
         <ScrollView
@@ -204,7 +204,7 @@ function OrderItemsInput({
           contentContainerStyle={{ paddingBottom: 100 }}
         >
           <InputForm
-            table="product"
+            table="purchase_item"
             def={def}
             form={form}
             config={config}
@@ -216,4 +216,4 @@ function OrderItemsInput({
   );
 }
 
-export default OrderItemsInput;
+export default PurchaseOrderItemsInput;
