@@ -1,5 +1,5 @@
-import { useMemo } from "react";
 import { Tag, TagProps } from "antd";
+import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
 
 interface PipelineStatusTagProps {
   def?: { choices?: Array<{ value: string; label: string }> };
@@ -33,12 +33,7 @@ function PipelineStatusTag({
   style,
   tagProps,
 }: PipelineStatusTagProps) {
-  const statusLabelMap = useMemo(() => {
-    if (!def?.choices) return {};
-    return Object.fromEntries(
-      def.choices.map(({ value, label }) => [value, label])
-    );
-  }, [def?.choices]);
+  const statusLabelMap = useStatusLabelMap(def);
 
   return (
     <Tag

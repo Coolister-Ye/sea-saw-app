@@ -8,7 +8,7 @@ import { devError } from "@/utils/logger";
 import { round2, toNum } from "@/utils/number";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
-import ProductItemsTable from "../display/items/ProductItemsTable";
+import OrderItemsTable from "../display/items/OrderItemsTable";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 
 const { TextArea } = Input;
@@ -174,7 +174,7 @@ function OrderItemsInput({
         </View>
       )}
 
-      <ProductItemsTable
+      <OrderItemsTable
         def={def}
         value={value}
         agGridReactProps={{

@@ -4,7 +4,6 @@ import { View } from "react-native";
 import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import type { ColDef, Theme } from "ag-grid-community";
 
-import { Text } from "@/components/sea-saw-design/text";
 import { FormDef } from "@/hooks/useFormDefs";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { theme as defaultTheme } from "@/components/sea-saw-design/table/theme";
@@ -26,7 +25,12 @@ export type ColumnBuilder = (
 ) => ColumnConfig[];
 
 export interface ItemsTableProps {
-  def?: FormDef;
+  /**
+   * Field definitions - supports two formats:
+   * 1. FormDef (single field with child?.children) - will auto-extract
+   * 2. Record<string, HeaderMetaProps> (already extracted) - used directly
+   */
+  def?: FormDef | Record<string, HeaderMetaProps>;
   value?: any[] | null;
   className?: string;
   agGridReactProps?: AgGridReactProps;
@@ -68,25 +72,36 @@ export default function ItemsTable({
 }: ItemsTableProps) {
   const items = useMemo(() => value ?? [], [value]);
 
-  // Build field label map from def
+  // Normalize def to field dictionary (auto-extract from FormDef if needed)
+  const normalizedDef = useMemo<Record<string, HeaderMetaProps>>(() => {
+    if (!def) return {};
+
+    // If def has child?.children, extract it (FormDef format)
+    if ('child' in def && def.child?.children) {
+      return def.child.children as Record<string, HeaderMetaProps>;
+    }
+
+    // Otherwise assume it's already a Record<string, HeaderMetaProps>
+    return def as Record<string, HeaderMetaProps>;
+  }, [def]);
+
+  // Build field label map from normalized def
   const fieldLabelMap = useMemo(() => {
-    const children: Record<string, HeaderMetaProps> =
-      def?.child?.children ?? {};
     const map: Record<string, string> = {};
-    Object.entries(children).forEach(([field, meta]) => {
+    Object.entries(normalizedDef).forEach(([field, meta]) => {
       if (meta.label) {
         map[field] = meta.label;
       }
     });
     return map;
-  }, [def]);
+  }, [normalizedDef]);
 
   // Helper to get label with fallback
   const getLabel = useMemo(
     () => (field: string, fallback?: string) =>
       fieldLabelMap[field] ??
       (fallback ? (i18n.t?.(fallback) ?? fallback) : field),
-    [fieldLabelMap, i18n],
+    [fieldLabelMap],
   );
 
   const defaultColDef = useMemo<ColDef>(
@@ -118,9 +133,8 @@ export default function ItemsTable({
       }));
     }
 
-    // Auto-generate from def metadata
-    const headerMeta: Record<string, HeaderMetaProps> =
-      def?.child?.children ?? {};
+    // Auto-generate from normalized def metadata
+    const headerMeta: Record<string, HeaderMetaProps> = normalizedDef;
 
     let cols = Object.entries(headerMeta)
       .filter(([field]) => !excludeFields.includes(field))
@@ -161,7 +175,7 @@ export default function ItemsTable({
 
     return cols;
   }, [
-    def?.child?.children,
+    normalizedDef,
     items,
     columns,
     columnOverrides,

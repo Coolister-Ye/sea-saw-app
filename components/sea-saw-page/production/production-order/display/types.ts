@@ -1,3 +1,5 @@
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
+
 export interface ProductionItem {
   id?: number;
   product_name?: string;
@@ -17,6 +19,7 @@ export interface ProductionItem {
 }
 
 export interface ProductionItemsDisplayProps {
-  def?: any;
+  /** Field definitions (already extracted as child?.children from parent) */
+  def?: Record<string, HeaderMetaProps>;
   value?: ProductionItem[] | null;
 }

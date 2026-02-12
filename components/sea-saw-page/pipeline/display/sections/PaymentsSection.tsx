@@ -13,7 +13,7 @@ export default function PaymentsSection({
   order,
   orderStatus,
   payments,
-  defs,
+  def,
   editingPayment,
   setEditingPayment,
   onCreate,
@@ -78,7 +78,7 @@ export default function PaymentsSection({
           {payments.length ? (
             <>
               <PaymentItemsCard
-                def={defs.payments}
+                def={def}
                 value={payments}
                 onItemClick={(index) => setEditingPayment(payments[index])}
                 orderStatus={orderStatus}
@@ -100,7 +100,7 @@ export default function PaymentsSection({
 
       <PaymentInput
         isOpen={Boolean(editingPayment)}
-        def={defs.payments}
+        def={def}
         data={editingPayment ?? {}}
         pipeline={order}
         onClose={() => setEditingPayment(null)}

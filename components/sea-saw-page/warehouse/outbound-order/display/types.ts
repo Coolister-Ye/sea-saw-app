@@ -1,3 +1,5 @@
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
+
 export interface OutboundItem {
   id?: number;
   product_name?: string;
@@ -18,6 +20,7 @@ export interface OutboundItem {
 }
 
 export interface OutboundItemsDisplayProps {
-  def?: any;
+  /** Field definitions (already extracted as child?.children from parent) */
+  def?: Record<string, HeaderMetaProps>;
   value?: OutboundItem[] | null;
 }

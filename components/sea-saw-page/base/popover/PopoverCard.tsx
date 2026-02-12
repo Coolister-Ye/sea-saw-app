@@ -57,27 +57,39 @@ function PopoverCard({
 }: PopoverCardProps) {
   // Memoize filtered and ordered fields for performance
   const orderedFields = useMemo(() => {
-    // If metaDef is not provided, return empty array
-    if (!metaDef) {
-      return [];
+    // If metaDef is provided, use it
+    if (metaDef) {
+      const entries = Object.entries(metaDef);
+
+      // If columnOrder is not provided, show all fields
+      if (!columnOrder || columnOrder.length === 0) {
+        return entries;
+      }
+
+      // Filter and sort by columnOrder
+      return entries
+        .filter(([fieldKey]) => columnOrder.includes(fieldKey))
+        .sort(([keyA], [keyB]) => {
+          const indexA = columnOrder.indexOf(keyA);
+          const indexB = columnOrder.indexOf(keyB);
+          return indexA - indexB;
+        });
     }
 
-    const entries = Object.entries(metaDef);
-
-    // If columnOrder is not provided, show all fields
-    if (!columnOrder || columnOrder.length === 0) {
-      return entries;
+    // When metaDef is not provided, derive fields from columnOrder or value
+    if (columnOrder && columnOrder.length > 0) {
+      return columnOrder.map((key) => [key, { label: key }] as [string, any]);
     }
 
-    // Filter and sort by columnOrder
-    return entries
-      .filter(([fieldKey]) => columnOrder.includes(fieldKey))
-      .sort(([keyA], [keyB]) => {
-        const indexA = columnOrder.indexOf(keyA);
-        const indexB = columnOrder.indexOf(keyB);
-        return indexA - indexB;
-      });
-  }, [metaDef, columnOrder]);
+    // Fallback: use value keys
+    if (value) {
+      return Object.keys(value)
+        .filter((key) => key !== "id" && key !== "pk")
+        .map((key) => [key, { label: key }] as [string, any]);
+    }
+
+    return [];
+  }, [metaDef, columnOrder, value]);
 
   return (
     <View className={cn(paddingClass, widthClass, "space-y-3")}>

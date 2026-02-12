@@ -1,7 +1,7 @@
 import React from "react";
 import i18n from "@/locale/i18n";
 import { ShoppingCartIcon, CubeIcon } from "react-native-heroicons/outline";
-import OrderCard from "@/components/sea-saw-page/sales/order/display/items/OrderCard";
+import OrderCard from "@/components/sea-saw-page/sales/order/display/OrderCard";
 import OrderInput from "@/components/sea-saw-page/sales/order/input/OrderInput";
 import {
   SectionWrapper,
@@ -13,7 +13,7 @@ import {
 interface OrdersSectionProps {
   pipeline: any;
   orders: any[];
-  defs: any;
+  def: any;
   displayConfig?: any;
   editingOrder: any | null;
   setEditingOrder: (data: any | null) => void;
@@ -24,7 +24,7 @@ interface OrdersSectionProps {
 export default function OrdersSection({
   pipeline,
   orders,
-  defs,
+  def,
   editingOrder,
   setEditingOrder,
   onCreate,
@@ -65,7 +65,7 @@ export default function OrdersSection({
 
       <SectionContentCard gradientColors="from-blue-400 via-blue-500 to-cyan-400">
         <OrderCard
-          def={defs.orders}
+          def={def}
           value={orders}
           onItemClick={(index: number) => setEditingOrder(orders[index])}
           pipelineStatus={pipeline?.status}
@@ -75,7 +75,7 @@ export default function OrdersSection({
       <OrderInput
         mode="nested"
         isOpen={Boolean(editingOrder)}
-        def={defs.orders}
+        def={def}
         data={editingOrder ?? {}}
         pipelineId={pipeline?.id}
         onClose={() => setEditingOrder(null)}

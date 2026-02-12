@@ -1,104 +1,36 @@
 // 文件路径：@/hooks/useFormDefs.ts
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useDataService from "@/hooks/useDataService";
 import type {
   HeaderMetaProps,
   FormDef,
 } from "@/components/sea-saw-design/form/interface";
-import { normalizeBoolean } from "@/utils";
+import { convertToFormDefs, sortFormDefs } from "@/utils/formDefUtils";
 
 export type { FormDef };
 
 interface UseFormDefsProps {
-  table?: string;
-  def?: Record<string, HeaderMetaProps> | any;
+  table: string;
   columnOrder?: string[];
 }
 
-export function useFormDefs({ table, def, columnOrder }: UseFormDefsProps) {
+/**
+ * Fetch and normalize form definitions from backend OPTIONS
+ * ONLY for network requests - no local def conversion
+ *
+ * For local def conversion, use convertToFormDefs() directly
+ */
+export function useFormDefs({ table, columnOrder }: UseFormDefsProps) {
   const { getViewSet } = useDataService();
-  const [networkFormDefs, setNetworkFormDefs] = useState<FormDef[]>([]);
+  const [formDefs, setFormDefs] = useState<FormDef[]>([]);
 
   // Memoize viewSet to prevent infinite loops (CRITICAL per CLAUDE.md)
-  const viewSet = useMemo(
-    () => (table ? getViewSet(table) : null),
-    [getViewSet, table]
-  );
+  const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
 
-  /** -----------------------------
-   * 工具函数：把 meta 转为 FormDef 数组
-   * ----------------------------- */
-  const getFormDefFromHeaderMeta = useCallback(
-    (meta: Record<string, HeaderMetaProps> = {}) =>
-      Object.entries(meta).map(([field, definitions]) => ({
-        field,
-        ...definitions,
-        required: normalizeBoolean(definitions.required),
-        read_only: normalizeBoolean(definitions.read_only),
-      })),
-    []
-  );
-
-  /** -----------------------------
-   * 根据 columnOrder 排序字段
-   * ----------------------------- */
-  const sortFormDefs = useCallback(
-    (defs: FormDef[]) => {
-      if (!columnOrder || columnOrder.length === 0) return defs;
-
-      // Create a map for quick lookup
-      const orderMap = new Map(
-        columnOrder.map((field, index) => [field, index])
-      );
-
-      // Sort: fields in columnOrder first (by order), then others
-      return [...defs].sort((a, b) => {
-        const orderA = orderMap.get(a.field);
-        const orderB = orderMap.get(b.field);
-
-        // Both in order: sort by order
-        if (orderA !== undefined && orderB !== undefined) {
-          return orderA - orderB;
-        }
-
-        // Only a in order: a comes first
-        if (orderA !== undefined) return -1;
-
-        // Only b in order: b comes first
-        if (orderB !== undefined) return 1;
-
-        // Neither in order: keep original order
-        return 0;
-      });
-    },
-    [columnOrder]
-  );
-
-  // Process local def with useMemo - only recompute when def content actually changes
-  const localFormDefs = useMemo(() => {
-    if (!def) return [];
-
-    const target =
-      (def as any).children ||
-      (def as any).child?.children ||
-      def;
-    const defs = getFormDefFromHeaderMeta(target);
-    return sortFormDefs(defs);
-    // Don't include def in dependencies - we'll use a serialized version below
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // Use stringified def for comparison to avoid reference changes
-    def ? JSON.stringify(def) : null,
-    getFormDefFromHeaderMeta,
-    sortFormDefs,
-  ]);
-
-  /** -----------------------------
-   * 从网络获取字段定义（仅在没有 def 时）
-   * ----------------------------- */
+  /** Fetch from network */
   useEffect(() => {
-    // If we have local def, don't fetch
-    if (def || !viewSet) return;
+    // Skip if no table or empty table
+    if (!table || !viewSet) return;
 
     let cancelled = false;
 
@@ -107,16 +39,18 @@ export function useFormDefs({ table, def, columnOrder }: UseFormDefsProps) {
         const response = await viewSet.options();
         const meta: Record<string, HeaderMetaProps> =
           response?.data?.actions?.POST ?? {};
-        const defs = getFormDefFromHeaderMeta(meta);
-        const sortedDefs = sortFormDefs(defs);
+
+        // Convert and sort
+        const defs = convertToFormDefs(meta);
+        const sortedDefs = sortFormDefs(defs, columnOrder);
 
         if (!cancelled) {
-          setNetworkFormDefs(sortedDefs);
+          setFormDefs(sortedDefs);
         }
       } catch (error) {
         console.error("Error fetching form definitions:", error);
         if (!cancelled) {
-          setNetworkFormDefs([]);
+          setFormDefs([]);
         }
       }
     })();
@@ -124,8 +58,7 @@ export function useFormDefs({ table, def, columnOrder }: UseFormDefsProps) {
     return () => {
       cancelled = true;
     };
-  }, [def, viewSet, getFormDefFromHeaderMeta, sortFormDefs]);
+  }, [viewSet, columnOrder]);
 
-  // Return local defs if available, otherwise network defs
-  return def ? localFormDefs : networkFormDefs;
+  return formDefs;
 }

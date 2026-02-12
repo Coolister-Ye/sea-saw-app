@@ -1,22 +1,27 @@
 import React from "react";
 import i18n from "@/locale/i18n";
 import type { AgGridReactProps } from "ag-grid-react";
-import { FormDef } from "@/hooks/useFormDefs";
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { ItemsTable } from "@/components/sea-saw-page/base";
 
-interface ProductItemsTableProps {
-  def?: FormDef;
+interface OrderItemsTableProps {
+  /** Field definitions (already extracted as child?.children from parent) */
+  def?: Record<string, HeaderMetaProps>;
   value?: any[] | null;
   className?: string;
   agGridReactProps?: AgGridReactProps;
 }
 
-export default function ProductItemsTable({
+/**
+ * OrderItemsTable - wrapper for ItemsTable with order-specific config
+ * Note: Receives def as Record<string, HeaderMetaProps> (already extracted from parent)
+ */
+export default function OrderItemsTable({
   def,
   value,
   className = "",
   agGridReactProps,
-}: ProductItemsTableProps) {
+}: OrderItemsTableProps) {
   return (
     <ItemsTable
       def={def}

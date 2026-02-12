@@ -313,5 +313,6 @@
   "outbound_completed": "出库完成",
   "Updating pipeline status...": "正在更新流水线状态...",
   "Pipeline status updated successfully": "流水线状态更新成功",
-  "Failed to update pipeline status": "更新流水线状态失败"
+  "Failed to update pipeline status": "更新流水线状态失败",
+  "schedule information": "生产计划"
 }

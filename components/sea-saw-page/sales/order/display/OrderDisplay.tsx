@@ -23,10 +23,12 @@ import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
 import OrderStatusTag from "./OrderStatusTag";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
-import ProductItemsViewToggle from "./items/ProductItemsViewToggle";
+import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
 import OrderInput from "../input/OrderInput";
 import PipelineDisplay from "@/components/sea-saw-page/pipeline/display/PipelineDisplay";
 import PipelineTypeModal from "../input/PipelineTypeModal";
+import { pickFormDef, filterFormDefs } from "@/utils/formDefUtils";
+import type { PipelineDefs } from "@/components/sea-saw-page/pipeline/display/types";
 
 // Pipeline status colors for Tag
 const PIPELINE_STATUS_COLORS: Record<string, string> = {
@@ -93,14 +95,33 @@ export default function OrderDisplay({
   const [pipelineMeta, setPipelineMeta] = useState<any>({});
   const [loadingPipeline, setLoadingPipeline] = useState(false);
 
-  const pipelineFormDefs = useMemo(
-    () =>
-      Object.entries(pipelineMeta).map(([field, meta]: [string, any]) => ({
+  // Convert pipeline meta to FormDef[] and categorize
+  const pipelineCategorizedDefs = useMemo((): PipelineDefs => {
+    const formDefs = Object.entries(pipelineMeta).map(
+      ([field, meta]: [string, any]) => ({
         field,
         ...meta,
-      })),
-    [pipelineMeta],
-  );
+      }),
+    );
+
+    const EXCLUDED_FIELDS = [
+      "order",
+      "production_orders",
+      "purchase_orders",
+      "outbound_orders",
+      "payments",
+      "allowed_actions",
+    ];
+
+    return {
+      base: filterFormDefs(formDefs, EXCLUDED_FIELDS),
+      orders: pickFormDef(formDefs, "order"),
+      productionOrders: pickFormDef(formDefs, "production_orders"),
+      purchaseOrders: pickFormDef(formDefs, "purchase_orders"),
+      outboundOrders: pickFormDef(formDefs, "outbound_orders"),
+      payments: pickFormDef(formDefs, "payments"),
+    };
+  }, [pipelineMeta]);
 
   const fetchPipelineMeta = useCallback(async () => {
     if (pipelineMetaLoadedRef.current) return;
@@ -201,7 +222,7 @@ export default function OrderDisplay({
       order_items: {
         fullWidth: true,
         render: (def: any, value: any) => (
-          <ProductItemsViewToggle def={def} value={value} />
+          <OrderItemsViewToggle def={def} value={value} />
         ),
       },
       attachments: {
@@ -322,7 +343,7 @@ export default function OrderDisplay({
       {isPipelineOpen && (
         <PipelineDisplay
           isOpen
-          def={pipelineFormDefs}
+          defs={pipelineCategorizedDefs}
           data={pipelineData}
           onClose={handleClosePipeline}
           onCreate={handlePipelineUpdate}

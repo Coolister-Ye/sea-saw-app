@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
-import { Form } from "antd";
 
 import { FormDef } from "@/hooks/useFormDefs";
-import { devError } from "@/utils/logger";
+import { useOrderItemsManager } from "@/hooks/useOrderItemsManager";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 import OutboundItemsViewToggle from "../../../display/items/OutboundItemsViewToggle";
-import { Drawer } from "@/components/sea-saw-page/base";
-import { InputFooter } from "@/components/sea-saw-page/base";
+import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 
 interface OutboundOrderItemsInputProps {
   def: FormDef;
@@ -26,133 +24,42 @@ function OutboundOrderItemsInput({
   showToolbar = true,
   readOnly = false,
 }: OutboundOrderItemsInputProps) {
-  const [form] = Form.useForm();
+  const {
+    form,
+    list,
+    hasSelection,
+    isOpen,
+    closeDrawer,
+    handleAdd,
+    handleEdit,
+    handleCopy,
+    handleDelete,
+    handleSave,
+    handleSelectionChanged,
+    handleRowClicked,
+    handleGridReady,
+  } = useOrderItemsManager({ value, onChange, readOnly });
 
-  const [list, setList] = useState<any[]>(value);
-  const [gridApi, setGridApi] = useState<any>(null);
-  const [hasSelection, setHasSelection] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  // Sync list with value prop changes
-  useEffect(() => {
-    setList(value);
-  }, [value]);
-
-  // Populate form when drawer opens
-  useEffect(() => {
-    if (!isOpen) return;
-    form.resetFields();
-    if (editingIndex !== null && list[editingIndex]) {
-      form.setFieldsValue(list[editingIndex]);
-    }
-  }, [isOpen, editingIndex, list, form]);
-
-  const getSelectedIndex = useCallback(() => {
-    return gridApi?.getSelectedNodes?.()?.[0]?.rowIndex ?? null;
-  }, [gridApi]);
-
-  const updateList = useCallback(
-    (updatedList: any[]) => {
-      setList(updatedList);
-      onChange?.(updatedList);
-    },
-    [onChange],
-  );
-
-  const openDrawer = useCallback((index: number | null = null) => {
-    setEditingIndex(index);
-    setIsOpen(true);
-  }, []);
-
-  const closeDrawer = useCallback(() => {
-    form.resetFields();
-    setEditingIndex(null);
-    setIsOpen(false);
-  }, [form]);
-
-  // Auto-calculate outbound weights when outbound_qty changes
+  // Auto-calculate outbound weights when outbound_qty / weights change
   const handleFormValuesChange = useCallback(
     (_changedValues: any, allValues: any) => {
       const updates: Record<string, number> = {};
-
-      // Parse numeric values
       const net_weight = parseFloat(allValues.net_weight) || 0;
       const gross_weight = parseFloat(allValues.gross_weight) || 0;
       const outbound_qty = parseFloat(allValues.outbound_qty) || 0;
 
-      // Calculate outbound_net_weight: net_weight and outbound_qty → outbound_net_weight
       if (net_weight && outbound_qty) {
         updates.outbound_net_weight = net_weight * outbound_qty;
       }
-
-      // Calculate outbound_gross_weight: gross_weight and outbound_qty → outbound_gross_weight
       if (gross_weight && outbound_qty) {
         updates.outbound_gross_weight = gross_weight * outbound_qty;
       }
-
-      // Apply all updates at once
       if (Object.keys(updates).length > 0) {
         form.setFieldsValue(updates);
       }
     },
     [form],
   );
-
-  const handleAdd = useCallback(() => openDrawer(null), [openDrawer]);
-
-  const handleEdit = useCallback(
-    (index: number | null) => {
-      if (index !== null && !readOnly) openDrawer(index);
-    },
-    [openDrawer, readOnly],
-  );
-
-  const handleCopy = useCallback(() => {
-    const index = getSelectedIndex();
-    if (index === null) return;
-
-    const selectedItem = list[index];
-    if (!selectedItem) return;
-
-    const { id, ...copiedData } = selectedItem;
-    setEditingIndex(null);
-    setIsOpen(true);
-    setTimeout(() => form.setFieldsValue(copiedData), 0);
-  }, [getSelectedIndex, list, form]);
-
-  const handleDelete = useCallback(() => {
-    const index = getSelectedIndex();
-    if (index === null) return;
-    updateList(list.filter((_, i) => i !== index));
-  }, [getSelectedIndex, list, updateList]);
-
-  const handleSave = useCallback(async () => {
-    try {
-      const values = await form.validateFields();
-      const updatedList =
-        editingIndex === null
-          ? [...list, values]
-          : list.map((item, i) => (i === editingIndex ? values : item));
-      updateList(updatedList);
-      closeDrawer();
-    } catch (error) {
-      devError("Validation failed:", error);
-    }
-  }, [form, list, editingIndex, updateList, closeDrawer]);
-
-  const handleSelectionChanged = useCallback((e: any) => {
-    setHasSelection(e.api.getSelectedNodes().length > 0);
-  }, []);
-
-  const handleRowClicked = useCallback(
-    (e: { rowIndex: number | null }) => handleEdit(e.rowIndex),
-    [handleEdit],
-  );
-
-  const handleGridReady = useCallback((params: any) => {
-    setGridApi(params.api);
-  }, []);
 
   return (
     <View className="gap-3">

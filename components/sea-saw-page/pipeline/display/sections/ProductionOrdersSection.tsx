@@ -11,16 +11,16 @@ import {
   SectionStatsBadge,
   SectionContentCard,
 } from "@/components/sea-saw-page/base";
-import ProductionOrderItemsCard from "@/components/sea-saw-page/production/production-order/display/items/ProductionOrderItemsCard";
 import ProductionAddDivider from "@/components/sea-saw-page/production/production-order/display/shared/ProductionAddDivider";
 import ProductionOrderEmptySlot from "@/components/sea-saw-page/production/production-order/display/shared/ProductionOrderEmptySlot";
 import ProductionOrderInput from "@/components/sea-saw-page/production/production-order/input/ProductionOrderInput";
+import ProductionOrderCard from "@/components/sea-saw-page/production/production-order/display/ProductionOrderCard";
 
 export default function ProductionOrdersSection({
   order,
   orderStatus,
   productionOrders,
-  defs,
+  def,
   optionState,
   editingProd,
   setEditingProd,
@@ -63,8 +63,8 @@ export default function ProductionOrdersSection({
       <SectionContentCard gradientColors="from-amber-400 via-amber-500 to-orange-400">
         {productionOrders.length ? (
           <>
-            <ProductionOrderItemsCard
-              def={defs.productionOrders}
+            <ProductionOrderCard
+              def={def}
               value={productionOrders}
               onItemClick={(index: number) =>
                 setEditingProd(productionOrders[index])
@@ -74,14 +74,14 @@ export default function ProductionOrdersSection({
             />
 
             <ProductionAddDivider
-              disabled={!optionState.includes("in_production")}
+              disabled={!optionState.includes("in_production") && !optionState.includes("in_purchase_and_production")}
               onAdd={() => setEditingProd({ order: order.id })}
             />
           </>
         ) : (
           <ProductionOrderEmptySlot
             pipelineId={order.id}
-            disabled={!optionState.includes("in_production")}
+            disabled={!optionState.includes("in_production") && !optionState.includes("in_purchase_and_production")}
             onCreate={onUpdate}
           />
         )}
@@ -89,7 +89,7 @@ export default function ProductionOrdersSection({
 
       <ProductionOrderInput
         isOpen={Boolean(editingProd)}
-        def={defs.productionOrders}
+        def={def}
         data={editingProd ?? {}}
         pipelineId={order.id}
         onClose={() => setEditingProd(null)}

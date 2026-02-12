@@ -1,31 +1,33 @@
 import { Tag } from "antd";
-import { useMemo } from "react";
+import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
+
+interface ProductionStatusTagProps {
+  value: string;
+  def?: { choices?: Array<{ value: string; label: string }> };
+  className?: string;
+}
+
+const STATUS_COLOR: Record<string, string> = {
+  draft: "default",
+  active: "processing",
+  completed: "success",
+  cancelled: "error",
+  issue_reported: "warning",
+};
 
 /* ========================
  * Status Tag Renderer
  * ======================== */
-function ProductionStatusTag({ value, def }: { value: string; def?: any }) {
-  const statusColorMap: Record<string, string> = {
-    draft: "default",
-    planned: "blue",
-    in_progress: "processing",
-    paused: "warning",
-    finished: "success",
-    cancelled: "error",
-    issue_reported: "error",
-  };
-
-  // Build status label map from def.choices
-  const statusLabelMap = useMemo(() => {
-    if (!def?.choices) return {};
-    return Object.fromEntries(
-      def.choices.map((d: { value: any; label: any }) => [d.value, d.label])
-    );
-  }, [def?.choices]);
+function ProductionStatusTag({
+  value,
+  def,
+  className,
+}: ProductionStatusTagProps) {
+  const statusLabelMap = useStatusLabelMap(def);
 
   return (
-    <Tag color={statusColorMap[value] || "default"}>
-      {statusLabelMap[value] || value}
+    <Tag color={STATUS_COLOR[value] ?? "default"} className={className}>
+      {statusLabelMap[value] ?? value}
     </Tag>
   );
 }

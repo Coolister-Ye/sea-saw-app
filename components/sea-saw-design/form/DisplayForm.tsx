@@ -1,14 +1,16 @@
+import { useMemo } from "react";
 import { View, Text } from "react-native";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
+import { convertToFormDefs, sortFormDefs } from "@/utils/formDefUtils";
 import { Button } from "@/components/sea-saw-design/button";
 import { PencilSquareIcon } from "react-native-heroicons/outline";
 import FileDisplay from "./FileDisplay";
 
 interface DisplayFormProps {
   table?: string;
-  def?: Record<string, any>;
+  def?: Record<string, any> | FormDef[];
   config?: Record<string, any>;
   data?: Record<string, any>;
   className?: string;
@@ -28,7 +30,24 @@ function DisplayForm({
   onEdit,
   columnOrder,
 }: DisplayFormProps) {
-  const formDefs = useFormDefs({ table, def, columnOrder });
+  // Strategy: Use local def if provided, otherwise fetch from network
+  const shouldFetchFromNetwork = !def && !!table;
+
+  // Fetch from network (only if needed, empty string skips fetch)
+  const networkFormDefs = useFormDefs({
+    table: shouldFetchFromNetwork ? table! : "",
+    columnOrder,
+  });
+
+  // Convert local def to FormDef[]
+  const localFormDefs = useMemo(() => {
+    if (!def) return [];
+    const converted = convertToFormDefs(def);
+    return sortFormDefs(converted, columnOrder);
+  }, [def, columnOrder]);
+
+  // Use local defs if available, otherwise network defs
+  const formDefs = def ? localFormDefs : networkFormDefs;
 
   /* ========================
    * 字段宽度计算

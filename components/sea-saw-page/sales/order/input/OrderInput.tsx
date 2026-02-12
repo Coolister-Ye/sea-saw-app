@@ -1,11 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
-import { Form, message, Input } from "antd";
+import { Form, Input } from "antd";
 
-import useDataService from "@/hooks/useDataService";
-import { prepareRequestBody } from "@/utils/form";
-import { devError } from "@/utils/logger";
 import { round2, toNumber } from "@/utils/number";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
@@ -14,6 +11,7 @@ import OrderItemsInput from "./OrderItemsInput";
 import OrderStatusSelector from "./OrderStatusSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
+import useOrderDrawerForm from "@/hooks/useOrderDrawerForm";
 
 const { TextArea } = Input;
 
@@ -32,13 +30,6 @@ interface OrderInputProps {
   columnOrder?: string[];
 }
 
-const normalizePayload = (values: any) => {
-  const payload = { ...values };
-  delete payload.account;
-  delete payload.contact;
-  return payload;
-};
-
 export default function OrderInput({
   mode = "standalone",
   isOpen,
@@ -50,39 +41,40 @@ export default function OrderInput({
   pipelineId,
   columnOrder,
 }: OrderInputProps) {
-  const { getViewSet } = useDataService();
+  const getDefaultValues = () => ({
+    status: "draft",
+    order_date: new Date().toISOString().split("T")[0],
+    currency: "USD",
+  });
 
-  const orderViewSet = useMemo(
-    () => getViewSet(mode === "nested" ? "nestedOrder" : "order"),
-    [getViewSet, mode],
-  );
+  const normalizePayload = (values: any) => {
+    const payload = { ...values };
+    delete payload.account;
+    delete payload.contact;
+    return payload;
+  };
 
-  const [form] = Form.useForm();
-  const [messageApi, contextHolder] = message.useMessage();
-  const [loading, setLoading] = useState(false);
-
-  const isEdit = Boolean(data?.id);
+  const { form, loading, contextHolder, isEdit, handleSave } =
+    useOrderDrawerForm({
+      mode,
+      isOpen,
+      data,
+      pipelineId,
+      nestedViewSetKey: "nestedOrder",
+      standaloneViewSetKey: "order",
+      nestedParamName: "related_pipeline",
+      nestedPayloadKey: "related_pipeline",
+      normalizePayload,
+      defaultValues: getDefaultValues,
+      entityName: "Order",
+      onClose,
+      onCreate,
+      onUpdate,
+    });
 
   const deposit = Form.useWatch("deposit", form);
   const orderItems = Form.useWatch("order_items", form);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (isEdit) {
-      form.setFieldsValue(data);
-    } else {
-      form.resetFields();
-      form.setFieldsValue({
-        status: "draft",
-        order_date: new Date().toISOString().split("T")[0],
-        currency: "USD",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, isEdit, form]);
-
-  // 自动计算 total_amount 和 balance
   useEffect(() => {
     const totalAmount = (orderItems ?? []).reduce(
       (sum: number, item: any) => sum + (parseFloat(item?.total_price) || 0),
@@ -124,77 +116,6 @@ export default function OrderInput({
     }),
     [],
   );
-
-  const showMessage = useCallback(
-    (type: "loading" | "success" | "error", content: string) => {
-      messageApi.open({
-        key: "save",
-        type,
-        content,
-        duration: type === "loading" ? 0 : undefined,
-      });
-    },
-    [messageApi],
-  );
-
-  const handleSave = useCallback(async () => {
-    try {
-      setLoading(true);
-      const values = await form.validateFields();
-      let payload = normalizePayload(values);
-
-      showMessage("loading", i18n.t("saving"));
-
-      const params: Record<string, any> = {};
-      if (mode === "nested") {
-        if (!pipelineId) {
-          throw new Error("Pipeline ID is required for nested mode");
-        }
-        payload = { ...payload, related_pipeline: pipelineId };
-        params.related_pipeline = pipelineId;
-        params.return_related = "true";
-      }
-
-      const requestBody = prepareRequestBody(payload);
-      const nestedParams = mode === "nested" ? { params } : {};
-
-      const res = isEdit
-        ? await orderViewSet.update({
-            id: data.id!,
-            body: requestBody,
-            ...nestedParams,
-          })
-        : await orderViewSet.create({
-            body: requestBody,
-            ...nestedParams,
-          });
-
-      showMessage("success", i18n.t("save successfully"));
-      (isEdit ? onUpdate : onCreate)?.(res);
-      onClose(res);
-    } catch (err: any) {
-      devError("Order save failed:", err);
-      showMessage(
-        "error",
-        err?.message ||
-          err?.response?.data?.message ||
-          i18n.t("Save failed, please try again"),
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    form,
-    showMessage,
-    mode,
-    pipelineId,
-    isEdit,
-    orderViewSet,
-    data,
-    onUpdate,
-    onCreate,
-    onClose,
-  ]);
 
   return (
     <Drawer

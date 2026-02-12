@@ -24,7 +24,7 @@ export interface ProductionOrdersSectionProps {
   order: any;
   orderStatus: string;
   productionOrders: any[];
-  defs: OrderDefs;
+  def: any;
   displayConfig: any;
   optionState: string[];
   editingProd: any | null;
@@ -37,7 +37,7 @@ export interface OutboundOrdersSectionProps {
   pipeline: any; // Pipeline object
   pipelineStatus: string; // Pipeline status
   outboundOrders: any[];
-  defs: OrderDefs;
+  def: any;
   displayConfig?: any;
   optionState: string[];
   editingOb: any | null;
@@ -50,7 +50,7 @@ export interface PaymentsSectionProps {
   order: any;
   orderStatus: string;
   payments: any[];
-  defs: OrderDefs;
+  def: any;
   editingPayment: any | null;
   setEditingPayment: (payment: any | null) => void;
   onCreate?: (res: any) => void;
@@ -61,7 +61,7 @@ export interface PurchaseOrdersSectionProps {
   order: any;
   orderStatus: string;
   purchaseOrders: any[];
-  defs: OrderDefs;
+  def: any;
   displayConfig: any;
   optionState: string[];
   editingPurchase: any | null;

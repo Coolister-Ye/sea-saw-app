@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
 import { TruckIcon, CubeIcon } from "react-native-heroicons/outline";
 import { OutboundOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
-import OutboundOrderItemsCard from "@/components/sea-saw-page/warehouse/outbound-order/display/items/OutboundOrderItemsCard";
+import OutboundOrderCard from "@/components/sea-saw-page/warehouse/outbound-order/display/OutboundOrderCard";
 import OutboundAddDivider from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundAddDivider";
 import OutboundOrderEmptySlot from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundOrderEmptySlot";
 import OutboundOrderInput from "@/components/sea-saw-page/warehouse/outbound-order/input/nested/OutboundOrderInput";
@@ -13,7 +13,7 @@ export default function OutboundOrdersSection({
   pipeline,
   pipelineStatus,
   outboundOrders,
-  defs,
+  def,
   optionState,
   editingOb,
   setEditingOb,
@@ -75,8 +75,8 @@ export default function OutboundOrdersSection({
         <View className="p-1">
           {outboundOrders.length ? (
             <>
-              <OutboundOrderItemsCard
-                def={defs.outboundOrders}
+              <OutboundOrderCard
+                def={def}
                 value={outboundOrders}
                 onItemClick={(index: number) =>
                   setEditingOb(outboundOrders[index])
@@ -102,7 +102,7 @@ export default function OutboundOrdersSection({
 
       <OutboundOrderInput
         isOpen={Boolean(editingOb)}
-        def={defs.outboundOrders}
+        def={def}
         data={editingOb ?? {}}
         pipelineId={pipeline.id}
         onClose={() => setEditingOb(null)}

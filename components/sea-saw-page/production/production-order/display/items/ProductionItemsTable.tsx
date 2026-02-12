@@ -1,11 +1,12 @@
 import React, { useMemo } from "react";
 import i18n from "@/locale/i18n";
 import type { AgGridReactProps } from "ag-grid-react";
-import { FormDef } from "@/hooks/useFormDefs";
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { ItemsTable, type ColumnConfig } from "@/components/sea-saw-page/base";
 
 interface ProductionItemsTableProps {
-  def?: FormDef;
+  /** Field definitions (already extracted as child?.children from parent) */
+  def?: Record<string, HeaderMetaProps>;
   value?: any[] | null;
   className?: string;
   agGridReactProps?: AgGridReactProps;

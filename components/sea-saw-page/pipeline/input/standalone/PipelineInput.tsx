@@ -11,6 +11,7 @@ import { Form, message } from "antd";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils/form";
+import { devError } from "@/utils/logger";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 import OrderSelector from "@/components/sea-saw-page/sales/order/input/OrderSelector";
@@ -219,7 +220,7 @@ export default function PipelineInput({
       showMessage("success", i18n.t("save successfully"));
       onClose(res);
     } catch (err: any) {
-      console.error("Pipeline save failed:", err);
+      devError("Pipeline save failed:", err);
       const errorMessage =
         err?.message ||
         err?.response?.data?.message ||

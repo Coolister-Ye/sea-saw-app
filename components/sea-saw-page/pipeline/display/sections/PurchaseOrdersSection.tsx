@@ -1,23 +1,23 @@
 import React from "react";
 import i18n from "@/locale/i18n";
-import PurchaseOrderItemsCard from "../../../procurement/purchase-order/display/items/PurchaseOrderItemsCard";
 import { ShoppingBagIcon, CubeIcon } from "react-native-heroicons/outline";
 import { PurchaseOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
-import PurchaseAddDivider from "../../../procurement/purchase-order/display/shared/PurchaseAddDivider";
-import PurchaseOrderEmptySlot from "../../../procurement/purchase-order/display/shared/PurchaseOrderEmptySlot";
-import PurchaseOrderInput from "../../../procurement/purchase-order/input/nested/PurchaseOrderInput";
 import {
   SectionWrapper,
   SectionHeader,
   SectionStatsBadge,
   SectionContentCard,
 } from "@/components/sea-saw-page/base";
+import PurchaseOrderCard from "@/components/sea-saw-page/procurement/purchase-order/display/PurchaseOrderCard";
+import PurchaseAddDivider from "@/components/sea-saw-page/procurement/purchase-order/display/shared/PurchaseAddDivider";
+import PurchaseOrderEmptySlot from "@/components/sea-saw-page/procurement/purchase-order/display/shared/PurchaseOrderEmptySlot";
+import PurchaseOrderInput from "@/components/sea-saw-page/procurement/purchase-order/input/PurchaseOrderInput";
 
 export default function PurchaseOrdersSection({
   order,
   orderStatus,
   purchaseOrders,
-  defs,
+  def,
   optionState,
   editingPurchase,
   setEditingPurchase,
@@ -60,8 +60,8 @@ export default function PurchaseOrdersSection({
       <SectionContentCard gradientColors="from-purple-400 via-purple-500 to-pink-400">
         {purchaseOrders.length ? (
           <>
-            <PurchaseOrderItemsCard
-              def={defs.purchaseOrders}
+            <PurchaseOrderCard
+              def={def}
               value={purchaseOrders}
               onItemClick={(index: number) =>
                 setEditingPurchase(purchaseOrders[index])
@@ -71,7 +71,7 @@ export default function PurchaseOrdersSection({
             />
 
             <PurchaseAddDivider
-              disabled={!optionState.includes("create_purchase_order")}
+              disabled={!optionState.includes("in_purchase") && !optionState.includes("in_purchase_and_production")}
               onAdd={() => setEditingPurchase({ order: order.id })}
             />
           </>
@@ -79,16 +79,17 @@ export default function PurchaseOrdersSection({
           <PurchaseOrderEmptySlot
             orderId={order.id}
             onCreate={onUpdate}
-            disabled={!optionState.includes("create_purchase_order")}
+            disabled={!optionState.includes("in_purchase") && !optionState.includes("in_purchase_and_production")}
           />
         )}
       </SectionContentCard>
 
       <PurchaseOrderInput
+        mode="nested"
         isOpen={Boolean(editingPurchase)}
-        def={defs.purchaseOrders}
+        def={def}
         data={editingPurchase ?? {}}
-        orderId={order.id}
+        pipelineId={order.id}
         onClose={() => setEditingPurchase(null)}
         onCreate={onCreate}
         onUpdate={onUpdate}

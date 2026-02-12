@@ -119,7 +119,7 @@ export default function PipelineScreen() {
         {/* View Drawer */}
         <PipelineDisplay
           isOpen={isViewOpen}
-          def={formDefs}
+          defs={defs}
           data={viewRow}
           onClose={closeView}
           onCreate={handleCreateSuccess}

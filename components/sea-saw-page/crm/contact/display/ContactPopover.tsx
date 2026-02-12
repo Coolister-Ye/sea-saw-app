@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { Popover, Button } from "antd";
 import { UserIcon } from "react-native-heroicons/outline";
 
-import { Text } from "@/components/sea-saw-design/text";
 import { PopoverCard } from "@/components/sea-saw-page/base/popover";
 
 interface Contact {
@@ -38,7 +37,21 @@ export default function ContactPopover({ value, def }: ContactPopoverProps) {
   );
 
   if (!value) {
-    return <Text>-</Text>;
+    return (
+      <Button
+        type="link"
+        disabled
+        style={{
+          padding: 0,
+          height: "auto",
+          lineHeight: "inherit",
+          cursor: "default",
+        }}
+        className="text-slate-400"
+      >
+        -
+      </Button>
+    );
   }
 
   return (

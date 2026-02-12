@@ -105,13 +105,21 @@ export function ViewToggle<T extends string = string>({
               transform: [{ scale: 1 }],
             }}
           >
-            {option.icon &&
-              React.cloneElement(option.icon as React.ReactElement, {
-                style: {
-                  fontSize: config.icon,
-                  color: isActive ? styles.activeIcon : styles.inactiveIcon,
-                },
-              })}
+            {option.icon && (
+              <View
+                style={{
+                  width: config.icon,
+                  height: config.icon,
+                }}
+              >
+                {React.isValidElement(option.icon)
+                  ? React.cloneElement(option.icon, {
+                      size: config.icon,
+                      color: isActive ? styles.activeIcon : styles.inactiveIcon,
+                    } as any)
+                  : option.icon}
+              </View>
+            )}
             <Text
               className={`${config.text} ${
                 isActive ? styles.activeText : styles.inactiveText

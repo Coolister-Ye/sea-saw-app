@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import dayjs from "dayjs";
-import { useFormDefs, FormDef } from "./useFormDefs";
+import { convertToFormDefs } from "@/utils/formDefUtils";
+import { useFieldHelpers } from "./useFieldHelpers";
+
+export { filterVisibleFields } from "./useFieldHelpers";
 
 interface FieldSection {
   title?: string; // Section title (optional, will use i18n if needed)
@@ -17,79 +19,21 @@ interface FieldConfig {
 
 /**
  * Custom hook to provide common helpers for card item components
- * Encapsulates choice maps, field value rendering, and field filtering logic
+ * Wrapper around useFieldHelpers with backward compatibility
  *
- * @param def - Form definition object (usually from API OPTIONS)
+ * @param def - Form definition (FormDef[] or raw meta object)
  * @param fieldConfig - Configuration for field categorization
  * @returns Object with helper functions and filtered field arrays
+ *
+ * @deprecated Use useFieldHelpers directly with convertToFormDefs when possible
  */
 export function useCardItemHelpers(def: any, fieldConfig?: FieldConfig) {
-  // Get form definitions from the def prop
-  const formDefs = useFormDefs({ def });
+  // Normalize def to FormDef array (handles backward compatibility)
+  const formDefs = useMemo(() => convertToFormDefs(def), [def]);
 
-  // Build choice maps for efficient lookup
-  const choiceMaps = useMemo(() => {
-    const maps: Record<string, Record<string, string>> = {};
-    formDefs.forEach((fieldDef) => {
-      if (fieldDef.choices?.length) {
-        maps[fieldDef.field] = {};
-        fieldDef.choices.forEach((choice: { value: string; label: string }) => {
-          maps[fieldDef.field][choice.value] = choice.label;
-        });
-      }
-    });
-    return maps;
-  }, [formDefs]);
-
-  // Helper to get choice label
-  const getChoiceLabel = useMemo(
-    () => (fieldName: string, val: string) =>
-      choiceMaps[fieldName]?.[val] ?? val,
-    [choiceMaps],
-  );
-
-  // Helper to render field value based on type
-  const renderFieldValue = useMemo(
-    () => (fieldDef: FormDef, value: any): string => {
-      if (value === null || value === undefined || value === "") {
-        return "—";
-      }
-
-      // Date/datetime formatting
-      if (fieldDef.type === "datetime") {
-        return dayjs(value).isValid()
-          ? dayjs(value).format("YYYY-MM-DD HH:mm:ss")
-          : String(value);
-      }
-      if (fieldDef.type === "date") {
-        return dayjs(value).isValid()
-          ? dayjs(value).format("YYYY-MM-DD")
-          : String(value);
-      }
-
-      // Choice fields
-      if (fieldDef.choices?.length) {
-        return getChoiceLabel(fieldDef.field, value);
-      }
-
-      // Boolean fields
-      if (fieldDef.type === "boolean") {
-        return value ? "Yes" : "No";
-      }
-
-      // Number fields with formatting
-      if (
-        fieldDef.type === "integer" ||
-        fieldDef.type === "float" ||
-        fieldDef.type === "decimal"
-      ) {
-        return String(value);
-      }
-
-      return String(value);
-    },
-    [getChoiceLabel],
-  );
+  // Get field helpers (pure computation)
+  const { getChoiceLabel, renderFieldValue, getFieldLabel, choiceMaps } =
+    useFieldHelpers(formDefs);
 
   // Filter fields for Info Grid section (if config provided)
   const infoGridFields = useMemo(() => {
@@ -108,13 +52,6 @@ export function useCardItemHelpers(def: any, fieldConfig?: FieldConfig) {
       fieldConfig.fullWidth!.includes(fieldDef.field),
     );
   }, [formDefs, fieldConfig]);
-
-  // Helper to get field label
-  const getFieldLabel = useMemo(
-    () => (fieldName: string) =>
-      formDefs.find((f) => f.field === fieldName)?.label ?? fieldName,
-    [formDefs],
-  );
 
   // Process field sections if configured
   const fieldSections = useMemo(() => {
@@ -137,26 +74,6 @@ export function useCardItemHelpers(def: any, fieldConfig?: FieldConfig) {
     infoGridFields,
     fullWidthFields,
     getFieldLabel,
-    fieldSections, // New: organized field sections
+    fieldSections,
   };
-}
-
-/**
- * Helper to filter visible fields based on hideEmptyFields flag
- *
- * @param fields - Array of field definitions
- * @param item - Data item object
- * @param hideEmptyFields - Whether to hide fields with no value
- * @returns Filtered array of field definitions
- */
-export function filterVisibleFields(
-  fields: FormDef[],
-  item: any,
-  hideEmptyFields: boolean,
-): FormDef[] {
-  if (!hideEmptyFields) return fields;
-  return fields.filter((fieldDef) => {
-    const value = item[fieldDef.field];
-    return value !== null && value !== undefined && value !== "";
-  });
 }

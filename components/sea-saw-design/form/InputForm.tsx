@@ -16,6 +16,7 @@ import { useEffect, useMemo } from "react";
 
 import { InputFormProps } from "./interface";
 import { useFormDefs, FormDef } from "@/hooks/useFormDefs";
+import { convertToFormDefs, sortFormDefs } from "@/utils/formDefUtils";
 
 // Constants
 const NUMERIC_TYPES = new Set(["integer", "float", "double", "decimal"]);
@@ -130,7 +131,24 @@ export default function InputForm({
   onFinishFailed,
   ...restFormProps
 }: InputFormProps & { data?: Record<string, any> }) {
-  const formDefs = useFormDefs({ table, def, columnOrder });
+  // Strategy: Use local def if provided, otherwise fetch from network
+  const shouldFetchFromNetwork = !def && !!table;
+
+  // Fetch from network (only if needed, empty string skips fetch)
+  const networkFormDefs = useFormDefs({
+    table: shouldFetchFromNetwork ? table! : "",
+    columnOrder,
+  });
+
+  // Convert local def to FormDef[]
+  const localFormDefs = useMemo(() => {
+    if (!def) return [];
+    const converted = convertToFormDefs(def);
+    return sortFormDefs(converted, columnOrder);
+  }, [def, columnOrder]);
+
+  // Use local defs if available, otherwise network defs
+  const formDefs = def ? localFormDefs : networkFormDefs;
 
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {

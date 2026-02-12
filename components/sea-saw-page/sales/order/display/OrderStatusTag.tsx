@@ -1,8 +1,10 @@
 import { Tag } from "antd";
-import i18n from "@/locale/i18n";
+import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
 
 interface OrderStatusTagProps {
   value: string;
+  def?: { choices?: Array<{ value: string; label: string }> };
+  className?: string;
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -13,9 +15,13 @@ const STATUS_COLOR: Record<string, string> = {
   issue_reported: "warning",
 };
 
-function OrderStatusTag({ value }: OrderStatusTagProps) {
+function OrderStatusTag({ value, def, className }: OrderStatusTagProps) {
+  const statusLabelMap = useStatusLabelMap(def);
+
   return (
-    <Tag color={STATUS_COLOR[value] ?? "default"}>{i18n.t(value) || value}</Tag>
+    <Tag color={STATUS_COLOR[value] ?? "default"} className={className}>
+      {statusLabelMap[value] ?? value}
+    </Tag>
   );
 }
 

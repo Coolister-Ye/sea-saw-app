@@ -1,30 +1,48 @@
-import React, { useState, useMemo } from "react";
-import i18n from '@/locale/i18n';
+import React, { ComponentType, useState, useMemo } from "react";
 import { View } from "react-native";
-import type { AgGridReactProps } from "ag-grid-react";
+import i18n from "@/locale/i18n";
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
+import type { AgGridReactProps } from "ag-grid-react";
 import {
   ViewToggle,
   type ViewToggleOption,
 } from "@/components/sea-saw-design/view-toggle";
-import ProductItemsCard from "./ProductItemsCard";
-import ProductItemsTable from "./ProductItemsTable";
 
 type ViewMode = "card" | "table";
 
-interface ProductItemsViewToggleProps {
+interface CardComponentProps {
+  def?: any;
+  value?: any[] | null;
+  onItemClick?: (index: number) => void;
+}
+
+interface TableComponentProps {
+  def?: any;
+  value?: any[] | null;
+  agGridReactProps?: AgGridReactProps;
+}
+
+interface ItemsViewToggleProps {
   def?: any;
   value?: any[] | null;
   agGridReactProps?: AgGridReactProps;
   onItemClick?: (index: number) => void;
+  CardComponent: ComponentType<CardComponentProps>;
+  TableComponent: ComponentType<TableComponentProps>;
 }
 
-export default function ProductItemsViewToggle({
+/**
+ * Generic toggle between card and table view for order items.
+ * Used by Purchase, Production, Order, and Outbound item view toggles.
+ */
+export default function ItemsViewToggle({
   def,
   value,
   agGridReactProps,
   onItemClick,
-}: ProductItemsViewToggleProps) {
+  CardComponent,
+  TableComponent,
+}: ItemsViewToggleProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const toggleOptions = useMemo<ViewToggleOption<ViewMode>[]>(
@@ -40,28 +58,26 @@ export default function ProductItemsViewToggle({
         icon: <TableOutlined />,
       },
     ],
-    [i18n],
+    [],
   );
 
   return (
     <View className="w-full">
-      {/* View Mode Toggle */}
       <View className="flex-row items-center justify-end mb-4">
         <ViewToggle
           options={toggleOptions}
           value={viewMode}
           onChange={setViewMode}
-          size="md"
+          size="sm"
           variant="default"
         />
       </View>
 
-      {/* Display Mode */}
       <View className="w-full">
         {viewMode === "card" ? (
-          <ProductItemsCard def={def} value={value} onItemClick={onItemClick} />
+          <CardComponent def={def} value={value} onItemClick={onItemClick} />
         ) : (
-          <ProductItemsTable
+          <TableComponent
             def={def}
             value={value}
             agGridReactProps={agGridReactProps}

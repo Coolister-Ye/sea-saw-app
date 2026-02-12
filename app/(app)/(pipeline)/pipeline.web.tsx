@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { useEntityPage } from "@/hooks/useEntityPage";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
+import { pickFormDef, filterFormDefs } from "@/utils/formDefUtils";
 
 import Table from "@/components/sea-saw-design/table";
 import { theme } from "@/components/sea-saw-design/table/theme";
@@ -20,6 +21,16 @@ import PipelineStatusRender from "@/components/sea-saw-page/pipeline/table/Pipel
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 import PipelineInput from "@/components/sea-saw-page/pipeline/input/standalone/PipelineInput";
 import PipelineDisplay from "@/components/sea-saw-page/pipeline/display/PipelineDisplay";
+import type { PipelineDefs } from "@/components/sea-saw-page/pipeline/display/types";
+
+const EXCLUDED_FIELDS = [
+  "order",
+  "production_orders",
+  "purchase_orders",
+  "outbound_orders",
+  "payments",
+  "allowed_actions",
+] as const;
 
 export default function PipelineScreen() {
   const {
@@ -53,31 +64,20 @@ export default function PipelineScreen() {
     filterMetaFields: ["allowed_actions"],
   });
 
-  /* ================= Defs 拆分 ================= */
-  const defs = useMemo(() => {
-    const pick = (field: string) => formDefs.find((d) => d.field === field);
-
+  // Categorize defs once - no duplicate transformations
+  const categorizedDefs = useMemo((): PipelineDefs => {
     return {
-      base: formDefs.filter(
-        (d) =>
-          ![
-            "order",
-            "production_orders",
-            "purchase_orders",
-            "outbound_orders",
-            "payments",
-            "allowed_actions",
-          ].includes(d.field),
-      ),
-      order: pick("order"),
-      productionOrders: pick("production_orders"),
-      purchaseOrders: pick("purchase_orders"),
-      outboundOrders: pick("outbound_orders"),
-      payments: pick("payments"),
+      base: filterFormDefs(formDefs, [...EXCLUDED_FIELDS]),
+      orders: pickFormDef(formDefs, "order"),
+      productionOrders: pickFormDef(formDefs, "production_orders"),
+      purchaseOrders: pickFormDef(formDefs, "purchase_orders"),
+      outboundOrders: pickFormDef(formDefs, "outbound_orders"),
+      payments: pickFormDef(formDefs, "payments"),
     };
   }, [formDefs]);
 
-  /* ================= Column Renderers ================= */
+  console.log("categorizedDefs", categorizedDefs);
+
   const colRenderers = useMemo(
     () => ({
       active_entity: { hide: true },
@@ -108,7 +108,7 @@ export default function PipelineScreen() {
         {/* Create / Copy Drawer */}
         <PipelineInput
           isOpen={isEditOpen}
-          def={defs.base}
+          def={categorizedDefs.base}
           data={editData}
           onClose={closeEdit}
           onCreate={handleCreateSuccess}
@@ -118,7 +118,7 @@ export default function PipelineScreen() {
         {/* View Drawer */}
         <PipelineDisplay
           isOpen={isViewOpen}
-          def={formDefs}
+          defs={categorizedDefs}
           data={viewRow}
           onClose={closeView}
           onCreate={handleCreateSuccess}

@@ -1,73 +1,25 @@
-import React from "react";
-import i18n from "@/locale/i18n";
+import React, { useMemo } from "react";
 import { View } from "react-native";
+import i18n from "@/locale/i18n";
 import { Tag } from "antd";
 import { Text } from "@/components/sea-saw-design/text";
-import { formatNumberTrim } from "@/utils";
+import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import {
-  ItemsCard,
-  type ItemsCardFieldConfig,
-  type TagConfig,
-  CardSection,
-  CardField,
+  Card,
+  Field,
+  FieldGrid,
+  EmptySlot,
 } from "@/components/sea-saw-page/base";
+import { convertToFormDefs } from "@/utils/formDefUtils";
+import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 
 interface OutboundItemsCardProps {
-  def?: any;
+  /** Field definitions (already extracted as child?.children from parent) */
+  def?: Record<string, HeaderMetaProps>;
   value?: any[] | null;
   onItemClick?: (index: number) => void;
   hideEmptyFields?: boolean;
 }
-
-// Field configuration for outbound items card
-const FIELD_CONFIG: ItemsCardFieldConfig = {
-  // Fields shown in header/tags, exclude from auto-rendering
-  exclude: [
-    "id",
-    "product_name",
-    "specification",
-    "size",
-    "unit",
-    "glazing",
-    // Outbound-specific fields handled in extra sections
-    "order_qty",
-    "outbound_qty",
-    "outbound_net_weight",
-    "outbound_gross_weight",
-  ],
-  // Full-width text fields
-  fullWidth: ["comment", "notes", "description", "remark"],
-  // Organized field sections
-  sections: [
-    {
-      title: "packaging information",
-      fields: ["inner_packaging", "outter_packaging"],
-      className: "bg-white",
-    },
-    {
-      title: "weight information",
-      fields: [
-        "gross_weight",
-        "net_weight",
-        "total_gross_weight",
-        "total_net_weight",
-      ],
-      className: "bg-slate-50/70",
-    },
-  ],
-};
-
-// Tag configurations
-const TAGS: TagConfig[] = [
-  { field: "size", color: "blue", showLabel: true },
-  { field: "unit", color: "cyan", showLabel: true },
-  {
-    field: "glazing",
-    color: "purple",
-    showLabel: true,
-    format: (value) => (Number(value) * 100).toFixed(0) + "%",
-  },
-];
 
 export default function OutboundItemsCard({
   def,
@@ -75,6 +27,38 @@ export default function OutboundItemsCard({
   onItemClick,
   hideEmptyFields = false,
 }: OutboundItemsCardProps) {
+  // Normalize value to array
+  const items = useMemo(() => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  }, [value]);
+
+  // Convert def to FormDefs and get field helpers
+  // Note: def is already extracted as child?.children from parent
+  const formDefs = useMemo(
+    () => convertToFormDefs(def),
+    [def]
+  );
+  const { getFieldLabel, renderFieldValue } = useFieldHelpers(formDefs);
+
+  // Helper to get field def by name
+  const getFieldDef = (fieldName: string) =>
+    formDefs.find((d) => d.field === fieldName);
+
+  // Helper to check if field should be shown
+  const shouldShowField = (item: any, fieldName: string) => {
+    if (!hideEmptyFields) return true;
+    const fieldValue = item[fieldName];
+    return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
+  };
+
+  // Helper to safely render field value
+  const renderField = (fieldName: string, itemValue: any) => {
+    const fieldDef = getFieldDef(fieldName);
+    if (!fieldDef) return itemValue?.toString() || "—";
+    return renderFieldValue(fieldDef, itemValue);
+  };
+
   // Calculate outbound progress percent for an item
   const getOutboundPercent = (item: any) => {
     const orderQty = Number(item.order_qty || 0);
@@ -82,127 +66,146 @@ export default function OutboundItemsCard({
     return orderQty > 0 ? ((outboundQty / orderQty) * 100).toFixed(1) : null;
   };
 
-  // Custom header with outbound percent in top-right corner
-  const renderHeader = (
-    item: any,
-    _index: number,
-    getFieldLabel: (field: string) => string,
-  ) => {
+  if (items.length === 0) {
+    return <EmptySlot message={i18n.t("No outbound items")} />;
+  }
+
+  const renderCard = (item: any, index: number) => {
+    const clickable = typeof onItemClick === "function";
     const outboundPercent = getOutboundPercent(item);
 
     return (
-      <View className="p-4 pb-3">
-        <View className="flex-row justify-between items-start mb-1">
-          <Text className="text-base font-semibold text-slate-800 flex-1">
-            {item.product_name || getFieldLabel("product_name")}
-          </Text>
-          {outboundPercent != null && (
-            <Tag color={Number(outboundPercent) >= 100 ? "green" : "orange"}>
-              {outboundPercent}%
-            </Tag>
-          )}
-        </View>
-        {item.specification && (
-          <Text className="text-sm text-slate-500 mb-2">
-            {item.specification}
-          </Text>
-        )}
-
-        {/* Attributes Tags */}
-        {TAGS.length > 0 && (
-          <View className="flex-row gap-2 flex-wrap">
-            {TAGS.map((tagConfig) => {
-              const tagValue = item[tagConfig.field];
-              if (!tagValue) return null;
-              const displayValue = tagConfig.format
-                ? tagConfig.format(tagValue)
-                : tagValue;
-              return (
-                <Tag key={tagConfig.field} color={tagConfig.color}>
-                  {tagConfig.showLabel !== false
-                    ? `${getFieldLabel(tagConfig.field)}: ${displayValue}`
-                    : displayValue}
-                </Tag>
-              );
-            })}
+      <Card key={item.id ?? index}>
+        {/* Header: Product Name + Specification + Tags + Progress */}
+        <Card.Section className="pb-3">
+          <View className="flex-row justify-between items-start mb-1">
+            <Text className="text-base font-semibold text-slate-800 flex-1">
+              {item.product_name || getFieldLabel("product_name")}
+            </Text>
+            {outboundPercent != null && (
+              <Tag color={Number(outboundPercent) >= 100 ? "green" : "orange"}>
+                {outboundPercent}%
+              </Tag>
+            )}
           </View>
+          {item.specification && (
+            <Text className="text-sm text-slate-500 mb-2">
+              {item.specification}
+            </Text>
+          )}
+
+          {/* Attribute Tags: Size, Unit, Glazing */}
+          <View className="flex-row gap-2 flex-wrap">
+            {item.size && (
+              <Tag color="blue">
+                {getFieldLabel("size")}: {item.size}
+              </Tag>
+            )}
+            {item.unit && (
+              <Tag color="cyan">
+                {getFieldLabel("unit")}: {item.unit}
+              </Tag>
+            )}
+            {item.glazing && (
+              <Tag color="purple">
+                {getFieldLabel("glazing")}: {(Number(item.glazing) * 100).toFixed(0)}%
+              </Tag>
+            )}
+          </View>
+        </Card.Section>
+
+        {/* Outbound Progress Section */}
+        {["order_qty", "outbound_qty", "outbound_net_weight", "outbound_gross_weight"].some((f) =>
+          shouldShowField(item, f)
+        ) && (
+          <Card.Section className="bg-orange-50/30">
+            <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              {i18n.t("Outbound Progress")}
+            </Text>
+            <FieldGrid>
+              {["order_qty", "outbound_qty", "outbound_net_weight", "outbound_gross_weight"].map(
+                (fieldName) =>
+                  shouldShowField(item, fieldName) && (
+                    <Field
+                      key={fieldName}
+                      label={getFieldLabel(fieldName)}
+                      value={renderField(fieldName, item[fieldName])}
+                    />
+                  )
+              )}
+            </FieldGrid>
+          </Card.Section>
         )}
-      </View>
-    );
-  };
 
-  // Render outbound progress section (specific to outbound items)
-  const renderExtraSections = (
-    item: any,
-    _index: number,
-    getFieldLabel: (field: string) => string,
-  ) => {
-    // Hide section if no outbound data and hideEmptyFields is true
-    if (
-      hideEmptyFields &&
-      !item.order_qty &&
-      !item.outbound_qty &&
-      !item.outbound_net_weight &&
-      !item.outbound_gross_weight
-    ) {
-      return null;
-    }
+        {/* Packaging Information Section */}
+        {["inner_packaging", "outter_packaging"].some((f) =>
+          shouldShowField(item, f)
+        ) && (
+          <Card.Section className="bg-white">
+            <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              {i18n.t("packaging information")}
+            </Text>
+            <FieldGrid>
+              {["inner_packaging", "outter_packaging"].map(
+                (fieldName) =>
+                  shouldShowField(item, fieldName) && (
+                    <Field
+                      key={fieldName}
+                      label={getFieldLabel(fieldName)}
+                      value={renderField(fieldName, item[fieldName])}
+                    />
+                  )
+              )}
+            </FieldGrid>
+          </Card.Section>
+        )}
 
-    return (
-      <CardSection>
-        <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          {i18n.t("Outbound Progress")}
-        </Text>
-        <View className="flex-row flex-wrap gap-x-6 gap-y-3">
-          <CardField
-            label={getFieldLabel("order_qty")}
-            value={
-              item.order_qty != null ? formatNumberTrim(item.order_qty) : null
-            }
+        {/* Weight Information Section */}
+        {[
+          "gross_weight",
+          "net_weight",
+          "total_gross_weight",
+          "total_net_weight",
+        ].some((f) => shouldShowField(item, f)) && (
+          <Card.Section className="bg-slate-50/70">
+            <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              {i18n.t("weight information")}
+            </Text>
+            <FieldGrid>
+              {[
+                "gross_weight",
+                "net_weight",
+                "total_gross_weight",
+                "total_net_weight",
+              ].map(
+                (fieldName) =>
+                  shouldShowField(item, fieldName) && (
+                    <Field
+                      key={fieldName}
+                      label={getFieldLabel(fieldName)}
+                      value={renderField(fieldName, item[fieldName])}
+                    />
+                  )
+              )}
+            </FieldGrid>
+          </Card.Section>
+        )}
+
+        {/* Footer: Metadata + Edit Button */}
+        {clickable && (
+          <Card.Footer
+            metadata={item}
+            canEdit={true}
+            onEdit={() => onItemClick(index)}
           />
-          <CardField
-            label={getFieldLabel("outbound_qty")}
-            value={
-              item.outbound_qty != null
-                ? formatNumberTrim(item.outbound_qty)
-                : null
-            }
-          />
-          <CardField
-            label={getFieldLabel("outbound_net_weight")}
-            value={
-              item.outbound_net_weight != null
-                ? formatNumberTrim(item.outbound_net_weight)
-                : null
-            }
-          />
-          <CardField
-            label={getFieldLabel("outbound_gross_weight")}
-            value={
-              item.outbound_gross_weight != null
-                ? formatNumberTrim(item.outbound_gross_weight)
-                : null
-            }
-          />
-        </View>
-      </CardSection>
+        )}
+      </Card>
     );
   };
 
   return (
-    <ItemsCard
-      def={def}
-      value={value}
-      onItemClick={onItemClick}
-      hideEmptyFields={hideEmptyFields}
-      emptyMessage={i18n.t("No outbound items")}
-      fieldConfig={FIELD_CONFIG}
-      headerField="product_name"
-      subtitleField="specification"
-      tags={TAGS}
-      accentColor="orange"
-      renderHeader={renderHeader}
-      renderExtraSections={renderExtraSections}
-    />
+    <View className="gap-4 w-full">
+      {items.map((item, index) => renderCard(item, index))}
+    </View>
   );
 }
