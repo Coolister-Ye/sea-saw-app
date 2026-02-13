@@ -57,7 +57,9 @@ export default function PurchaseOrderCard({
     (item: any, fieldName: string) => {
       if (!hideEmptyFields) return true;
       const fieldValue = item[fieldName];
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
+      return (
+        fieldValue !== null && fieldValue !== undefined && fieldValue !== ""
+      );
     },
     [hideEmptyFields],
   );

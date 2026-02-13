@@ -170,7 +170,7 @@ export default function InputForm({
       } = fieldConfig;
 
       const isReadOnly = configReadOnly ?? col.read_only;
-      const isHidden = configHidden ?? (hideReadOnly && isReadOnly);
+      const isHidden = configHidden ?? col.hidden ?? (hideReadOnly && isReadOnly);
       const formRules = configRules ?? (col.required ? [{ required: true }] : undefined);
       const placeholder = showHelpTextAsPlaceholder ? col.help_text : undefined;
       const modifiedCol = { ...col, read_only: isReadOnly };

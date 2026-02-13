@@ -27,6 +27,7 @@ export type {
 type FormDef = Omit<HeaderMetaProps, "read_only"> & {
   field: string;
   read_only: boolean;
+  hidden?: boolean;
 };
 
 /** Nested structure with children field definitions */

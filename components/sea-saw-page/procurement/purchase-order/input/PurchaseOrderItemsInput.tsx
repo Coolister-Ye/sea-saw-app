@@ -45,7 +45,7 @@ function PurchaseOrderItemsInput({
   // Watch source fields for auto-calculation
   const glazing = Form.useWatch("glazing", form);
   const grossWeight = Form.useWatch("gross_weight", form);
-  const orderQty = Form.useWatch("order_qty", form);
+  const purchaseQty = Form.useWatch("purchase_qty", form);
   const unitPrice = Form.useWatch("unit_price", form);
 
   // Populate form when drawer opens
@@ -73,7 +73,7 @@ function PurchaseOrderItemsInput({
 
     const g = toNum(glazing);
     const gw = toNum(grossWeight);
-    const qty = toNum(orderQty);
+    const qty = toNum(purchaseQty);
     const up = toNum(unitPrice);
 
     const netWeight = round2(gw * (1 - g));
@@ -85,7 +85,7 @@ function PurchaseOrderItemsInput({
       total_gross_weight: totalGrossWeight,
       total_price: round2(up * totalGrossWeight),
     });
-  }, [isOpen, glazing, grossWeight, orderQty, unitPrice, form]);
+  }, [isOpen, glazing, grossWeight, purchaseQty, unitPrice, form]);
 
   const getSelectedIndex = () =>
     gridApiRef.current?.getSelectedNodes?.()?.[0]?.rowIndex ?? null;
@@ -158,11 +158,17 @@ function PurchaseOrderItemsInput({
 
   const config = useMemo(
     () => ({
+      id: { hidden: true },
       specification: {
         render: (col: FormDef) => (
           <TextArea rows={3} disabled={col.read_only} />
         ),
       },
+      owner: { hidden: true },
+      created_at: { hidden: true },
+      updated_at: { hidden: true },
+      created_by: { hidden: true },
+      updated_by: { hidden: true },
     }),
     [],
   );
@@ -208,7 +214,6 @@ function PurchaseOrderItemsInput({
             def={def}
             form={form}
             config={config}
-            hideReadOnly
           />
         </ScrollView>
       </Drawer>
