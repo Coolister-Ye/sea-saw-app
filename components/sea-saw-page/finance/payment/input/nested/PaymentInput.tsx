@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form, Select, message } from "antd";
 
 import useDataService from "@/hooks/useDataService";
 import { prepareRequestBody } from "@/utils";
-import { Drawer } from "@/components/sea-saw-page/base";
-import { InputFooter } from "@/components/sea-saw-page/base";
+import { devError } from "@/utils/logger";
+import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
 
-// 关联实体类型
 type RelatedEntityType = "order" | "purchase_order";
 
 interface RelatedEntityOption {
@@ -24,16 +23,25 @@ interface PaymentInputProps {
   onClose: (res?: any) => void;
   onCreate?: (res?: any) => void;
   onUpdate?: (res?: any) => void;
-  def?: any; // Payment 表单定义
-  data?: any; // 当前编辑的数据
+  def?: any;
+  data?: any;
   pipeline: {
     id: number | string;
     order?: { id: number | string; order_code?: string };
     purchase_orders?: {
       id: number | string;
-      purchase_order_code?: string;
+      purchase_code?: string;
     }[];
   };
+}
+
+/** Parse "type:id" string into structured object */
+function parseSelectedEntity(
+  value: string | null,
+): { type: RelatedEntityType; id: string } | null {
+  if (!value) return null;
+  const [type, id] = value.split(":");
+  return { type: type as RelatedEntityType, id };
 }
 
 export default function PaymentInput({
@@ -54,11 +62,8 @@ export default function PaymentInput({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const prevOpenRef = useRef(isOpen);
 
-  // 当前选择的关联实体
   const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
-  // 是否触摸过选择器（用于延迟显示验证错误）
   const [entityTouched, setEntityTouched] = useState(false);
 
   const isEdit = Boolean(data?.id);
@@ -67,7 +72,6 @@ export default function PaymentInput({
   const entityOptions = useMemo(() => {
     const options: RelatedEntityOption[] = [];
 
-    // 添加 Order 选项
     if (pipeline?.order) {
       options.push({
         type: "order",
@@ -76,59 +80,42 @@ export default function PaymentInput({
       });
     }
 
-    // 添加 PurchaseOrder 选项
     if (pipeline?.purchase_orders?.length) {
       pipeline.purchase_orders.forEach((po) => {
         options.push({
           type: "purchase_order",
           id: po.id,
-          label: `${i18n.t("Purchase Order")}: ${po.purchase_order_code || po.id}`,
+          label: `${i18n.t("Purchase Order")}: ${po.purchase_code || po.id}`,
         });
       });
     }
 
     return options;
-  }, [pipeline, i18n]);
-
-  // 解析选中值获取类型和ID
-  const parseSelectedEntity = (
-    value: string | null,
-  ): { type: RelatedEntityType; id: string | number } | null => {
-    if (!value) return null;
-    const [type, id] = value.split(":");
-    return { type: type as RelatedEntityType, id };
-  };
+  }, [pipeline]);
 
   // 初始化表单和选择状态
   useEffect(() => {
-    // Reset when transitioning from open to closed
-    if (prevOpenRef.current && !isOpen) {
+    if (!isOpen) {
       form.resetFields();
       setSelectedEntity(null);
       setEntityTouched(false);
+      return;
     }
 
-    prevOpenRef.current = isOpen;
-
-    if (!isOpen) return;
-
-    // 设置默认值：payment_date 默认当天，currency 默认 USD
-    const defaults = {
+    // 设置默认值，现有数据优先
+    form.setFieldsValue({
       payment_date: new Date().toISOString().split("T")[0],
       currency: "USD",
-    };
+      ...data,
+    });
 
-    // 合并默认值和现有数据（现有数据优先）
-    form.setFieldsValue({ ...defaults, ...data });
-
-    // 编辑模式下，根据现有数据设置选中的实体
+    // 编辑模式下，根据现有数据匹配选中实体
     if (isEdit && data?.content_type && data?.object_id) {
-      // 尝试匹配已有选项
-      const matchedOption = entityOptions.find(
+      const matched = entityOptions.find(
         (opt) => String(opt.id) === String(data.object_id),
       );
-      if (matchedOption) {
-        setSelectedEntity(`${matchedOption.type}:${matchedOption.id}`);
+      if (matched) {
+        setSelectedEntity(`${matched.type}:${matched.id}`);
       }
     } else if (entityOptions.length === 1) {
       // 只有一个选项时自动选中
@@ -137,13 +124,10 @@ export default function PaymentInput({
     } else {
       setSelectedEntity(null);
     }
-  }, [isOpen, data, form, isEdit, entityOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, form, entityOptions]);
 
-  /* ========================
-   * 保存逻辑
-   * ======================== */
   const handleSave = async () => {
-    // 验证是否选择了关联实体
     const parsed = parseSelectedEntity(selectedEntity);
     if (!parsed) {
       setEntityTouched(true);
@@ -167,17 +151,13 @@ export default function PaymentInput({
         duration: 0,
       });
 
-      // Convert to FormData if files are present
       const requestBody = prepareRequestBody(values);
-
-      // 构建查询参数 - 使用选中的实体类型和ID
       const queryParams = {
         [parsed.type]: parsed.id,
         return_related: "true",
       };
 
-      // 调用 NestedPaymentViewSet，使用 return_related=true 直接返回关联对象数据
-      const updatedRelatedObject = isEdit
+      const result = isEdit
         ? await nestedPaymentViewSet.update({
             id: data.id,
             body: requestBody,
@@ -194,14 +174,10 @@ export default function PaymentInput({
         content: i18n.t("save successfully"),
       });
 
-      isEdit
-        ? onUpdate?.(updatedRelatedObject)
-        : onCreate?.(updatedRelatedObject);
-      form.resetFields();
-      setSelectedEntity(null);
-      onClose(updatedRelatedObject);
+      isEdit ? onUpdate?.(result) : onCreate?.(result);
+      onClose(result);
     } catch (err: any) {
-      console.error("Payment save failed:", err);
+      devError("Payment save failed:", err);
 
       messageApi.open({
         key: "save",
@@ -226,7 +202,7 @@ export default function PaymentInput({
       {contextHolder}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* 关联实体选择器 - 使用 Form.Item 保持与 InputForm 一致的样式 */}
+        {/* 关联实体选择器 */}
         <View className="px-2">
           <Form layout="vertical">
             <Form.Item
@@ -265,7 +241,6 @@ export default function PaymentInput({
           form={form}
           def={def}
           data={data}
-          // 隐藏 GenericForeignKey 字段
           config={{
             content_type: { hidden: true, rules: [] },
             object_id: { hidden: true, rules: [] },

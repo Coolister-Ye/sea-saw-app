@@ -72,7 +72,7 @@ export default function CardHeader({
 
   return (
     <View className={`p-4 pb-3 ${className}`}>
-      <View className="flex-row justify-between items-start">
+      <View className="flex-row justify-between items-center">
         {/* Left side */}
         <View className="flex-1 pr-4">
           <Text className="text-xs font-mono text-slate-400 tracking-wider mb-1">

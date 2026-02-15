@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
 import { BanknotesIcon, ChartBarIcon } from "react-native-heroicons/outline";
 import { PaymentsSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
-import PaymentItemsCard from "@/components/sea-saw-page/finance/payment/display/items/PaymentItemsCard";
+import PaymentCard from "@/components/sea-saw-page/finance/payment/display/PaymentCard";
 import PaymentAddDivider from "@/components/sea-saw-page/finance/payment/display/shared/PaymentAddDivider";
 import PaymentEmptySlot from "@/components/sea-saw-page/finance/payment/display/shared/PaymentEmptySlot";
 import PaymentInput from "@/components/sea-saw-page/finance/payment/input/nested/PaymentInput";
@@ -77,7 +77,7 @@ export default function PaymentsSection({
         <View className="p-1">
           {payments.length ? (
             <>
-              <PaymentItemsCard
+              <PaymentCard
                 def={def}
                 value={payments}
                 onItemClick={(index) => setEditingPayment(payments[index])}
