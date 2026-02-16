@@ -13,6 +13,8 @@ export const PipelineStatus = {
   PRODUCTION_COMPLETED: "production_completed",
   IN_PURCHASE: "in_purchase",
   PURCHASE_COMPLETED: "purchase_completed",
+  IN_PURCHASE_AND_PRODUCTION: "in_purchase_and_production",
+  PURCHASE_AND_PRODUCTION_COMPLETED: "purchase_and_production_completed",
   IN_OUTBOUND: "in_outbound",
   OUTBOUND_COMPLETED: "outbound_completed",
   COMPLETED: "completed",
@@ -26,6 +28,7 @@ export const ActiveEntityType = {
   ORDER: "order",
   PRODUCTION: "production",
   PURCHASE: "purchase",
+  PRODUCTION_AND_PURCHASE: "production_and_purchase",
   OUTBOUND: "outbound",
 } as const;
 
@@ -77,13 +80,19 @@ export function canEditProductionOrder(
   activeEntity: string,
   productionOrderStatus: string,
 ): boolean {
-  // Must be the active entity
-  if (activeEntity !== ActiveEntityType.PRODUCTION) {
+  // Must be the active entity (production or hybrid)
+  if (
+    activeEntity !== ActiveEntityType.PRODUCTION &&
+    activeEntity !== ActiveEntityType.PRODUCTION_AND_PURCHASE
+  ) {
     return false;
   }
 
-  // Pipeline must be in production phase
-  if (pipelineStatus !== PipelineStatus.IN_PRODUCTION) {
+  // Pipeline must be in production or hybrid phase
+  if (
+    pipelineStatus !== PipelineStatus.IN_PRODUCTION &&
+    pipelineStatus !== PipelineStatus.IN_PURCHASE_AND_PRODUCTION
+  ) {
     return false;
   }
 
@@ -104,13 +113,19 @@ export function canEditPurchaseOrder(
   activeEntity: string,
   purchaseOrderStatus: string,
 ): boolean {
-  // Must be the active entity
-  if (activeEntity !== ActiveEntityType.PURCHASE) {
+  // Must be the active entity (purchase or hybrid)
+  if (
+    activeEntity !== ActiveEntityType.PURCHASE &&
+    activeEntity !== ActiveEntityType.PRODUCTION_AND_PURCHASE
+  ) {
     return false;
   }
 
-  // Pipeline must be in purchase phase
-  if (pipelineStatus !== PipelineStatus.IN_PURCHASE) {
+  // Pipeline must be in purchase or hybrid phase
+  if (
+    pipelineStatus !== PipelineStatus.IN_PURCHASE &&
+    pipelineStatus !== PipelineStatus.IN_PURCHASE_AND_PRODUCTION
+  ) {
     return false;
   }
 
@@ -187,6 +202,7 @@ export function canCreateSubEntity(
       return [
         PipelineStatus.PRODUCTION_COMPLETED,
         PipelineStatus.PURCHASE_COMPLETED,
+        PipelineStatus.PURCHASE_AND_PRODUCTION_COMPLETED,
         PipelineStatus.IN_OUTBOUND,
       ].includes(pipelineStatus as any);
 

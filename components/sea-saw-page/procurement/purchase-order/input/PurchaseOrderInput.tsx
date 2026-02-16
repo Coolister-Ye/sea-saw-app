@@ -118,7 +118,12 @@ export default function PurchaseOrderInput({
       },
       purchase_items: {
         fullWidth: true,
-        render: (def: any) => <PurchaseOrderItemsInput def={def} />,
+        render: (def: any) => (
+          <PurchaseOrderItemsInput
+            def={def}
+            showToolbar={mode === "standalone"}
+          />
+        ),
       },
       attachments: {
         fullWidth: true,

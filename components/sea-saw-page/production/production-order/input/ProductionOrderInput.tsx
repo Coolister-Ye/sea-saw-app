@@ -3,9 +3,9 @@ import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 
 import InputForm from "@/components/sea-saw-design/form/InputForm";
-import ProductionOrderItemsInput from "./shared/items/ProductionOrderItemsInput";
-import ProductionOrderStatusSelector from "./shared/selectors/ProductionOrderStatusSelector";
-import ProductionRelatedOrderSelector from "./shared/selectors/ProductionRelatedOrderSelector";
+import ProductionOrderItemsInput from "./items/ProductionOrderItemsInput";
+import ProductionOrderStatusSelector from "./selectors/ProductionOrderStatusSelector";
+import ProductionRelatedOrderSelector from "./selectors/ProductionRelatedOrderSelector";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import useOrderDrawerForm from "@/hooks/useOrderDrawerForm";

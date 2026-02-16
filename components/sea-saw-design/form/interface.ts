@@ -42,7 +42,7 @@ type NestedFormDef = {
 /** InputForm component props (Ant Design form wrapper) */
 type InputFormProps = FormProps & {
   table?: string;
-  def?: Record<string, HeaderMetaProps> | NestedFormDef | FormDef[];
+  def?: Record<string, HeaderMetaProps> | NestedFormDef | FormDef | FormDef[];
   config?: Record<string, any>;
   form: any;
   /** Hide read_only fields automatically (default: false) */

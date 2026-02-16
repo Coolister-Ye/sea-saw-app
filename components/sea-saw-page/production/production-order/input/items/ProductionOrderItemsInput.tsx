@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView, View } from "react-native";
 import { Form } from "antd";
@@ -43,27 +43,33 @@ function ProductionOrderItemsInput({
   } = useOrderItemsManager({ value, onChange, readOnly });
 
   // Watch source fields for auto-calculation
-  const glazing = Form.useWatch("glazing", form);
+  const netWeight = Form.useWatch("net_weight", form);
   const grossWeight = Form.useWatch("gross_weight", form);
-  const plannedQty = Form.useWatch("planned_qty", form);
+  const producedQty = Form.useWatch("produced_qty", form);
 
   // Auto-calculate derived fields (only when drawer is open)
   useEffect(() => {
     if (!isOpen) return;
 
-    const g = toNum(glazing);
+    const nw = toNum(netWeight);
     const gw = toNum(grossWeight);
-    const qty = toNum(plannedQty);
+    const qty = toNum(producedQty);
 
-    const netWeight = round2(gw * (1 - g));
+    const totalNewWeight = round2(nw * qty);
     const totalGrossWeight = round2(gw * qty);
 
     form.setFieldsValue({
-      net_weight: netWeight,
-      total_net_weight: round2(netWeight * qty),
-      total_gross_weight: totalGrossWeight,
+      produced_net_weight: totalNewWeight,
+      produced_gross_weight: totalGrossWeight,
     });
-  }, [isOpen, glazing, grossWeight, plannedQty, form]);
+  }, [isOpen, netWeight, grossWeight, producedQty, form]);
+
+  const config = useMemo(
+    () => ({
+      order_qty: { hidden: false },
+    }),
+    [],
+  );
 
   return (
     <View className="gap-3">
@@ -102,7 +108,13 @@ function ProductionOrderItemsInput({
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 100 }}
         >
-          <InputForm table="production_item" def={def as any} form={form} />
+          <InputForm
+            table="production_item"
+            def={def}
+            form={form}
+            config={config}
+            hideReadOnly
+          />
         </ScrollView>
       </Drawer>
     </View>

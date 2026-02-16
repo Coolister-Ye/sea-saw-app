@@ -1,4 +1,5 @@
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
+import type { FormDef } from "@/components/sea-saw-design/form/interface";
 
 export interface ProductionItem {
   id?: number;
@@ -19,8 +20,8 @@ export interface ProductionItem {
 }
 
 export interface ProductionItemsDisplayProps {
-  /** Field definitions (already extracted as child?.children from parent) */
-  def?: Record<string, HeaderMetaProps>;
+  /** Field definitions - accepts FormDef (auto-extracts child?.children) or pre-extracted Record */
+  def?: FormDef | Record<string, HeaderMetaProps>;
   value?: ProductionItem[] | null;
 }
 
