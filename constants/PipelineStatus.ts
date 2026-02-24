@@ -52,14 +52,19 @@ const TERMINAL_STATUSES = new Set([
  * Determines if an Order can be edited based on pipeline state and order status.
  *
  * Order is editable when:
- * - Pipeline status is DRAFT, or
- * - Pipeline status is ORDER_CONFIRMED and order is active
+ * - No pipeline exists and order status is DRAFT, or
+ * - Pipeline status is DRAFT and order status is DRAFT
  */
 export function canEditOrder(
   pipelineStatus: string,
   orderStatus: string,
 ): boolean {
-  // Order can be edited in draft state
+  // No pipeline — only check order status
+  if (!pipelineStatus) {
+    return orderStatus === SubEntityStatus.DRAFT;
+  }
+
+  // With pipeline — both must be draft
   if (pipelineStatus === PipelineStatus.DRAFT) {
     return orderStatus === SubEntityStatus.DRAFT;
   }

@@ -167,7 +167,6 @@ export default function OrderScreen() {
             isOpen
             def={defs.base}
             data={orderViewRow}
-            columnOrder={DEFAULT_COL_ORDER}
             onClose={closeOrderView}
             onCreate={handleCreateSuccess}
             onUpdate={handleOrderUpdate}

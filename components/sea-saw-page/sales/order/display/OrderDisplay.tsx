@@ -1,62 +1,20 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
 import i18n from "@/locale/i18n";
-import { View, ScrollView, Text } from "react-native";
-import { Button, message, Tag, Spin } from "antd";
-import {
-  PlusOutlined,
-  EyeOutlined,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
+import { View, ScrollView } from "react-native";
+import { Button, message } from "antd";
+import { PlusOutlined, InfoCircleOutlined } from "@ant-design/icons";
 
 import useDataService from "@/hooks/useDataService";
 import { devError } from "@/utils/logger";
+import { Text } from "@/components/sea-saw-design/text";
 import { OrderDisplayProps } from "./types";
-import {
-  Drawer,
-  SectionContainer,
-  CardMetadata,
-  CardSection,
-  CardEditButton,
-} from "@/components/sea-saw-page/base";
-import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
-import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
-import OrderStatusTag from "./OrderStatusTag";
-import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
-import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
-import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
+import { Drawer, SectionContainer } from "@/components/sea-saw-page/base";
+import OrderCard from "./OrderCard";
 import OrderInput from "../input/OrderInput";
 import PipelineDisplay from "@/components/sea-saw-page/pipeline/display/PipelineDisplay";
 import PipelineTypeModal from "../input/PipelineTypeModal";
 import { pickFormDef, filterFormDefs } from "@/utils/formDefUtils";
 import type { PipelineDefs } from "@/components/sea-saw-page/pipeline/display/types";
-
-// Pipeline status colors for Tag
-const PIPELINE_STATUS_COLORS: Record<string, string> = {
-  draft: "default",
-  order_confirmed: "blue",
-  in_purchase: "purple",
-  purchase_completed: "cyan",
-  in_production: "orange",
-  production_completed: "lime",
-  in_purchase_and_production: "orange",
-  purchase_and_production_completed: "lime",
-  in_outbound: "geekblue",
-  outbound_completed: "purple",
-  completed: "success",
-  cancelled: "error",
-  issue_reported: "warning",
-};
-
-const EXCLUDED_FIELDS = ["allowed_actions"] as const;
-
-/** Metadata fields rendered separately via CardMetadata */
-const METADATA_FIELDS = [
-  "owner",
-  "created_at",
-  "updated_at",
-  "created_by",
-  "updated_by",
-];
 
 /**
  * OrderDisplay - Standalone Order View
@@ -64,7 +22,7 @@ const METADATA_FIELDS = [
  * Displays Order information with embedded Pipeline access.
  *
  * Features:
- * - Display and edit Order basic information
+ * - Display and edit Order basic information via OrderCard
  * - Create Pipeline button for orders without pipeline
  * - Click on related_pipeline to open PipelineDisplay
  */
@@ -76,14 +34,12 @@ export default function OrderDisplay({
   onPipelineCreated,
   def = [],
   data,
-  columnOrder,
 }: OrderDisplayProps) {
   const { request, getViewSet } = useDataService();
   const pipelineViewSet = useMemo(() => getViewSet("pipeline"), [getViewSet]);
   const pipelineMetaLoadedRef = useRef(false);
 
   const order = data ?? {};
-  const orderStatus = order.status;
   const hasPipeline = Boolean(order.related_pipeline?.id);
 
   const [creatingPipeline, setCreatingPipeline] = useState(false);
@@ -162,78 +118,7 @@ export default function OrderDisplay({
     if (updated) setPipelineData(updated);
   }, []);
 
-  const baseDef = useMemo(
-    () => def.filter((d) => !EXCLUDED_FIELDS.includes(d.field as any)),
-    [def],
-  );
-
   const [editingOrder, setEditingOrder] = useState<any>(null);
-  const { attachments, ...baseData } = order;
-
-  const displayConfig = useMemo(
-    () => ({
-      account_id: { hidden: true },
-      contact_id: { hidden: true },
-      // Hide metadata fields - rendered via CardMetadata
-      ...Object.fromEntries(METADATA_FIELDS.map((f) => [f, { hidden: true }])),
-      status: {
-        render: (def: any, value: any) => <OrderStatusTag value={value} />,
-      },
-      account: {
-        render: (def: any, value: any) => (
-          <AccountPopover def={def} value={value} />
-        ),
-      },
-      contact: {
-        render: (def: any, value: any) => (
-          <ContactPopover def={def} value={value} />
-        ),
-      },
-      related_pipeline: {
-        render: (_def: any, value: any) => {
-          if (!value?.pipeline_code) {
-            return <Text className="text-gray-400">-</Text>;
-          }
-          const statusColor =
-            PIPELINE_STATUS_COLORS[value.status || ""] || "default";
-          return (
-            <Spin spinning={loadingPipeline} size="small">
-              <View
-                className="inline-flex flex-row items-center gap-1.5 cursor-pointer group"
-                // @ts-ignore - web onClick
-                onClick={handleOpenPipeline}
-              >
-                <Tag
-                  color={statusColor}
-                  style={{ margin: 0 }}
-                  className="transition-all duration-200 group-hover:shadow-md group-hover:scale-105"
-                >
-                  {value.pipeline_code}
-                </Tag>
-                <EyeOutlined
-                  className="text-gray-400 transition-all duration-200 group-hover:text-blue-500 group-hover:scale-110"
-                  style={{ fontSize: 14 }}
-                />
-              </View>
-            </Spin>
-          );
-        },
-      },
-      order_items: {
-        fullWidth: true,
-        render: (def: any, value: any) => (
-          <OrderItemsViewToggle def={def} value={value} />
-        ),
-      },
-      attachments: {
-        fullWidth: true,
-        render: (def: any, value: any) => (
-          <AttachmentsDisplay def={def} value={value} />
-        ),
-      },
-    }),
-    [loadingPipeline, handleOpenPipeline],
-  );
 
   const handleOpenPipelineTypeModal = useCallback(() => {
     setPipelineTypeModalOpen(true);
@@ -294,32 +179,21 @@ export default function OrderDisplay({
       }
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <SectionContainer title={i18n.t("Order Information")}>
-          <DisplayForm
-            table="order"
-            def={baseDef}
-            data={{ ...baseData, attachments }}
-            config={displayConfig}
-            columnOrder={columnOrder}
+        <SectionContainer
+          title={i18n.t("Order Information")}
+          contentClassName="border-none"
+        >
+          <OrderCard
+            def={def}
+            value={[order]}
+            onItemClick={() => setEditingOrder(order)}
+            onPipelineClick={handleOpenPipeline}
+            pipelineLoading={loadingPipeline}
+            hideEmptyFields
           />
-          {/* System metadata + Edit button */}
-          <CardSection className="py-2.5 bg-slate-50/50 mt-2">
-            <View className="flex-row justify-between items-center">
-              <CardMetadata
-                owner={order.owner}
-                created_at={order.created_at}
-                updated_at={order.updated_at}
-                created_by={order.created_by}
-                updated_by={order.updated_by}
-              />
-              {orderStatus === "draft" && (
-                <CardEditButton onClick={() => setEditingOrder(order)} />
-              )}
-            </View>
-          </CardSection>
           <OrderInput
             isOpen={!!editingOrder}
-            def={baseDef}
+            def={def}
             data={editingOrder ?? {}}
             onClose={() => setEditingOrder(null)}
             onCreate={onCreate}

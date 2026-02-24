@@ -17,13 +17,16 @@ import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
 import { convertToFormDefs, getChildrenFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
+import RelatedPipelineLink from "./RelatedPipelineLink";
 import type { FormDef } from "@/hooks/useFormDefs";
 
 interface OrderCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
+  onPipelineClick?: () => void;
   pipelineStatus?: string;
+  pipelineLoading?: boolean;
   hideEmptyFields?: boolean;
 }
 
@@ -31,7 +34,9 @@ export default function OrderCard({
   def,
   value,
   onItemClick,
+  onPipelineClick,
   pipelineStatus,
+  pipelineLoading,
   hideEmptyFields = false,
 }: OrderCardProps) {
   // Normalize value to array
@@ -55,7 +60,9 @@ export default function OrderCard({
     (item: any, fieldName: string) => {
       if (!hideEmptyFields) return true;
       const fieldValue = item[fieldName];
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
+      return (
+        fieldValue !== null && fieldValue !== undefined && fieldValue !== ""
+      );
     },
     [hideEmptyFields],
   );
@@ -143,6 +150,18 @@ export default function OrderCard({
                     value={renderField(fieldName, item[fieldName])}
                   />
                 ),
+            )}
+            {item.related_pipeline?.pipeline_code && (
+              <Field
+                label={getFieldLabel("related_pipeline")}
+                value={
+                  <RelatedPipelineLink
+                    value={item.related_pipeline}
+                    loading={pipelineLoading}
+                    onClick={onPipelineClick}
+                  />
+                }
+              />
             )}
           </FieldGrid>
         </Card.Section>

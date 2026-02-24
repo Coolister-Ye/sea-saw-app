@@ -8,8 +8,6 @@ export interface OrderDisplayProps {
   onPipelineCreated?: (pipeline: any) => void;
   def?: any[];
   data?: Record<string, any> | null;
-  /** Column order for display fields */
-  columnOrder?: string[];
 }
 
 export interface OrderDefs {
