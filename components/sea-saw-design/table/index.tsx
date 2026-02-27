@@ -8,7 +8,8 @@ import React, {
   forwardRef,
 } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import i18n from '@/locale/i18n';
+import i18n from "@/locale/i18n";
+import { Button, Form } from "antd";
 import { AgGridReact } from "ag-grid-react";
 import {
   ColDef,
@@ -21,11 +22,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useDataService from "@/hooks/useDataService";
 import { devError } from "@/utils/logger";
+import { SearchForm } from "@/components/sea-saw-design/form/SearchForm";
 import {
   convertAgGridFilterToDjangoParams,
   convertAgGridSorterToDjangoParams,
-  getAgFilterType,
-  getFilterParams,
   getCellDataType,
   getValueFormatter,
 } from "./utils";
@@ -45,14 +45,14 @@ const DEFAULT_COL_WIDTH = 120;
 
 /** Type guard to check if meta is HeaderMetaProps (has 'type' field) */
 function isHeaderMetaProps(
-  meta: HeaderMetaProps | Record<string, HeaderMetaProps>
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps>,
 ): meta is HeaderMetaProps {
   return "type" in meta && typeof meta.type === "string";
 }
 
 /** Normalize header metadata from various response formats */
 function normalizeHeaderMeta(
-  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined
+  meta: HeaderMetaProps | Record<string, HeaderMetaProps> | undefined,
 ): Record<string, HeaderMetaProps> {
   if (!meta) return {};
 
@@ -72,7 +72,7 @@ function getRowId(params: GetRowIdParams): string {
 
 /** Custom No Rows Overlay Component */
 function NoRowsOverlay(
-  params: INoRowsOverlayParams & { noRowsMessage?: string }
+  params: INoRowsOverlayParams & { noRowsMessage?: string },
 ) {
   return (
     <View className="flex-1 items-center justify-center py-12">
@@ -108,18 +108,26 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
     hideWriteOnly = false,
     queryParams,
     columnOrder,
+    searchable = true,
+    searchPanelOpen = false,
     onGridReady,
     ...gridProps
   },
-  ref
+  ref,
 ) {
   const { getViewSet } = useDataService();
   const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
   const gridRef = useRef<AgGridReact>(null);
+  const [searchForm] = Form.useForm();
 
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
+  const [headerMetaData, setHeaderMetaData] = useState<
+    Record<string, HeaderMetaProps>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [gridReady, setGridReady] = useState(false);
+  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
 
   useImperativeHandle(ref, () => gridRef.current as AgGridReact);
 
@@ -151,6 +159,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
             ...filters,
             ...sorter,
             ...queryParams,
+            ...searchParams,
           },
         });
 
@@ -173,7 +182,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
         params.fail();
       }
     },
-    [viewSet, queryParams]
+    [viewSet, queryParams, searchParams],
   );
 
   const datasource = useMemo(() => ({ getRows: fetchData }), [fetchData]);
@@ -204,13 +213,12 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           return {
             field,
             headerName: fieldMeta.label,
-            filter: getAgFilterType(fieldMeta.type, fieldMeta.operations ?? []),
-            filterParams: getFilterParams(fieldMeta.operations ?? []),
+            filter: false,
             cellDataType: getCellDataType(fieldMeta.type),
             valueFormatter: getValueFormatter(
               fieldMeta.type,
               fieldMeta.display_fields,
-              fieldMeta.choices
+              fieldMeta.choices,
             ),
             sortable: true,
             resizable: true,
@@ -256,7 +264,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
 
       return allColumns;
     },
-    [colDefinitions, hideWriteOnly, columnOrder]
+    [colDefinitions, hideWriteOnly, columnOrder],
   );
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -281,6 +289,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
         }
 
         if (isMounted) {
+          setHeaderMetaData(meta);
           setColumnDefs(buildColumnDefs(meta));
         }
       } catch (err) {
@@ -308,11 +317,31 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
 
   const handleGridReady = useCallback(
     (event: GridReadyEvent) => {
-      event.api.setGridOption("serverSideDatasource", datasource);
+      setGridReady(true);
       onGridReady?.(event);
     },
-    [datasource, onGridReady]
+    [onGridReady],
   );
+
+  // Update datasource whenever it changes (after grid is ready)
+  useEffect(() => {
+    if (gridReady && gridRef.current?.api) {
+      gridRef.current.api.setGridOption("serverSideDatasource", datasource);
+    }
+  }, [gridReady, datasource]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     SEARCH HANDLERS
+     ───────────────────────────────────────────────────────────────────────── */
+
+  const handleSearchSubmit = useCallback((params: Record<string, any>) => {
+    setSearchParams(params);
+  }, []);
+
+  const handleSearchReset = useCallback(() => {
+    searchForm.resetFields();
+    setSearchParams({});
+  }, [searchForm]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      RENDER
@@ -335,27 +364,94 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
   }
 
   return (
-    <View className="flex-1 h-full">
-      <AgGridReact
-        ref={gridRef}
-        rowModelType="serverSide"
-        columnDefs={columnDefs}
-        defaultColDef={{
-          sortable: true,
-          resizable: true,
-          width: DEFAULT_COL_WIDTH,
-        }}
-        getRowId={getRowId}
-        pagination
-        paginationPageSize={DEFAULT_PAGE_SIZE}
-        paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
-        onGridReady={handleGridReady}
-        noRowsOverlayComponent={NoRowsOverlay}
-        noRowsOverlayComponentParams={{ noRowsMessage: i18n.t("No data yet") }}
-        loadingOverlayComponent={LoadingOverlay}
-        loadingOverlayComponentParams={{ loadingMessage: i18n.t("Loading...") }}
-        {...gridProps}
-      />
+    <View className="flex-1 h-full flex-row">
+      {/* Left search panel sidebar */}
+      {searchable && searchPanelOpen && (
+        <View
+          style={{
+            width: 260,
+            borderRightWidth: 1,
+            borderRightColor: "#f0f0f0",
+            flexDirection: "column",
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: "#f0f0f0",
+            }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: "500", color: "#595959" }}>
+              {i18n.t("filter")}
+            </Text>
+          </View>
+
+          <View style={{ flex: 1, overflow: "hidden" }}>
+            <SearchForm
+              form={searchForm}
+              metadata={headerMetaData}
+              layout="vertical"
+              onFinish={handleSearchSubmit}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              padding: 12,
+              borderTopWidth: 1,
+              borderTopColor: "#f0f0f0",
+            }}
+          >
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => searchForm.submit()}
+              style={{ flex: 1 }}
+            >
+              {i18n.t("search")}
+            </Button>
+            <Button
+              size="small"
+              onClick={handleSearchReset}
+              style={{ flex: 1 }}
+            >
+              {i18n.t("reset")}
+            </Button>
+          </View>
+        </View>
+      )}
+
+      {/* AG Grid - takes remaining space */}
+      <View style={{ flex: 1, height: "100%" }}>
+        <AgGridReact
+          ref={gridRef}
+          rowModelType="serverSide"
+          columnDefs={columnDefs}
+          defaultColDef={{
+            sortable: true,
+            resizable: true,
+            width: DEFAULT_COL_WIDTH,
+          }}
+          getRowId={getRowId}
+          pagination
+          paginationPageSize={DEFAULT_PAGE_SIZE}
+          paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
+          onGridReady={handleGridReady}
+          noRowsOverlayComponent={NoRowsOverlay}
+          noRowsOverlayComponentParams={{
+            noRowsMessage: i18n.t("No data yet"),
+          }}
+          loadingOverlayComponent={LoadingOverlay}
+          loadingOverlayComponentParams={{
+            loadingMessage: i18n.t("Loading..."),
+          }}
+          {...gridProps}
+        />
+      </View>
     </View>
   );
 });

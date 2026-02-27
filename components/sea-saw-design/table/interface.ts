@@ -123,6 +123,10 @@ type TableProps = {
   queryParams?: Record<string, any>;
   /** Column order: array of field names specifying display order. Unlisted fields appear last. */
   columnOrder?: string[];
+  /** Enable search toolbar (default: true) */
+  searchable?: boolean;
+  /** Control search panel visibility externally (default: false) */
+  searchPanelOpen?: boolean;
 } & AgGridReactProps;
 
 /** InputForm component props */

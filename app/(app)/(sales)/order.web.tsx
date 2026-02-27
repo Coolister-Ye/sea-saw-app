@@ -1,10 +1,13 @@
 import React, { useMemo, useState, useCallback } from "react";
 import "@/css/tableStyle.css";
 import { View } from "react-native";
+import { Badge, Button, Form } from "antd";
+import { FilterOutlined } from "@ant-design/icons";
 
 import { useEntityPage } from "@/hooks/useEntityPage";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 import { stripIdsDeep } from "@/utils";
+import { OrderSearch } from "@/components/sea-saw-page/sales/order/search/OrderSearch";
 
 import OrderTable from "@/components/sea-saw-page/sales/order/table/OrderTable";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
@@ -42,6 +45,11 @@ export default function OrderScreen() {
   // Order view state
   const [orderViewRow, setOrderViewRow] = useState<any>(null);
   const [isOrderViewOpen, setIsOrderViewOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Search state
+  const [searchForm] = Form.useForm();
+  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
 
   // Custom copy builder for order
   const buildOrderCopyData = useCallback((data: any) => {
@@ -130,6 +138,11 @@ export default function OrderScreen() {
     [tableRef],
   );
 
+  const handlePipelineUpdated = useCallback(() => {
+    // Refresh table when pipeline is updated (e.g., status change)
+    tableRef.current?.api?.refreshServerSide();
+  }, [tableRef]);
+
   const handleRowClick = useCallback((e: any) => {
     const row = e.data;
     if (!row) return;
@@ -138,49 +151,84 @@ export default function OrderScreen() {
     setIsOrderViewOpen(true);
   }, []);
 
+  const handleSearchFinish = useCallback(
+    (filterParams: Record<string, any>) => {
+      setSearchParams(filterParams);
+    },
+    [],
+  );
+
+  const handleSearchReset = useCallback(() => {
+    searchForm.resetFields();
+    setSearchParams({});
+  }, [searchForm]);
+
   return (
     <PageLoading loading={loadingMeta} error={metaError}>
-      <View className="flex-1 bg-white">
-        <View className="flex-row justify-end gap-1 p-1 py-1.5">
-          <ActionDropdown
-            onPrimaryAction={openCreate}
-            onCopy={openCopy}
-            copyDisabled={copyDisabled}
+      <View className="flex-1 bg-white flex-row">
+        {/* Left search sidebar — full page height */}
+        {isSearchOpen && (
+          <OrderSearch
+            form={searchForm}
+            metadata={headerMeta}
+            onFinish={handleSearchFinish}
+            onReset={handleSearchReset}
+          />
+        )}
+
+        {/* Right: toolbar + table */}
+        <View className="flex-1">
+          <View className="flex-row justify-end gap-1 p-1 py-1.5">
+            <Badge count={Object.keys(searchParams).length} size="small">
+              <Button
+                icon={<FilterOutlined />}
+                onClick={() => setIsSearchOpen((prev) => !prev)}
+                type={isSearchOpen ? "primary" : "default"}
+              />
+            </Badge>
+            <ActionDropdown
+              onPrimaryAction={openCreate}
+              onCopy={openCopy}
+              copyDisabled={copyDisabled}
+            />
+          </View>
+
+          {isEditOpen && (
+            <OrderInput
+              mode="standalone"
+              isOpen
+              def={defs.base}
+              data={editData}
+              columnOrder={DEFAULT_COL_ORDER}
+              onClose={closeEdit}
+              onCreate={handleCreateSuccess}
+              onUpdate={handleUpdateSuccess}
+            />
+          )}
+
+          {isOrderViewOpen && (
+            <OrderDisplay
+              isOpen
+              def={defs.base}
+              data={orderViewRow}
+              onClose={closeOrderView}
+              onCreate={handleCreateSuccess}
+              onUpdate={handleOrderUpdate}
+              onPipelineCreated={handlePipelineCreated}
+              onPipelineUpdate={handlePipelineUpdated}
+            />
+          )}
+
+          <OrderTable
+            ref={tableRef}
+            headerMeta={headerMeta}
+            columnOrder={DEFAULT_COL_ORDER}
+            searchable={false}
+            queryParams={searchParams}
+            {...tableProps}
+            onRowClicked={handleRowClick}
           />
         </View>
-
-        {isEditOpen && (
-          <OrderInput
-            mode="standalone"
-            isOpen
-            def={defs.base}
-            data={editData}
-            columnOrder={DEFAULT_COL_ORDER}
-            onClose={closeEdit}
-            onCreate={handleCreateSuccess}
-            onUpdate={handleUpdateSuccess}
-          />
-        )}
-
-        {isOrderViewOpen && (
-          <OrderDisplay
-            isOpen
-            def={defs.base}
-            data={orderViewRow}
-            onClose={closeOrderView}
-            onCreate={handleCreateSuccess}
-            onUpdate={handleOrderUpdate}
-            onPipelineCreated={handlePipelineCreated}
-          />
-        )}
-
-        <OrderTable
-          ref={tableRef}
-          headerMeta={headerMeta}
-          columnOrder={DEFAULT_COL_ORDER}
-          {...tableProps}
-          onRowClicked={handleRowClick}
-        />
       </View>
     </PageLoading>
   );

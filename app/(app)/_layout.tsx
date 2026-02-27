@@ -9,9 +9,10 @@ import { CustomDrawerContent } from "@/components/sea-saw-design/drawer/DrawerCo
 import { DrawerFooter } from "@/components/sea-saw-design/drawer/DrawerFoot";
 import { DrawerHeader } from "@/components/sea-saw-design/header";
 import i18n from "@/locale/i18n";
+import { useParentIconMap } from "@/hooks/useParentIconMap";
 
 const DRAWER_WIDTH = 280;
-const DRAWER_COLLAPSED_WIDTH = 80;
+const DRAWER_COLLAPSED_WIDTH = 56;
 
 type ScreenConfig = {
   name: string;
@@ -46,6 +47,7 @@ export default function AppLayout() {
   const { isLargeScreen } = useDevice();
   const isWeb = Platform.OS === "web";
   const [collapsed, setCollapsed] = useState(false);
+  const parentIconMap = useParentIconMap();
 
   const parentTitleMap = useMemo(
     () => ({
@@ -79,13 +81,14 @@ export default function AppLayout() {
     (props: any) => (
       <CustomDrawerContent
         parentTitleMap={parentTitleMap}
+        parentIconMap={parentIconMap}
         footer={<DrawerFooter collapsed={collapsed} />}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
         {...props}
       />
     ),
-    [parentTitleMap, collapsed],
+    [parentTitleMap, parentIconMap, collapsed],
   );
 
   const screenOptions = useMemo(

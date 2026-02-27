@@ -32,6 +32,7 @@ export default function OrderDisplay({
   onCreate,
   onUpdate,
   onPipelineCreated,
+  onPipelineUpdate,
   def = [],
   data,
 }: OrderDisplayProps) {
@@ -115,8 +116,12 @@ export default function OrderDisplay({
 
   const handlePipelineUpdate = useCallback((res?: any) => {
     const updated = res?.data ?? res;
-    if (updated) setPipelineData(updated);
-  }, []);
+    if (updated) {
+      setPipelineData(updated);
+      // Notify parent that pipeline was updated (e.g., status change)
+      onPipelineUpdate?.(updated);
+    }
+  }, [onPipelineUpdate]);
 
   const [editingOrder, setEditingOrder] = useState<any>(null);
 

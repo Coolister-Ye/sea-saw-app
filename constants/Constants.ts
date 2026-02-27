@@ -31,6 +31,8 @@ export const constants = {
     outboundOrder: "/api/sea-saw-crm/outbound-orders/",
     nestedOutboundOrder: "/api/warehouse/nested-outbound-orders/",
 
+    overviewStats: "/api/dashboard/overview/",
+
     listOrdersStats: "/api/sales/orders-stats/",
     listOrdersByMonth: "/api/sales/orders-stats/s2/",
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",

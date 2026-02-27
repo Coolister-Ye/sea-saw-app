@@ -13,6 +13,7 @@ import { convertToFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import { formatNumberTrim } from "@/utils";
+import PaymentTypeTag from "./PaymentTypeTag";
 import type { FormDef } from "@/hooks/useFormDefs";
 
 interface PaymentCardProps {
@@ -78,6 +79,7 @@ export default function PaymentCard({
   }
 
   const renderCard = (item: any, index: number) => {
+    const paymentTypeDef = getFieldDef("payment_type");
     const currencyLabel = getChoiceLabel("currency", item.currency || "USD");
 
     return (
@@ -85,11 +87,14 @@ export default function PaymentCard({
         {/* Header: Code + Type Badge + Amount */}
         <Card.Header
           code={item.payment_code}
-          statusValue={item.payment_type}
-          statusLabel={
-            item.payment_type
-              ? getChoiceLabel("payment_type", item.payment_type)
-              : undefined
+          statusValue={
+            item.payment_type ? (
+              <PaymentTypeTag
+                def={paymentTypeDef}
+                value={item.payment_type}
+                className="w-fit"
+              />
+            ) : undefined
           }
           rightContent={
             <View className="flex-row items-baseline gap-1">

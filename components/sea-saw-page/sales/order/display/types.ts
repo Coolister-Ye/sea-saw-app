@@ -6,6 +6,8 @@ export interface OrderDisplayProps {
   onUpdate?: (res: any) => void;
   /** Callback when a Pipeline is created for this Order */
   onPipelineCreated?: (pipeline: any) => void;
+  /** Callback when a Pipeline is updated (e.g., status change) */
+  onPipelineUpdate?: (pipeline: any) => void;
   def?: any[];
   data?: Record<string, any> | null;
 }

@@ -1,20 +1,22 @@
-import { InputNumber } from "antd";
+import { InputNumber, Space } from "antd";
 import { useState } from "react";
-import { View, ViewProps } from "react-native";
+import type { CSSProperties } from "react";
 
 interface NumberRangeValue {
   min?: number;
   max?: number;
 }
 
-interface NumberRangeInputProps extends ViewProps {
+interface NumberRangeInputProps {
   id?: string;
   value?: NumberRangeValue;
   onChange?: (value: NumberRangeValue) => void;
+  className?: string;
+  style?: CSSProperties;
 }
 
 function NumberRangeInput(props: NumberRangeInputProps) {
-  const { id, value = {}, onChange, className } = props;
+  const { id, value = {}, onChange, className, style } = props;
   const [min, setMin] = useState(0);
   const [max, setMax] = useState(0);
 
@@ -33,10 +35,20 @@ function NumberRangeInput(props: NumberRangeInputProps) {
   };
 
   return (
-    <View className={`flex flex-row ${className}`}>
-      <InputNumber value={value.min} onChange={onMinChange} placeholder=">=" />
-      <InputNumber value={value.max} onChange={onMaxChange} placeholder="<=" />
-    </View>
+    <Space.Compact block className={className} style={style}>
+      <InputNumber
+        style={{ width: "50%" }}
+        value={value.min}
+        onChange={onMinChange}
+        placeholder=">="
+      />
+      <InputNumber
+        style={{ width: "50%" }}
+        value={value.max}
+        onChange={onMaxChange}
+        placeholder="<="
+      />
+    </Space.Compact>
   );
 }
 
