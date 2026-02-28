@@ -405,5 +405,14 @@
   "record": "Record",
   "sales": "Sales Management",
   "schedule information": "Schedule Information",
-  "weight information": "Weight Information"
+  "weight information": "Weight Information",
+  "Sun": "Sun",
+  "Mon": "Mon",
+  "Tue": "Tue",
+  "Wed": "Wed",
+  "Thu": "Thu",
+  "Fri": "Fri",
+  "Sat": "Sat",
+  "Previous month": "Previous month",
+  "Next month": "Next month"
 }

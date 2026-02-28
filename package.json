@@ -85,6 +85,7 @@
     "formik": "^2.4.6",
     "i18n-js": "^4.5.0",
     "lodash": "^4.17.21",
+    "lunar-typescript": "^1.8.6",
     "make-plural": "^7.3.0",
     "nativewind": "^4.0.1",
     "object-to-formdata": "^4.5.1",

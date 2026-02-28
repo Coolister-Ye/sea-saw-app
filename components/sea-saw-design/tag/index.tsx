@@ -1,95 +1,119 @@
 import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import clsx from "clsx";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { cn } from "@/components/sea-saw-design/utils";
+import type { PresetColor, Variant, TagProps } from "./types";
 
-const presetColors = {
-  red: "red",
-  orange: "orange",
-  yellow: "yellow",
-  green: "green",
-  cyan: "cyan",
-  blue: "blue",
-  purple: "purple",
-  pink: "pink",
-  grey: "gray",
+export type { TagProps } from "./types";
+
+// Container (bg + border) per variant
+const colorContainerMap: Record<PresetColor, Record<Variant, string>> = {
+  grey: {
+    filled: "bg-gray-100 border-gray-300",
+    outlined: "bg-transparent border-gray-300",
+    solid: "bg-gray-500 border-transparent",
+  },
+  red: {
+    filled: "bg-red-100 border-red-300",
+    outlined: "bg-transparent border-red-300",
+    solid: "bg-red-500 border-transparent",
+  },
+  orange: {
+    filled: "bg-orange-100 border-orange-300",
+    outlined: "bg-transparent border-orange-300",
+    solid: "bg-orange-500 border-transparent",
+  },
+  yellow: {
+    filled: "bg-yellow-100 border-yellow-300",
+    outlined: "bg-transparent border-yellow-300",
+    solid: "bg-yellow-500 border-transparent",
+  },
+  green: {
+    filled: "bg-green-100 border-green-300",
+    outlined: "bg-transparent border-green-300",
+    solid: "bg-green-500 border-transparent",
+  },
+  cyan: {
+    filled: "bg-cyan-100 border-cyan-300",
+    outlined: "bg-transparent border-cyan-300",
+    solid: "bg-cyan-500 border-transparent",
+  },
+  blue: {
+    filled: "bg-blue-100 border-blue-300",
+    outlined: "bg-transparent border-blue-300",
+    solid: "bg-blue-500 border-transparent",
+  },
+  purple: {
+    filled: "bg-purple-100 border-purple-300",
+    outlined: "bg-transparent border-purple-300",
+    solid: "bg-purple-500 border-transparent",
+  },
+  pink: {
+    filled: "bg-pink-100 border-pink-300",
+    outlined: "bg-transparent border-pink-300",
+    solid: "bg-pink-500 border-transparent",
+  },
 };
 
-const getColorStyles = (
-  color: keyof typeof presetColors | undefined,
-  bordered: boolean,
-  checked: boolean
-) => {
-  const defaultStyle = bordered
-    ? "bg-zinc-200 text-zinc-500 border-zinc-400"
-    : "bg-zinc-200 text-zinc-500 border-transparent";
-
-  const colorStyleMap = {
-    grey: "bg-gray-100 text-gray-500 border-gray-300",
-    red: "bg-red-100 text-red-500 border-red-300",
-    orange: "bg-orange-100 text-orange-500 border-orange-300",
-    yellow: "bg-yellow-100 text-yellow-500 border-yellow-300",
-    green: "bg-green-100 text-green-500 border-green-300",
-    cyan: "bg-cyan-100 text-cyan-500 border-cyan-300",
-    blue: "bg-blue-100 text-blue-500 border-blue-300",
-    purple: "bg-purple-100 text-purple-500 border-purple-300",
-    pink: "bg-pink-100 text-pink-500 border-pink-300",
-  };
-
-  const colorStyleMapChecked = {
-    grey: "bg-gray-500 text-white",
-    red: "bg-red-500 text-white",
-    orange: "bg-orange-500 text-white",
-    yellow: "bg-yellow-500 text-white",
-    green: "bg-green-500 text-white",
-    cyan: "<bg-cyan-500></bg-cyan-5>00 text-white",
-    blue: "bg-blue-500 text-white",
-    purple: "bg-purple-500 text-white",
-    pink: "bg-pink-500 text-white",
-  };
-
-  const style = (color && colorStyleMap[color]) || defaultStyle;
-  const style4Checked =
-    (color && colorStyleMapChecked[color]) ||
-    "!bg-blue-700 !text-white !border-transparent";
-
-  return clsx(
-    bordered ? style : style.replace(/border-[^ ]+/, "border-transparent"),
-    checked ? style4Checked : ""
-  );
+const colorTextMap: Record<PresetColor, string> = {
+  grey: "text-gray-500",
+  red: "text-red-500",
+  orange: "text-orange-500",
+  yellow: "text-yellow-500",
+  green: "text-green-500",
+  cyan: "text-cyan-500",
+  blue: "text-blue-500",
+  purple: "text-purple-500",
+  pink: "text-pink-500",
 };
 
-export interface TagProps {
-  color?: keyof typeof presetColors;
-  closable?: boolean;
-  closeIcon?: React.ReactNode;
-  onClose?: () => void;
-  icon?: React.ReactNode;
-  bordered?: boolean;
-  checkable?: boolean;
-  checked?: boolean;
-  onChange?: (checked: boolean) => void;
-  children?: React.ReactNode;
-  containerClassName?: string;
-  textClassName?: string;
-}
+const defaultContainerMap: Record<Variant, string> = {
+  filled: "bg-zinc-100 border-zinc-300",
+  outlined: "bg-transparent border-zinc-300",
+  solid: "bg-blue-600 border-transparent",
+};
 
 const Tag: React.FC<TagProps> = ({
   color,
+  variant = "filled",
+  icon,
   closable = false,
   closeIcon,
   onClose,
-  icon,
-  bordered = true,
+  disabled = false,
+  classNames: semanticClassNames,
+  styles: semanticStyles,
   checkable = false,
-  checked = false,
+  checked,
+  defaultChecked = false,
   onChange,
   children,
-  containerClassName,
-  textClassName,
+  className,
 }) => {
   const [visible, setVisible] = useState(true);
-  const [isChecked, setIsChecked] = useState(checked);
+  const [internalChecked, setInternalChecked] = useState(defaultChecked);
+
+  const isControlled = checked !== undefined;
+  const isChecked = isControlled ? checked : internalChecked;
+
+  // Checked state forces solid variant (filled with deep color)
+  const activeVariant: Variant = isChecked ? "solid" : variant;
+  const isSolid = activeVariant === "solid";
+
+  const containerClass = cn(
+    "flex-row items-center rounded border w-fit px-2 py-0.5",
+    color
+      ? colorContainerMap[color][activeVariant]
+      : defaultContainerMap[activeVariant],
+    disabled && "opacity-50",
+    className,
+    semanticClassNames?.root,
+  );
+
+  const textClass = cn(
+    "text-xs leading-[1.571]",
+    isSolid ? "text-white" : color ? colorTextMap[color] : "text-zinc-500",
+    semanticClassNames?.label,
+  );
 
   const handleClose = () => {
     setVisible(false);
@@ -97,52 +121,58 @@ const Tag: React.FC<TagProps> = ({
   };
 
   const handleCheck = () => {
-    const newChecked = !isChecked;
-    setIsChecked(newChecked);
-    onChange?.(newChecked);
+    if (disabled) return;
+    const next = !isChecked;
+    if (!isControlled) setInternalChecked(next);
+    onChange?.(next);
   };
+
+  // closeIcon={null} or closeIcon={false} hides the button (Ant Design 5.7.0+)
+  const showCloseBtn = closable && closeIcon !== null && closeIcon !== false;
 
   if (!visible) return null;
 
-  return (
-    <Animated.View
-      entering={FadeIn}
-      exiting={FadeOut}
-      className={clsx(
-        "flex-row items-center rounded border w-fit px-1",
-        getColorStyles(color, bordered, isChecked),
-        containerClassName
-      )}
-    >
-      {icon && <View className="mr-2">{icon}</View>}
-      <Pressable onPress={checkable ? handleCheck : undefined}>
-        <Text
-          className={clsx(
-            "text-[12px] leading-[1.571]",
-            isChecked && "font-bold text-[#1677ff]",
-            getColorStyles(color, bordered, isChecked)
-            // textClassName
-          )}
+  const body = (
+    <>
+      {icon && <View className="mr-1">{icon}</View>}
+      <Text className={textClass} style={semanticStyles?.label}>
+        {children}
+      </Text>
+      {showCloseBtn && (
+        <Pressable
+          onPress={handleClose}
+          className={cn("ml-1", semanticClassNames?.closeBtn)}
+          style={semanticStyles?.closeBtn}
+          hitSlop={4}
+          disabled={disabled}
         >
-          {children}
-        </Text>
-      </Pressable>
-      {closable && (
-        <Pressable onPress={handleClose} className="ml-1">
-          {closeIcon || (
-            <Text
-              className={clsx(
-                "text-gray-400 text-[12px] leading-[1.571]",
-                getColorStyles(color, bordered, isChecked),
-                textClassName
-              )}
-            >
-              ×
-            </Text>
+          {closeIcon !== undefined ? (
+            closeIcon
+          ) : (
+            <Text className={cn(textClass, "opacity-60")}>×</Text>
           )}
         </Pressable>
       )}
-    </Animated.View>
+    </>
+  );
+
+  if (checkable) {
+    return (
+      <Pressable
+        onPress={handleCheck}
+        className={containerClass}
+        style={semanticStyles?.root}
+        disabled={disabled}
+      >
+        {body}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View className={containerClass} style={semanticStyles?.root}>
+      {body}
+    </View>
   );
 };
 

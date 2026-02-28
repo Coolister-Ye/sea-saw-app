@@ -32,6 +32,7 @@ export const constants = {
     nestedOutboundOrder: "/api/warehouse/nested-outbound-orders/",
 
     overviewStats: "/api/dashboard/overview/",
+    etdCalendar: "/api/dashboard/etd-calendar/",
 
     listOrdersStats: "/api/sales/orders-stats/",
     listOrdersByMonth: "/api/sales/orders-stats/s2/",

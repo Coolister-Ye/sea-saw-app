@@ -36,6 +36,7 @@ export {
 } from "./card";
 export { default as CardEditButton } from "./CardEditButton";
 export { default as ItemsViewToggle } from "./ItemsViewToggle";
+export { default as SummaryCard } from "./SummaryCard";
 // Section components
 export {
   SectionWrapper,
