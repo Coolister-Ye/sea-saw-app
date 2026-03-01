@@ -32,7 +32,14 @@ export const ActiveEntityType = {
   OUTBOUND: "outbound",
 } as const;
 
-// Simplified sub-entity status values
+// Order status values — independent sales document lifecycle
+export const OrderStatus = {
+  DRAFT: "draft",
+  CONFIRMED: "confirmed",
+  CANCELLED: "cancelled",
+} as const;
+
+// Simplified sub-entity status values (for production/purchase/outbound)
 export const SubEntityStatus = {
   DRAFT: "draft",
   ACTIVE: "active",
@@ -49,27 +56,20 @@ const TERMINAL_STATUSES = new Set([
 ]);
 
 /**
- * Determines if an Order can be edited based on pipeline state and order status.
+ * Determines if an Order can be edited.
  *
- * Order is editable when:
- * - No pipeline exists and order status is DRAFT, or
- * - Pipeline status is DRAFT and order status is DRAFT
+ * Order is editable only when status is DRAFT (not yet confirmed).
+ * Pipeline status is no longer a factor — once confirmed or cancelled,
+ * order content is locked regardless of pipeline state.
+ *
+ * @param _pipelineStatus - Kept for call-site compatibility, not used
+ * @param orderStatus - Current order status
  */
 export function canEditOrder(
-  pipelineStatus: string,
+  _pipelineStatus: string,
   orderStatus: string,
 ): boolean {
-  // No pipeline — only check order status
-  if (!pipelineStatus) {
-    return orderStatus === SubEntityStatus.DRAFT;
-  }
-
-  // With pipeline — both must be draft
-  if (pipelineStatus === PipelineStatus.DRAFT) {
-    return orderStatus === SubEntityStatus.DRAFT;
-  }
-
-  return false;
+  return orderStatus === OrderStatus.DRAFT;
 }
 
 /**

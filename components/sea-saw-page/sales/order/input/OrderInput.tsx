@@ -101,6 +101,8 @@ export default function OrderInput({
       },
       contact_id: { hidden: true },
       status: {
+        // Status is managed by Pipeline once a pipeline exists
+        read_only: !!(data?.related_pipeline?.id),
         render: (def: any) => <OrderStatusSelector def={def} />,
       },
       order_items: {

@@ -9,10 +9,8 @@ interface OrderStatusTagProps {
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "default",
-  active: "processing",
-  completed: "success",
+  confirmed: "processing",
   cancelled: "error",
-  issue_reported: "warning",
 };
 
 function OrderStatusTag({ value, def, className }: OrderStatusTagProps) {
