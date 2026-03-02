@@ -14,7 +14,6 @@ export default function OutboundOrdersSection({
   pipelineStatus,
   outboundOrders,
   def,
-  optionState,
   editingOb,
   setEditingOb,
   onCreate,
@@ -86,7 +85,7 @@ export default function OutboundOrdersSection({
               />
 
               <OutboundAddDivider
-                disabled={!optionState.includes("in_outbound")}
+                disabled={pipelineStatus !== "in_outbound"}
                 onAdd={() => setEditingOb({ pipeline: pipeline.id })}
               />
             </>
@@ -94,7 +93,7 @@ export default function OutboundOrdersSection({
             <OutboundOrderEmptySlot
               pipelineId={pipeline.id}
               onCreate={onUpdate}
-              disabled={!optionState.includes("in_outbound")}
+              disabled={pipelineStatus !== "in_outbound"}
             />
           )}
         </View>
