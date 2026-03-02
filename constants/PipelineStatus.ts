@@ -49,7 +49,7 @@ export const SubEntityStatus = {
 } as const;
 
 // Terminal statuses that cannot be edited
-const TERMINAL_STATUSES = new Set([
+const TERMINAL_STATUSES: Set<string> = new Set([
   SubEntityStatus.COMPLETED,
   SubEntityStatus.CANCELLED,
   SubEntityStatus.ISSUE_REPORTED,
@@ -78,7 +78,7 @@ export function canEditOrder(
  * ProductionOrder is editable when:
  * - Pipeline active_entity is "production", AND
  * - Pipeline status is IN_PRODUCTION, AND
- * - ProductionOrder status is ACTIVE (not terminal)
+ * - ProductionOrder status is not terminal (draft/active are both editable)
  */
 export function canEditProductionOrder(
   pipelineStatus: string,
@@ -101,8 +101,8 @@ export function canEditProductionOrder(
     return false;
   }
 
-  // ProductionOrder must be in active (editable) status
-  return productionOrderStatus === SubEntityStatus.ACTIVE;
+  // ProductionOrder must not be in a terminal status (draft and active are both editable)
+  return !TERMINAL_STATUSES.has(productionOrderStatus);
 }
 
 /**
@@ -111,7 +111,7 @@ export function canEditProductionOrder(
  * PurchaseOrder is editable when:
  * - Pipeline active_entity is "purchase", AND
  * - Pipeline status is IN_PURCHASE, AND
- * - PurchaseOrder status is ACTIVE (not terminal)
+ * - PurchaseOrder status is not terminal (draft/active are both editable)
  */
 export function canEditPurchaseOrder(
   pipelineStatus: string,
@@ -134,8 +134,8 @@ export function canEditPurchaseOrder(
     return false;
   }
 
-  // PurchaseOrder must be in active (editable) status
-  return purchaseOrderStatus === SubEntityStatus.ACTIVE;
+  // PurchaseOrder must not be in a terminal status (draft and active are both editable)
+  return !TERMINAL_STATUSES.has(purchaseOrderStatus);
 }
 
 /**
@@ -144,7 +144,7 @@ export function canEditPurchaseOrder(
  * OutboundOrder is editable when:
  * - Pipeline active_entity is "outbound", AND
  * - Pipeline status is IN_OUTBOUND, AND
- * - OutboundOrder status is ACTIVE (not terminal)
+ * - OutboundOrder status is not terminal (draft/active are both editable)
  */
 export function canEditOutboundOrder(
   pipelineStatus: string,
@@ -161,8 +161,8 @@ export function canEditOutboundOrder(
     return false;
   }
 
-  // OutboundOrder must be in active (editable) status
-  return outboundOrderStatus === SubEntityStatus.ACTIVE;
+  // OutboundOrder must not be in a terminal status (draft and active are both editable)
+  return !TERMINAL_STATUSES.has(outboundOrderStatus);
 }
 
 /**
