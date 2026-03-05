@@ -12,12 +12,13 @@ import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
 import PipelineStatusTag from "@/components/sea-saw-page/pipeline/display/renderers/PipelineStatusTag";
+import { PipelineHorizontalTimeline } from "@/components/sea-saw-page/pipeline/display/renderers/PipelineTimeline";
 import { convertToFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
-import type { HeaderMetaProps } from "@/components/sea-saw-design/form/interface";
+import type { FormDef } from "@/hooks/useFormDefs";
 
 interface PipelineCardProps {
-  def?: HeaderMetaProps;
+  def?: FormDef[] | Record<string, any>;
   value?: any;
   onItemClick?: () => void;
   canEdit?: boolean;
@@ -56,7 +57,9 @@ export default function PipelineCard({
     (item: any, fieldName: string) => {
       if (!hideEmptyFields) return true;
       const fieldValue = item[fieldName];
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
+      return (
+        fieldValue !== null && fieldValue !== undefined && fieldValue !== ""
+      );
     },
     [hideEmptyFields],
   );
@@ -79,7 +82,7 @@ export default function PipelineCard({
     const statusDef = getFieldDef("status");
     const accountDef = getFieldDef("account")?.children;
     const contactDef = getFieldDef("contact")?.children;
-    const attachmentsDef = def?.children?.attachments;
+    const attachmentsDef = getFieldDef("attachments")?.children;
 
     return (
       <Card key={item.id ?? index}>
@@ -124,18 +127,47 @@ export default function PipelineCard({
           }
         />
 
+        {/* Pipeline Progress Timeline */}
+        {item.status && (
+          <Card.Section>
+            <PipelineHorizontalTimeline
+              pipelineStatus={item.status}
+              timestamps={item}
+            />
+          </Card.Section>
+        )}
+
         {/* Basic Information Section */}
         <Card.Section className="bg-slate-50/70">
           <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
             {i18n.t("basic information")}
           </Text>
           <FieldGrid>
+            {["pipeline_type", "order_date"].map(
+              (fieldName) =>
+                shouldShowField(item, fieldName) && (
+                  <Field
+                    key={fieldName}
+                    label={getFieldLabel(fieldName)}
+                    value={renderField(fieldName, item[fieldName])}
+                  />
+                ),
+            )}
+          </FieldGrid>
+        </Card.Section>
+
+        {/* Financial Summary */}
+        <Card.Section className="bg-slate-50/70">
+          <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            {i18n.t("Financial Summary")}
+          </Text>
+          <FieldGrid>
             {[
-              "pipeline_type",
-              "order_date",
-              "confirmed_at",
-              "completed_at",
-              "cancelled_at",
+              "order_total_amount",
+              "purchase_order_total_amount",
+              "purchase_margin",
+              "received_order_total_amount",
+              "paid_purchase_order_total_amount",
             ].map(
               (fieldName) =>
                 shouldShowField(item, fieldName) && (

@@ -48,13 +48,6 @@ export const SubEntityStatus = {
   ISSUE_REPORTED: "issue_reported",
 } as const;
 
-// Terminal statuses that cannot be edited
-const TERMINAL_STATUSES: Set<string> = new Set([
-  SubEntityStatus.COMPLETED,
-  SubEntityStatus.CANCELLED,
-  SubEntityStatus.ISSUE_REPORTED,
-]);
-
 /**
  * Determines if an Order can be edited.
  *
@@ -75,94 +68,66 @@ export function canEditOrder(
 /**
  * Determines if a ProductionOrder can be edited.
  *
- * ProductionOrder is editable when:
- * - Pipeline active_entity is "production", AND
- * - Pipeline status is IN_PRODUCTION, AND
- * - ProductionOrder status is not terminal (draft/active are both editable)
+ * ProductionOrder is editable solely based on pipeline phase — sub-entity
+ * status does not restrict editing. Users can freely update production orders
+ * (including completed ones) as long as the pipeline is in the production phase.
+ *
+ * Editable when:
+ * - Pipeline active_entity is "production" or "production_and_purchase", AND
+ * - Pipeline status is IN_PRODUCTION or IN_PURCHASE_AND_PRODUCTION
  */
 export function canEditProductionOrder(
   pipelineStatus: string,
   activeEntity: string,
-  productionOrderStatus: string,
 ): boolean {
-  // Must be the active entity (production or hybrid)
-  if (
-    activeEntity !== ActiveEntityType.PRODUCTION &&
-    activeEntity !== ActiveEntityType.PRODUCTION_AND_PURCHASE
-  ) {
-    return false;
-  }
-
-  // Pipeline must be in production or hybrid phase
-  if (
-    pipelineStatus !== PipelineStatus.IN_PRODUCTION &&
-    pipelineStatus !== PipelineStatus.IN_PURCHASE_AND_PRODUCTION
-  ) {
-    return false;
-  }
-
-  // ProductionOrder must not be in a terminal status (draft and active are both editable)
-  return !TERMINAL_STATUSES.has(productionOrderStatus);
+  return (
+    (activeEntity === ActiveEntityType.PRODUCTION ||
+      activeEntity === ActiveEntityType.PRODUCTION_AND_PURCHASE) &&
+    (pipelineStatus === PipelineStatus.IN_PRODUCTION ||
+      pipelineStatus === PipelineStatus.IN_PURCHASE_AND_PRODUCTION)
+  );
 }
 
 /**
  * Determines if a PurchaseOrder can be edited.
  *
- * PurchaseOrder is editable when:
- * - Pipeline active_entity is "purchase", AND
- * - Pipeline status is IN_PURCHASE, AND
- * - PurchaseOrder status is not terminal (draft/active are both editable)
+ * PurchaseOrder is editable solely based on pipeline phase — sub-entity
+ * status does not restrict editing.
+ *
+ * Editable when:
+ * - Pipeline active_entity is "purchase" or "production_and_purchase", AND
+ * - Pipeline status is IN_PURCHASE or IN_PURCHASE_AND_PRODUCTION
  */
 export function canEditPurchaseOrder(
   pipelineStatus: string,
   activeEntity: string,
-  purchaseOrderStatus: string,
 ): boolean {
-  // Must be the active entity (purchase or hybrid)
-  if (
-    activeEntity !== ActiveEntityType.PURCHASE &&
-    activeEntity !== ActiveEntityType.PRODUCTION_AND_PURCHASE
-  ) {
-    return false;
-  }
-
-  // Pipeline must be in purchase or hybrid phase
-  if (
-    pipelineStatus !== PipelineStatus.IN_PURCHASE &&
-    pipelineStatus !== PipelineStatus.IN_PURCHASE_AND_PRODUCTION
-  ) {
-    return false;
-  }
-
-  // PurchaseOrder must not be in a terminal status (draft and active are both editable)
-  return !TERMINAL_STATUSES.has(purchaseOrderStatus);
+  return (
+    (activeEntity === ActiveEntityType.PURCHASE ||
+      activeEntity === ActiveEntityType.PRODUCTION_AND_PURCHASE) &&
+    (pipelineStatus === PipelineStatus.IN_PURCHASE ||
+      pipelineStatus === PipelineStatus.IN_PURCHASE_AND_PRODUCTION)
+  );
 }
 
 /**
  * Determines if an OutboundOrder can be edited.
  *
- * OutboundOrder is editable when:
+ * OutboundOrder is editable solely based on pipeline phase — sub-entity
+ * status does not restrict editing.
+ *
+ * Editable when:
  * - Pipeline active_entity is "outbound", AND
- * - Pipeline status is IN_OUTBOUND, AND
- * - OutboundOrder status is not terminal (draft/active are both editable)
+ * - Pipeline status is IN_OUTBOUND
  */
 export function canEditOutboundOrder(
   pipelineStatus: string,
   activeEntity: string,
-  outboundOrderStatus: string,
 ): boolean {
-  // Must be the active entity
-  if (activeEntity !== ActiveEntityType.OUTBOUND) {
-    return false;
-  }
-
-  // Pipeline must be in outbound phase
-  if (pipelineStatus !== PipelineStatus.IN_OUTBOUND) {
-    return false;
-  }
-
-  // OutboundOrder must not be in a terminal status (draft and active are both editable)
-  return !TERMINAL_STATUSES.has(outboundOrderStatus);
+  return (
+    activeEntity === ActiveEntityType.OUTBOUND &&
+    pipelineStatus === PipelineStatus.IN_OUTBOUND
+  );
 }
 
 /**

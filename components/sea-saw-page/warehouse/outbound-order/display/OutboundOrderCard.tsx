@@ -81,7 +81,6 @@ export default function OutboundOrderCard({
     const isEditable = canEditOutboundOrder(
       orderStatus || "",
       activeEntity || "",
-      item.status || "",
     );
 
     return (

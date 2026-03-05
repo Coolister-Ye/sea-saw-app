@@ -93,6 +93,7 @@ export default function PurchaseOrdersSection({
         onClose={() => setEditingPurchase(null)}
         onCreate={onCreate}
         onUpdate={onUpdate}
+        orderCode={order.order_code}
       />
     </SectionWrapper>
   );

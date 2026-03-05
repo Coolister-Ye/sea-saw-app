@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import {
   Timeline,
+  HorizontalTimeline,
   type TimelineItem,
   type TimelineItemStatus,
 } from "@/components/sea-saw-design/timeline";
@@ -33,9 +34,7 @@ function formatTimestamp(value?: string | null): string | undefined {
     const y = d.getFullYear();
     const mo = String(d.getMonth() + 1).padStart(2, "0");
     const da = String(d.getDate()).padStart(2, "0");
-    const h = String(d.getHours()).padStart(2, "0");
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    return `${y}-${mo}-${da} ${h}:${mi}`;
+    return `${y}-${mo}-${da}`;
   } catch {
     return value;
   }
@@ -264,3 +263,63 @@ export function PipelineTimeline({
 }
 
 export default PipelineTimeline;
+
+/**
+ * Horizontal variant — same stage logic, rendered left-to-right.
+ * Suitable for embedding inside a Card.Section as a progress strip.
+ */
+export function PipelineHorizontalTimeline({
+  pipelineStatus,
+  timestamps,
+}: Pick<PipelineTimelineProps, "pipelineStatus" | "timestamps">) {
+  if (!pipelineStatus) return null;
+
+  // Special terminal states: single item
+  if (pipelineStatus in SPECIAL_STATUSES) {
+    const special = SPECIAL_STATUSES[pipelineStatus];
+    const ts =
+      timestamps && special.getTimestamp
+        ? formatTimestamp(special.getTimestamp(timestamps))
+        : undefined;
+    return (
+      <HorizontalTimeline
+        items={[
+          {
+            key: pipelineStatus,
+            label: special.label,
+            status: special.status,
+            color: special.color,
+            timestamp: ts,
+          },
+        ]}
+      />
+    );
+  }
+
+  const currentStageIndex = getStageIndex(pipelineStatus);
+
+  const items: TimelineItem[] = PIPELINE_STAGES.map((stage, index) => {
+    let itemStatus: TimelineItemStatus;
+    let description: string | undefined;
+    let timestamp: string | undefined;
+
+    if (index < currentStageIndex) {
+      itemStatus = "completed";
+      if (timestamps && stage.getTimestamp) {
+        timestamp = formatTimestamp(stage.getTimestamp(pipelineStatus, timestamps));
+      }
+    } else if (index === currentStageIndex) {
+      itemStatus = "current";
+      description = stage.subLabel?.(pipelineStatus);
+      if (timestamps && stage.getTimestamp) {
+        timestamp = formatTimestamp(stage.getTimestamp(pipelineStatus, timestamps));
+      }
+    } else {
+      itemStatus = "pending";
+    }
+
+    return { key: stage.statuses[0], label: stage.label, status: itemStatus, description, timestamp };
+  });
+
+  return <HorizontalTimeline items={items} />;
+}

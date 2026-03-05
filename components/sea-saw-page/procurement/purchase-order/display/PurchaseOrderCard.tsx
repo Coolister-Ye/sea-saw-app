@@ -87,7 +87,6 @@ export default function PurchaseOrderCard({
     const isEditable = canEditPurchaseOrder(
       orderStatus || "",
       activeEntity || "",
-      item.status || "",
     );
 
     return (

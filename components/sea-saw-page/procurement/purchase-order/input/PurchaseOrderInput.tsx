@@ -29,6 +29,7 @@ interface PurchaseOrderInputProps {
   };
   pipelineId?: string | number;
   columnOrder?: string[];
+  orderCode?: string;
 }
 
 export default function PurchaseOrderInput({
@@ -41,11 +42,13 @@ export default function PurchaseOrderInput({
   data = {},
   pipelineId,
   columnOrder,
+  orderCode,
 }: PurchaseOrderInputProps) {
   const getDefaultValues = () => ({
     status: "draft",
     purchase_date: new Date().toISOString().split("T")[0],
     currency: "USD",
+    ...(orderCode ? { purchase_code: orderCode } : {}),
   });
 
   const normalizePayload = (values: any) => {

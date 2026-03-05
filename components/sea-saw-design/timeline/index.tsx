@@ -202,3 +202,5 @@ export function Timeline({ items, className, loading }: TimelineProps) {
 }
 
 export default Timeline;
+
+export { HorizontalTimeline } from "./HorizontalTimeline";

@@ -81,7 +81,6 @@ export default function ProductionOrderCard({
     const isEditable = canEditProductionOrder(
       orderStatus || "",
       activeEntity || "",
-      item.status || "",
     );
 
     return (

@@ -6,7 +6,8 @@ import { Text } from "@/components/sea-saw-design/text";
 import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { convertToFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
-import { Card, Field, FieldGrid, EmptySlot } from "@/components/sea-saw-page/base";
+import { Card, Field, FieldGrid } from "./index";
+import EmptySlot from "../EmptySlot";
 
 // Tag definition for rendering attribute tags
 export interface TagConfig {
