@@ -51,18 +51,20 @@ export const SubEntityStatus = {
 /**
  * Determines if an Order can be edited.
  *
- * Order is editable only when status is DRAFT (not yet confirmed).
- * Pipeline status is no longer a factor — once confirmed or cancelled,
- * order content is locked regardless of pipeline state.
+ * Order is editable when:
+ * - Pipeline is in DRAFT status (order can be re-edited after pipeline rollback), OR
+ * - Order's own status is DRAFT (not yet confirmed)
  *
- * @param _pipelineStatus - Kept for call-site compatibility, not used
+ * @param pipelineStatus - Current pipeline status
  * @param orderStatus - Current order status
  */
 export function canEditOrder(
-  _pipelineStatus: string,
+  pipelineStatus: string,
   orderStatus: string,
 ): boolean {
-  return orderStatus === OrderStatus.DRAFT;
+  return (
+    pipelineStatus === PipelineStatus.DRAFT || orderStatus === OrderStatus.DRAFT
+  );
 }
 
 /**

@@ -14,7 +14,7 @@ import AccountPopover from "@/components/sea-saw-page/crm/account/display/Accoun
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
 import OrderStatusTag from "./OrderStatusTag";
 import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
-import { convertToFormDefs, getChildrenFormDefs } from "@/utils/formDefUtils";
+import { convertToFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import RelatedPipelineLink from "./RelatedPipelineLink";
