@@ -5,7 +5,7 @@ import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
  * Outbound Status Tag Renderer
  * ======================== */
 interface OutboundStatusTagProps {
-  def?: { choices?: Array<{ value: string; label: string }> };
+  def?: { choices?: { value: string; label: string }[] };
   value: string;
   className?: string;
 }

@@ -3,7 +3,6 @@ import i18n from "@/locale/i18n";
 import { View, ScrollView, Text } from "react-native";
 import { Button, message, Tag, Spin } from "antd";
 import {
-  PlusOutlined,
   EyeOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";

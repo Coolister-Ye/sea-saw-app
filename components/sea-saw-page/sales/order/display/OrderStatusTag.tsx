@@ -3,7 +3,7 @@ import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
 
 interface OrderStatusTagProps {
   value: string;
-  def?: { choices?: Array<{ value: string; label: string }> };
+  def?: { choices?: { value: string; label: string }[] };
   className?: string;
 }
 

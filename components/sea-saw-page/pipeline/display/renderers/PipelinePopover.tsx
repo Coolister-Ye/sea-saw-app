@@ -107,12 +107,13 @@ export default function PipelinePopover({ value, def }: PipelinePopoverProps) {
     );
   }, [value, def]);
 
+  const statusLabelMap = useStatusLabelMap(def?.children?.status);
+
   if (!value || !value.pipeline_code) {
     return <Text className="text-gray-400">-</Text>;
   }
 
   const statusColor = STATUS_COLOR_MAP[value.status || ""] || "default";
-  const statusLabelMap = useStatusLabelMap(def?.children?.status);
   const statusLabel = value.status
     ? (statusLabelMap[value.status] ?? value.status)
     : null;

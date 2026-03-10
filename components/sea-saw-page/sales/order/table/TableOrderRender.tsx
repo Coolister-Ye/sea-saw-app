@@ -3,14 +3,6 @@ import { Popover } from "antd";
 import clsx from "clsx";
 import { View, Text } from "react-native";
 
-interface OrderMeta {
-  orders?: {
-    child?: {
-      children?: Record<string, { label: string }>;
-    };
-  };
-}
-
 interface OrderValue {
   pk?: string;
   order_code?: string;
@@ -20,7 +12,6 @@ interface OrderValue {
 
 function OrderRender(props: CustomCellRendererProps) {
   const value: OrderValue[] = props.value ?? [];
-  const meta: OrderMeta = props.context?.meta ?? {};
 
   const renderOrderBox = (order: OrderValue) => {
     const { stage } = order;

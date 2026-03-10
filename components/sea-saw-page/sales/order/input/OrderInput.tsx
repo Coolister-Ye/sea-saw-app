@@ -116,7 +116,7 @@ export default function OrderInput({
       total_amount: { read_only: true, hidden: false },
       comment: { render: () => <TextArea rows={3} /> },
     }),
-    [],
+    [data?.related_pipeline?.id],
   );
 
   return (
