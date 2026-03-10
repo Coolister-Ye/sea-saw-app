@@ -22,7 +22,7 @@ export interface OrderDefs {
 
 export interface ProductionOrdersSectionProps {
   order: any;
-  orderStatus: string;
+  pipelineStatus: string;
   productionOrders: any[];
   def: any;
   displayConfig: any;
@@ -48,7 +48,7 @@ export interface OutboundOrdersSectionProps {
 
 export interface PaymentsSectionProps {
   order: any;
-  orderStatus: string;
+  pipelineStatus: string;
   payments: any[];
   def: any;
   editingPayment: any | null;
@@ -59,7 +59,7 @@ export interface PaymentsSectionProps {
 
 export interface PurchaseOrdersSectionProps {
   order: any;
-  orderStatus: string;
+  pipelineStatus: string;
   purchaseOrders: any[];
   def: any;
   displayConfig: any;

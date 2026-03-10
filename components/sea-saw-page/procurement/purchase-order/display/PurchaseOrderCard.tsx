@@ -23,7 +23,7 @@ interface PurchaseOrderCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }
@@ -32,7 +32,7 @@ export default function PurchaseOrderCard({
   def,
   value,
   onItemClick,
-  orderStatus,
+  pipelineStatus,
   activeEntity,
   hideEmptyFields = false,
 }: PurchaseOrderCardProps) {
@@ -85,7 +85,7 @@ export default function PurchaseOrderCard({
     const purchaseItemsDef = getFieldDef("purchase_items")?.child?.children;
 
     const isEditable = canEditPurchaseOrder(
-      orderStatus || "",
+      pipelineStatus || "",
       activeEntity || "",
     );
 

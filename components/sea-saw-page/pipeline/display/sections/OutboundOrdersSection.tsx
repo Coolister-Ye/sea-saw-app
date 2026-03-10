@@ -80,7 +80,7 @@ export default function OutboundOrdersSection({
                 onItemClick={(index: number) =>
                   setEditingOb(outboundOrders[index])
                 }
-                orderStatus={pipelineStatus}
+                pipelineStatus={pipelineStatus}
                 activeEntity={pipeline?.active_entity}
               />
 

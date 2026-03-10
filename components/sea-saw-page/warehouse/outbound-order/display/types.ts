@@ -61,7 +61,7 @@ export interface OutboundOrderCardProps {
   def?: any[];
   value?: OutboundOrder[] | OutboundOrder | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }

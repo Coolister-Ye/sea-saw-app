@@ -48,6 +48,22 @@ export const SubEntityStatus = {
   ISSUE_REPORTED: "issue_reported",
 } as const;
 
+// Statuses considered "closed" — terminal states that do not block pipeline advancement
+export const CLOSED_SUB_ENTITY_STATUSES: string[] = [
+  SubEntityStatus.COMPLETED,
+  SubEntityStatus.CANCELLED,
+];
+
+// Maps pipeline target status → which sub-entity arrays must all be closed before advancing.
+// Used by the frontend to show a pre-transition warning when some sub-entities are still open.
+export const TRANSITION_ENTITY_CHECK: Partial<Record<string, string[]>> = {
+  purchase_completed: ["purchase_orders"],
+  production_completed: ["production_orders"],
+  outbound_completed: ["outbound_orders"],
+  purchase_and_production_completed: ["purchase_orders", "production_orders"],
+  completed: ["outbound_orders"],
+};
+
 /**
  * Determines if an Order can be edited.
  *

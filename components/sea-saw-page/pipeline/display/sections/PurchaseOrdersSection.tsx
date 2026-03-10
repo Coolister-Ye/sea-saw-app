@@ -15,7 +15,7 @@ import PurchaseOrderInput from "@/components/sea-saw-page/procurement/purchase-o
 
 export default function PurchaseOrdersSection({
   order,
-  orderStatus,
+  pipelineStatus,
   purchaseOrders,
   def,
   optionState,
@@ -66,7 +66,7 @@ export default function PurchaseOrdersSection({
               onItemClick={(index: number) =>
                 setEditingPurchase(purchaseOrders[index])
               }
-              orderStatus={orderStatus}
+              pipelineStatus={pipelineStatus}
               activeEntity={order?.active_entity}
             />
 

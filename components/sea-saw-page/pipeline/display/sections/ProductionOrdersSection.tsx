@@ -18,7 +18,7 @@ import ProductionOrderCard from "@/components/sea-saw-page/production/production
 
 export default function ProductionOrdersSection({
   order,
-  orderStatus,
+  pipelineStatus,
   productionOrders,
   def,
   optionState,
@@ -69,7 +69,7 @@ export default function ProductionOrdersSection({
               onItemClick={(index: number) =>
                 setEditingProd(productionOrders[index])
               }
-              orderStatus={orderStatus}
+              pipelineStatus={pipelineStatus}
               activeEntity={order?.active_entity}
             />
 

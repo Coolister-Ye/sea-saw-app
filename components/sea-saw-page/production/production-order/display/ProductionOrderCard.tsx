@@ -21,7 +21,7 @@ interface ProductionOrderItemsCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }
@@ -30,7 +30,7 @@ export default function ProductionOrderCard({
   def,
   value,
   onItemClick,
-  orderStatus,
+  pipelineStatus,
   activeEntity,
   hideEmptyFields = false,
 }: ProductionOrderItemsCardProps) {
@@ -79,7 +79,7 @@ export default function ProductionOrderCard({
     const productionItemsDef = getFieldDef("production_items")?.child?.children;
 
     const isEditable = canEditProductionOrder(
-      orderStatus || "",
+      pipelineStatus || "",
       activeEntity || "",
     );
 

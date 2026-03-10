@@ -90,6 +90,9 @@ export default function PipelineDisplay({
             pipelineId={pipeline.id}
             stateActions={allowed_actions}
             statusDef={statusDef}
+            purchaseOrders={purchase_orders}
+            productionOrders={production_orders}
+            outboundOrders={outbound_orders}
             onSuccess={onUpdate}
           />
           <Button onClick={onClose}>{i18n.t("Close")}</Button>
@@ -126,7 +129,7 @@ export default function PipelineDisplay({
         {visibility.hasPurchaseOrders && (
           <PurchaseOrdersSection
             order={pipeline}
-            orderStatus={pipeline.status}
+            pipelineStatus={pipeline.status}
             purchaseOrders={purchase_orders}
             def={getChildrenFormDefs(defs.purchaseOrders)}
             displayConfig={DISPLAY_CONFIG}
@@ -142,7 +145,7 @@ export default function PipelineDisplay({
         {visibility.hasProductionOrders && (
           <ProductionOrdersSection
             order={pipeline}
-            orderStatus={pipeline.status}
+            pipelineStatus={pipeline.status}
             productionOrders={production_orders}
             def={getChildrenFormDefs(defs.productionOrders)}
             displayConfig={DISPLAY_CONFIG}
@@ -174,7 +177,7 @@ export default function PipelineDisplay({
         {visibility.hasPayments && (
           <PaymentsSection
             order={pipeline}
-            orderStatus={pipeline.status}
+            pipelineStatus={pipeline.status}
             payments={payments}
             def={getChildrenFormDefs(defs.payments)}
             editingPayment={editingPayment}

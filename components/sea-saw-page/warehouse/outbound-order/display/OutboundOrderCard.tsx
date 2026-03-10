@@ -21,7 +21,7 @@ interface OutboundOrderCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }
@@ -30,7 +30,7 @@ export default function OutboundOrderCard({
   def,
   value,
   onItemClick,
-  orderStatus,
+  pipelineStatus,
   activeEntity,
   hideEmptyFields = false,
 }: OutboundOrderCardProps) {
@@ -79,7 +79,7 @@ export default function OutboundOrderCard({
     const outboundItemsDef = getFieldDef("outbound_items")?.child?.children;
 
     const isEditable = canEditOutboundOrder(
-      orderStatus || "",
+      pipelineStatus || "",
       activeEntity || "",
     );
 

@@ -73,7 +73,7 @@ export interface PurchaseOrderCardProps {
   def?: any[];
   value?: PurchaseOrder[] | PurchaseOrder | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }

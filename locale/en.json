@@ -316,6 +316,13 @@
   "Updating pipeline status...": "Updating pipeline status...",
   "Pipeline status updated successfully": "Pipeline status updated successfully",
   "Failed to update pipeline status": "Failed to update pipeline status",
+  "Some orders are not yet closed": "Some orders are not yet closed",
+  "not yet closed": "not yet closed",
+  "Are you sure you want to proceed?": "Are you sure you want to proceed?",
+  "Proceed": "Proceed",
+  "purchase_orders": "Purchase Orders",
+  "production_orders": "Production Orders",
+  "outbound_orders": "Outbound Orders",
 
   "Access Denied": "Access Denied",
   "Active": "Active",

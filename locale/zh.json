@@ -325,6 +325,13 @@
   "Updating pipeline status...": "正在更新流水线状态...",
   "Pipeline status updated successfully": "流水线状态更新成功",
   "Failed to update pipeline status": "更新流水线状态失败",
+  "Some orders are not yet closed": "部分订单尚未关闭",
+  "not yet closed": "尚未关闭",
+  "Are you sure you want to proceed?": "确定要继续推进吗？",
+  "Proceed": "继续",
+  "purchase_orders": "采购单",
+  "production_orders": "生产单",
+  "outbound_orders": "出库单",
 
   "Access Denied": "访问被拒绝",
   "Active": "启用",

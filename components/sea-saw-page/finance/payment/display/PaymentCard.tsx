@@ -20,7 +20,7 @@ interface PaymentCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   hideEmptyFields?: boolean;
 }
 
@@ -28,7 +28,7 @@ export default function PaymentCard({
   def,
   value,
   onItemClick,
-  orderStatus,
+  pipelineStatus,
   hideEmptyFields = false,
 }: PaymentCardProps) {
   // Normalize value to array
@@ -72,7 +72,7 @@ export default function PaymentCard({
 
   // Can edit if onItemClick is provided and order is not completed
   const canEdit =
-    typeof onItemClick === "function" && orderStatus !== "completed";
+    typeof onItemClick === "function" && pipelineStatus !== "completed";
 
   if (items.length === 0) {
     return <EmptySlot message={i18n.t("No payment records")} />;

@@ -1,12 +1,19 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import i18n from '@/locale/i18n';
-import { Dropdown, MenuProps, Button, Space, message } from "antd";
+import { Dropdown, MenuProps, Button, Space, message, Modal } from "antd";
 import useDataService from "@/hooks/useDataService";
+import {
+  CLOSED_SUB_ENTITY_STATUSES,
+  TRANSITION_ENTITY_CHECK,
+} from "@/constants/PipelineStatus";
 
 interface Props {
   pipelineId: string | number;
   stateActions: string[];
   statusDef?: { choices?: Array<{ value: string; label: string }> };
+  purchaseOrders?: Array<{ status: string }>;
+  productionOrders?: Array<{ status: string }>;
+  outboundOrders?: Array<{ status: string }>;
   onSuccess?: (data: any) => void;
 }
 
@@ -14,6 +21,9 @@ export default function PipelineStatusDropdown({
   pipelineId,
   stateActions,
   statusDef,
+  purchaseOrders,
+  productionOrders,
+  outboundOrders,
   onSuccess,
 }: Props) {
   const { request } = useDataService();
@@ -27,7 +37,7 @@ export default function PipelineStatusDropdown({
     );
   }, [statusDef?.choices]);
 
-  const handleAction = async (action: string) => {
+  const doTransition = useCallback(async (action: string) => {
     try {
       setLoading(true);
       messageApi.open({
@@ -64,7 +74,45 @@ export default function PipelineStatusDropdown({
     } finally {
       setLoading(false);
     }
-  };
+  }, [pipelineId, request, messageApi, onSuccess]);
+
+  const getOpenEntityWarning = useCallback((action: string): string | null => {
+    const entityKeys = TRANSITION_ENTITY_CHECK[action];
+    if (!entityKeys) return null;
+
+    const entityDataMap: Record<string, Array<{ status: string }>> = {
+      purchase_orders: purchaseOrders ?? [],
+      production_orders: productionOrders ?? [],
+      outbound_orders: outboundOrders ?? [],
+    };
+
+    const warnings: string[] = [];
+    for (const key of entityKeys) {
+      const orders = entityDataMap[key] ?? [];
+      const openCount = orders.filter(
+        (o) => !CLOSED_SUB_ENTITY_STATUSES.includes(o.status)
+      ).length;
+      if (openCount > 0) {
+        warnings.push(`${openCount} ${i18n.t(key)} ${i18n.t("not yet closed")}`);
+      }
+    }
+    return warnings.length > 0 ? warnings.join(", ") : null;
+  }, [purchaseOrders, productionOrders, outboundOrders]);
+
+  const handleAction = useCallback((action: string) => {
+    const warning = getOpenEntityWarning(action);
+    if (warning) {
+      Modal.confirm({
+        title: i18n.t("Some orders are not yet closed"),
+        content: `${warning}. ${i18n.t("Are you sure you want to proceed?")}`,
+        okText: i18n.t("Proceed"),
+        cancelText: i18n.t("Cancel"),
+        onOk: () => doTransition(action),
+      });
+    } else {
+      doTransition(action);
+    }
+  }, [getOpenEntityWarning, doTransition]);
 
   const menuProps: MenuProps = useMemo(
     () => ({
@@ -74,7 +122,7 @@ export default function PipelineStatusDropdown({
       })),
       onClick: ({ key }) => handleAction(key),
     }),
-    [stateActions, statusLabelMap],
+    [stateActions, statusLabelMap, handleAction],
   );
 
   if (!stateActions.length) return null;

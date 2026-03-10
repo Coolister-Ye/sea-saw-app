@@ -65,7 +65,7 @@ export interface ProductionOrderCardProps {
   def?: any[];
   value?: ProductionOrder[] | ProductionOrder | null;
   onItemClick?: (index: number) => void;
-  orderStatus?: string;
+  pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
 }

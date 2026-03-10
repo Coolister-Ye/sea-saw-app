@@ -11,7 +11,7 @@ import PaymentInput from "@/components/sea-saw-page/finance/payment/input/nested
 
 export default function PaymentsSection({
   order,
-  orderStatus,
+  pipelineStatus,
   payments,
   def,
   editingPayment,
@@ -81,18 +81,18 @@ export default function PaymentsSection({
                 def={def}
                 value={payments}
                 onItemClick={(index) => setEditingPayment(payments[index])}
-                orderStatus={orderStatus}
+                pipelineStatus={pipelineStatus}
               />
 
               <PaymentAddDivider
-                disabled={["cancelled", "completed"].includes(orderStatus)}
+                disabled={["cancelled", "completed"].includes(pipelineStatus)}
                 onAdd={() => setEditingPayment({ order: order.id })}
               />
             </>
           ) : (
             <PaymentEmptySlot
               onCreate={() => setEditingPayment({ order: order.id })}
-              disabled={["cancelled", "completed"].includes(orderStatus)}
+              disabled={["cancelled", "completed"].includes(pipelineStatus)}
             />
           )}
         </View>
