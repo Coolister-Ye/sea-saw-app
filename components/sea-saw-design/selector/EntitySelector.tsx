@@ -123,7 +123,8 @@ const normalizeValue = <T extends EntityItem>(value?: T | T[] | null): T[] => {
 const DEFAULT_COL_DEF: ColDef = {
   sortable: true,
   resizable: true,
-  width: DEFAULT_COL_WIDTH,
+  flex: 1,
+  minWidth: DEFAULT_COL_WIDTH,
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
