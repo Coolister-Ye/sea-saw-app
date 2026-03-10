@@ -124,6 +124,15 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
   const [headerMetaData, setHeaderMetaData] = useState<
     Record<string, HeaderMetaProps>
   >({});
+
+  const defaultColDef = useMemo<ColDef>(
+    () => ({
+      sortable: true,
+      resizable: true,
+      width: DEFAULT_COL_WIDTH,
+    }),
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [gridReady, setGridReady] = useState(false);
@@ -431,11 +440,7 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           ref={gridRef}
           rowModelType="serverSide"
           columnDefs={columnDefs}
-          defaultColDef={{
-            sortable: true,
-            resizable: true,
-            width: DEFAULT_COL_WIDTH,
-          }}
+          defaultColDef={defaultColDef}
           getRowId={getRowId}
           pagination
           paginationPageSize={DEFAULT_PAGE_SIZE}

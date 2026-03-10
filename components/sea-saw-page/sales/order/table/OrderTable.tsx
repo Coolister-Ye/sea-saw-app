@@ -22,12 +22,13 @@ const OrderTable = forwardRef<AgGridReact, OrderTableProps>(
   ({ headerMeta, onRowClicked, columnOrder, ...restProps }, ref) => {
     const colRenderers = useMemo(
       () => ({
-        account: { cellRenderer: AccountCell },
+        order_code: { width: 200 },
+        account: { cellRenderer: AccountCell, width: 200 },
         contact: { cellRenderer: ContactCell },
-        order_items: { cellRenderer: OrderItemsCell },
+        order_items: { cellRenderer: OrderItemsCell, width: 200 },
         attachments: { cellRenderer: AttachmentsRender },
         status: { cellRenderer: OrderStatusCell },
-        related_pipeline: { cellRenderer: PipelineCell },
+        related_pipeline: { cellRenderer: PipelineCell, width: 200 },
       }),
       [],
     );

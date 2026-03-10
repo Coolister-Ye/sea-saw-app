@@ -8,10 +8,8 @@ import { PopoverCard } from "@/components/sea-saw-page/base/popover";
 import PipelineStatusTag, { STATUS_COLOR_MAP } from "./PipelineStatusTag";
 import PipelineTypeTag from "./PipelineTypeTag";
 import ActiveEntityTag from "./ActiveEntityTag";
-import {
-  PipelineTimeline,
-  type PipelineTimestamps,
-} from "./PipelineTimeline";
+import { PipelineTimeline, type PipelineTimestamps } from "./PipelineTimeline";
+import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
 
 interface PipelineData {
   id?: number;
@@ -60,7 +58,8 @@ export default function PipelinePopover({ value, def }: PipelinePopoverProps) {
       in_production_at: value.in_production_at,
       production_completed_at: value.production_completed_at,
       in_purchase_and_production_at: value.in_purchase_and_production_at,
-      purchase_and_production_completed_at: value.purchase_and_production_completed_at,
+      purchase_and_production_completed_at:
+        value.purchase_and_production_completed_at,
       in_outbound_at: value.in_outbound_at,
       outbound_completed_at: value.outbound_completed_at,
       completed_at: value.completed_at,
@@ -113,15 +112,16 @@ export default function PipelinePopover({ value, def }: PipelinePopoverProps) {
   }
 
   const statusColor = STATUS_COLOR_MAP[value.status || ""] || "default";
+  const statusLabelMap = useStatusLabelMap(def?.children?.status);
+  const statusLabel = value.status
+    ? (statusLabelMap[value.status] ?? value.status)
+    : null;
 
   return (
     <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>
-      <Tag
-        color={statusColor}
-        style={{ cursor: "pointer", margin: 0 }}
-        className="hover:opacity-80"
-      >
+      <Tag color={statusColor} className="hover:opacity-80 w-fit">
         {value.pipeline_code}
+        {statusLabel && `· ${statusLabel}`}
       </Tag>
     </Popover>
   );

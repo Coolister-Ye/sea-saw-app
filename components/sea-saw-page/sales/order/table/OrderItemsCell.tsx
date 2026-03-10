@@ -1,6 +1,7 @@
 import React from "react";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import OrderItemPopover from "../display/OrderItemPopover";
+import { View } from "@/components/sea-saw-design/view";
 
 interface OrderItem {
   id?: string | number;
@@ -17,13 +18,13 @@ function OrderItemsCell(props: CustomCellRendererProps<OrderItem[]>) {
   }
 
   return (
-    <>
+    <View className="flex-1 flex-row gap-2">
       {items.map((item, index) =>
         item ? (
           <OrderItemPopover key={item.id ?? index} value={item} def={def} />
         ) : null,
       )}
-    </>
+    </View>
   );
 }
 
