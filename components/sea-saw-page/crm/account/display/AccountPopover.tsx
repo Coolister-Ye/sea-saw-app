@@ -15,21 +15,27 @@ interface Account {
 interface AccountPopoverProps {
   def?: Record<string, any>;
   value?: Account | null;
+  /** Custom trigger element. Defaults to a link button showing account_name. */
+  children?: React.ReactNode;
 }
 
-export default function AccountPopover({ value, def }: AccountPopoverProps) {
+const COL_DEF = {
+  address: { icon: "📍" },
+  email:   { icon: "✉️" },
+  phone:   { icon: "📞" },
+};
+
+export default function AccountPopover({ value, def, children }: AccountPopoverProps) {
   const content = useMemo(
     () =>
       value ? (
         <PopoverCard
-          headerIcon={
-            <BuildingOfficeIcon size={16} className="text-blue-600" />
-          }
+          headerIcon={<BuildingOfficeIcon size={16} className="text-blue-600" />}
           headerTitle={value.account_name}
           value={value}
           metaDef={def}
-          columnOrder={["address", "roles"]}
-          colDef={{ address: { icon: "📍" }, roles: { icon: "👤" } }}
+          columnOrder={["address", "email", "phone"]}
+          colDef={COL_DEF}
         />
       ) : null,
     [value, def],
@@ -40,12 +46,7 @@ export default function AccountPopover({ value, def }: AccountPopoverProps) {
       <Button
         type="link"
         disabled
-        style={{
-          padding: 0,
-          height: "auto",
-          lineHeight: "inherit",
-          cursor: "default",
-        }}
+        style={{ padding: 0, height: "auto", lineHeight: "inherit", cursor: "default" }}
         className="text-slate-400"
       >
         -
@@ -54,24 +55,17 @@ export default function AccountPopover({ value, def }: AccountPopoverProps) {
   }
 
   return (
-    <Popover
-      content={content}
-      trigger="hover"
-      placement="right"
-      mouseEnterDelay={0.15}
-    >
-      <Button
-        type="link"
-        tabIndex={0}
-        style={{
-          padding: 0,
-          height: "auto",
-          lineHeight: "inherit",
-        }}
-        className="text-blue-600 hover:text-blue-700"
-      >
-        {value.account_name}
-      </Button>
+    <Popover content={content} trigger="hover" placement="right" mouseEnterDelay={0.15}>
+      {children ?? (
+        <Button
+          type="link"
+          tabIndex={0}
+          style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
+          className="text-blue-600 hover:text-blue-700"
+        >
+          {value.account_name}
+        </Button>
+      )}
     </Popover>
   );
 }

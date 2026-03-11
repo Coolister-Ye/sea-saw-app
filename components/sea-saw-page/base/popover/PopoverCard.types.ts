@@ -43,8 +43,6 @@ export interface PopoverCardProps {
   iconBgClass?: string;
   /** Custom icon color/size wrapper class */
   iconClass?: string;
-  /** Custom label width class (default: min-w-[60px]) */
-  labelWidthClass?: string;
 }
 
 /**
@@ -73,6 +71,4 @@ export interface PopoverInfoRowProps {
   fieldValue: ReactNode;
   /** Icon to display before label */
   icon?: ReactNode;
-  /** Custom label width class (default: min-w-[60px]) */
-  labelWidthClass?: string;
 }

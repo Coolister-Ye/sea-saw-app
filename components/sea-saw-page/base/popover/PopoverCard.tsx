@@ -53,7 +53,6 @@ function PopoverCard({
   showDivider = true,
   iconBgClass = "bg-blue-50",
   iconClass,
-  labelWidthClass = "min-w-[60px]",
 }: PopoverCardProps) {
   // Memoize filtered and ordered fields for performance
   const orderedFields = useMemo(() => {
@@ -105,11 +104,11 @@ function PopoverCard({
       {showDivider && <View className="h-[1px] bg-gray-100" />}
 
       {/* Info Fields */}
-      <View className="space-y-1.5">
-        {orderedFields.length === 0 ? (
-          <Text className="text-xs text-gray-400">No data available</Text>
-        ) : (
-          orderedFields.map(([fieldKey, fieldDef]) => {
+      {orderedFields.length === 0 ? (
+        <Text className="text-xs text-gray-400">No data available</Text>
+      ) : (
+        <View className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-start">
+          {orderedFields.map(([fieldKey, fieldDef]) => {
             const label = fieldDef.label || fieldKey;
             const fieldValue = value[fieldKey];
             const customRender = colDef?.[fieldKey]?.render;
@@ -118,7 +117,6 @@ function PopoverCard({
               : fieldValue;
             const icon = colDef?.[fieldKey]?.icon;
 
-            // Default render: label-value pair
             return (
               <PopoverInfoRow
                 key={fieldKey}
@@ -126,12 +124,11 @@ function PopoverCard({
                 label={label}
                 fieldValue={render}
                 icon={icon}
-                labelWidthClass={labelWidthClass}
               />
             );
-          })
-        )}
-      </View>
+          })}
+        </View>
+      )}
     </View>
   );
 }

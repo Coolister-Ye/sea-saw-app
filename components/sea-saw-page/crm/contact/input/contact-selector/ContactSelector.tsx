@@ -8,7 +8,7 @@ import {
   SelectorModalHeader,
   SelectorModalFooter,
 } from "@/components/sea-saw-page/base/selector-modal";
-import { SelectorTrigger } from "@/components/sea-saw-page/base/SelectorTrigger";
+import { SelectorTrigger } from "@/components/sea-saw-design/selector/SelectorTrigger";
 import UserSelector from "@/components/sea-saw-design/transfer/UserTransfer";
 import useDataService from "@/hooks/useDataService";
 import type { FormDef } from "@/hooks/useFormDefs";

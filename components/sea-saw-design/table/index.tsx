@@ -35,7 +35,7 @@ import type { HeaderMetaProps, TableProps, ColDefinition } from "./interface";
    CONSTANTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 50;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 const DEFAULT_COL_WIDTH = 120;
 
