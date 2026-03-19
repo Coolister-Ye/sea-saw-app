@@ -1,76 +1,63 @@
 import React, { useMemo } from "react";
-import { View } from "react-native";
+import { ShoppingBagIcon } from "react-native-heroicons/outline";
 import { Popover, Button } from "antd";
+
 import { Text } from "@/components/sea-saw-design/text";
-import { InfoRow } from "@/components/sea-saw-page/base/InfoRow";
+import { PopoverCard } from "@/components/sea-saw-page/base/popover";
+import PurchaseOrderStatusTag from "@/components/sea-saw-page/procurement/purchase-order/display/renderers/PurchaseOrderStatusTag";
 
 interface PurchaseOrderPopoverProps {
   value?: Record<string, any> | null;
-  def?: Record<string, { label: string }>;
+  def?: Record<string, any>;
 }
 
 export default function PurchaseOrderPopover({
   value,
   def,
 }: PurchaseOrderPopoverProps) {
-  /** 主标题字段（只在按钮中展示） */
-  const titleField = "purchase_code";
+  const displayCode =
+    value?.purchase_code ?? `Purchase #${value?.id ?? value?.pk}`;
 
-  const content = useMemo(() => {
-    if (!def || !value) return null;
+  const content = useMemo(
+    () =>
+      value ? (
+        <PopoverCard
+          headerIcon={<ShoppingBagIcon size={16} className="text-blue-600" />}
+          headerTitle={displayCode}
+          value={value}
+          metaDef={def}
+          columnOrder={["status", "purchase_date", "etd"]}
+          iconBgClass="bg-blue-50"
+          colDef={{
+            status: {
+              render: (fieldDef, fieldValue) => (
+                <PurchaseOrderStatusTag value={fieldValue} def={fieldDef} />
+              ),
+            },
+          }}
+        />
+      ) : null,
+    [value, def, displayCode],
+  );
 
-    return (
-      <View className="p-3 w-[350px] space-y-2">
-        {Object.entries(def).map(([key, fieldDef]) => {
-          // 标题字段 & 冗长字段不在明细中重复展示
-          if (
-            key === titleField ||
-            key === "comment" ||
-            key === "purchase_items" ||
-            key === "attachments"
-          ) {
-            return null;
-          }
-
-          const rawVal = value[key];
-          const displayValue =
-            rawVal === null || rawVal === undefined || rawVal === ""
-              ? "-"
-              : String(rawVal);
-
-          return (
-            <View key={key} className="flex flex-row items-start gap-2">
-              {/* Label */}
-              <Text className="text-xs text-gray-500 w-[100px] text-right leading-5">
-                {fieldDef.label}
-              </Text>
-
-              {/* Value */}
-              <View className="flex-1">
-                <InfoRow icon="•" text={displayValue} />
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    );
-  }, [value, def]);
-
-  if (!value) return <Text>-</Text>;
+  if (!value) {
+    return <Text>-</Text>;
+  }
 
   return (
-    <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>
+    <Popover
+      content={content}
+      trigger="hover"
+      placement="right"
+      mouseEnterDelay={0.15}
+    >
       <Button
         type="link"
         tabIndex={0}
-        style={{
-          padding: 0,
-          height: "auto",
-          lineHeight: "inherit",
-        }}
-        className="text-blue-600 hover:text-blue-700 underline underline-offset-2"
+        style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
+        className="text-blue-600 hover:text-blue-700"
       >
-        {value[titleField] ?? "-"}
+        {displayCode}
       </Button>
     </Popover>
   );

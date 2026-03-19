@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
-import { Drawer, DrawerButton, SectionContainer } from "@/components/sea-saw-page/base";
+import {
+  Drawer,
+  DrawerButton,
+  SectionContainer,
+} from "@/components/sea-saw-page/base";
 import { ContactFormInput } from "../input";
 import ContactCard from "./ContactCard";
 
@@ -38,10 +42,7 @@ export default function ContactDisplay({
       }
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <SectionContainer
-          title={i18n.t("Contact Information")}
-          contentClassName="border-gray-200"
-        >
+        <SectionContainer contentClassName="border-none">
           <ContactCard
             def={def}
             data={contact}

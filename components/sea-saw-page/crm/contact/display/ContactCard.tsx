@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
-import DisplayForm from "@/components/sea-saw-design/form/DisplayForm";
-import { CardMetadata, CardSection, CardEditButton } from "../../../base";
-import AccountPopover from "../../account/display/AccountPopover";
+import i18n from "@/locale/i18n";
+import { Text } from "@/components/sea-saw-design/text";
+import {
+  Card,
+  Field,
+  FieldGrid,
+  ItemsTable,
+} from "@/components/sea-saw-page/base";
+import { convertToFormDefs } from "@/utils/formDefUtils";
+import { useFieldHelpers } from "@/hooks/useFieldHelpers";
+import Tag from "@/components/sea-saw-design/tag";
 
 interface ContactCardProps {
   def?: any[];
@@ -10,57 +18,84 @@ interface ContactCardProps {
   onEdit?: (data: any) => void;
 }
 
-/** Metadata fields rendered separately via CardMetadata */
-const METADATA_FIELDS = [
-  "owner",
-  "created_at",
-  "updated_at",
-  "created_by",
-  "updated_by",
-];
-
 export default function ContactCard({ def, data, onEdit }: ContactCardProps) {
   const contact = data ?? {};
 
-  /** Hide metadata fields from DisplayForm, custom render for company */
-  const displayConfig: Record<string, any> = {};
+  const formDefs = useMemo(() => convertToFormDefs(def), [def]);
+  const { getFieldLabel } = useFieldHelpers(formDefs);
 
-  // Hide metadata fields from DisplayForm
-  for (const field of METADATA_FIELDS) {
-    displayConfig[field] = { hidden: true };
-  }
+  const getFieldDef = (fieldName: string) =>
+    formDefs.find((d) => d.field === fieldName);
 
-  displayConfig["account"] = {
-    render: (f: any, v: any) => <AccountPopover def={f} value={v} />,
-  };
-
-  displayConfig["account_id"] = {
-    hidden: true,
-  };
+  const accountDef = getFieldDef("account")?.children;
 
   return (
-    <View className="bg-white rounded overflow-hidden shadow-sm pt-1">
-      {/* Regular fields via DisplayForm */}
-      <DisplayForm
-        table="contact"
-        def={def}
-        data={contact}
-        config={displayConfig}
+    <Card>
+      <Card.Header
+        code={contact.id ? `#${contact.id}` : undefined}
+        statusValue={
+          <View className="flex-col gap-1 mt-1">
+            <Text className="text-base font-semibold text-slate-800">
+              {contact.name || "—"}
+            </Text>
+            {contact.title && <Tag>{contact.title}</Tag>}
+          </View>
+        }
       />
 
-      {/* Footer: Metadata + Edit */}
-      <CardSection className="py-2.5 bg-slate-50/50">
-        <View className="flex-row justify-between items-center">
-          <CardMetadata
-            owner={contact.owner}
-            created_at={contact.created_at}
-            updated_at={contact.updated_at}
-            created_by={contact.created_by}
-            updated_by={contact.updated_by}
+      {/* Contact Information Section */}
+      <Card.Section className="bg-slate-50/70">
+        <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+          {i18n.t("basic information")}
+        </Text>
+        <FieldGrid>
+          {["email", "mobile", "phone"].map((fieldName) => (
+            <Field
+              key={fieldName}
+              label={getFieldLabel(fieldName)}
+              value={contact[fieldName]}
+            />
+          ))}
+        </FieldGrid>
+      </Card.Section>
+
+      {/* Account Section */}
+      {contact.account && (
+        <Card.Section>
+          <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            {getFieldLabel("account")}
+          </Text>
+          <ItemsTable
+            def={accountDef}
+            value={[contact.account]}
+            height={80}
+            excludeFields={["id", "pk"]}
+            columnOverrides={{
+              roles: {
+                cellRenderer: (params: { value: string[] }) =>
+                  Array.isArray(params.value) ? (
+                    <View className="flex-row items-center h-full gap-1">
+                      {params.value.map((role) => (
+                        <Tag key={role} color="blue">
+                          {role}
+                        </Tag>
+                      ))}
+                    </View>
+                  ) : (
+                    (params.value ?? "—")
+                  ),
+              },
+            }}
           />
-          {onEdit && <CardEditButton onClick={() => onEdit(contact)} />}
-        </View>
-      </CardSection>
-    </View>
+        </Card.Section>
+      )}
+
+      {/* Footer: Metadata + Edit */}
+      <Card.Footer
+        metadata={contact}
+        canEdit={!!onEdit}
+        onEdit={() => onEdit?.(contact)}
+      />
+    </Card>
   );
 }

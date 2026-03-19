@@ -1,76 +1,65 @@
 import React, { useMemo } from "react";
-import { View } from "react-native";
+import { WrenchScrewdriverIcon } from "react-native-heroicons/outline";
 import { Popover, Button } from "antd";
+
 import { Text } from "@/components/sea-saw-design/text";
-import { InfoRow } from "@/components/sea-saw-page/base/InfoRow";
+import { PopoverCard } from "@/components/sea-saw-page/base/popover";
+import ProductionStatusTag from "@/components/sea-saw-page/production/production-order/display/renderers/ProductionStatusTag";
 
 interface ProductionOrderPopoverProps {
+  def?: Record<string, any>;
   value?: Record<string, any> | null;
-  def?: Record<string, { label: string }>;
 }
 
 export default function ProductionOrderPopover({
-  value,
   def,
+  value,
 }: ProductionOrderPopoverProps) {
-  /** 主标题字段（只在按钮中展示） */
-  const titleField = "production_code";
+  const displayCode =
+    value?.production_code ?? `Production #${value?.id ?? value?.pk}`;
 
-  const content = useMemo(() => {
-    if (!def || !value) return null;
-
-    return (
-      <View className="p-3 w-[350px] space-y-2">
-        {Object.entries(def).map(([key, fieldDef]) => {
-          // 标题字段 & 冗长字段不在明细中重复展示
-          if (
-            key === titleField ||
-            key === "remark" ||
-            key === "production_items" ||
-            key === "production_files"
-          ) {
-            return null;
+  const content = useMemo(
+    () =>
+      value ? (
+        <PopoverCard
+          headerIcon={
+            <WrenchScrewdriverIcon size={16} className="text-blue-600" />
           }
+          headerTitle={displayCode}
+          value={value}
+          metaDef={def}
+          columnOrder={["status", "planned_date", "start_date", "end_date"]}
+          iconBgClass="bg-blue-50"
+          colDef={{
+            status: {
+              render: (fieldDef, fieldValue) => (
+                <ProductionStatusTag value={fieldValue} def={fieldDef} />
+              ),
+            },
+          }}
+        />
+      ) : null,
+    [value, def, displayCode],
+  );
 
-          const rawVal = value[key];
-          const displayValue =
-            rawVal === null || rawVal === undefined || rawVal === ""
-              ? "-"
-              : String(rawVal);
-
-          return (
-            <View key={key} className="flex flex-row items-start gap-2">
-              {/* Label */}
-              <Text className="text-xs text-gray-500 w-[100px] text-right leading-5">
-                {fieldDef.label}
-              </Text>
-
-              {/* Value */}
-              <View className="flex-1">
-                <InfoRow icon="•" text={displayValue} />
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    );
-  }, [value, def]);
-
-  if (!value) return <Text>-</Text>;
+  if (!value) {
+    return <Text>-</Text>;
+  }
 
   return (
-    <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>
+    <Popover
+      content={content}
+      trigger="hover"
+      placement="right"
+      mouseEnterDelay={0.15}
+    >
       <Button
         type="link"
         tabIndex={0}
-        style={{
-          padding: 0,
-          height: "auto",
-          lineHeight: "inherit",
-        }}
-        className="text-blue-600 hover:text-blue-700 underline underline-offset-2"
+        style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
+        className="text-blue-600 hover:text-blue-700"
       >
-        {value[titleField] ?? "-"}
+        {displayCode}
       </Button>
     </Popover>
   );

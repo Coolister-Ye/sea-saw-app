@@ -154,6 +154,22 @@ function getValueFormatter(
     };
   }
 
+  if (type === "datetime") {
+    return ({ value }: ValueFormatterParams) => {
+      if (!value) return "";
+      const d = dayjs(value);
+      return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : String(value);
+    };
+  }
+
+  if (type === "date") {
+    return ({ value }: ValueFormatterParams) => {
+      if (!value) return "";
+      const d = dayjs(value);
+      return d.isValid() ? d.format("YYYY-MM-DD") : String(value);
+    };
+  }
+
   return ({ value }: ValueFormatterParams) => {
     return value !== undefined && value !== null ? String(value) : "";
   };

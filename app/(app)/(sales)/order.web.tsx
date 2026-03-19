@@ -1,12 +1,17 @@
 import React, { useMemo, useState, useCallback } from "react";
 import "@/css/tableStyle.css";
 import { View } from "react-native";
-import { Badge, Button, Form } from "antd";
-import { FilterOutlined } from "@ant-design/icons";
+import { Badge, Button, Form, message } from "antd";
+import { FilterOutlined, DownloadOutlined, FileExcelOutlined } from "@ant-design/icons";
 
+import i18n from "@/locale/i18n";
+import { getUrl } from "@/utils";
+import { AuthService } from "@/services/AuthService";
+import { downloadFileWithAuth } from "@/utils/fileDownload";
 import { useEntityPage } from "@/hooks/useEntityPage";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 import { stripIdsDeep } from "@/utils";
+import useDataService from "@/hooks/useDataService";
 import { OrderSearch } from "@/components/sea-saw-page/sales/order/search/OrderSearch";
 
 import OrderTable from "@/components/sea-saw-page/sales/order/table/OrderTable";
@@ -46,6 +51,10 @@ export default function OrderScreen() {
   const [orderViewRow, setOrderViewRow] = useState<any>(null);
   const [isOrderViewOpen, setIsOrderViewOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [exportingPi, setExportingPi] = useState(false);
+
+  const { request } = useDataService();
 
   // Search state
   const [searchForm] = Form.useForm();
@@ -163,6 +172,40 @@ export default function OrderScreen() {
     setSearchParams({});
   }, [searchForm]);
 
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      await request({
+        uri: "crmDownload",
+        method: "POST",
+        body: {
+          model: "orders",
+          filter: searchParams,
+        },
+      });
+      message.success(i18n.t("Download task created"));
+    } catch {
+      message.error(i18n.t("Failed to create download task"));
+    } finally {
+      setDownloading(false);
+    }
+  }, [request, searchParams]);
+
+  const handleExportPi = useCallback(async () => {
+    if (!orderViewRow?.id) return;
+    setExportingPi(true);
+    try {
+      const urlTemplate = getUrl("orderExportPi");
+      const url = urlTemplate.replace("{id}", String(orderViewRow.id));
+      const token = await AuthService.getJwtToken();
+      await downloadFileWithAuth(url, `PI-${orderViewRow.order_code}.xlsx`, token);
+    } catch {
+      message.error(i18n.t("Failed to export PI"));
+    } finally {
+      setExportingPi(false);
+    }
+  }, [orderViewRow]);
+
   return (
     <PageLoading loading={loadingMeta} error={metaError}>
       <View className="flex-1 bg-white flex-row">
@@ -186,6 +229,11 @@ export default function OrderScreen() {
                 type={isSearchOpen ? "primary" : "default"}
               />
             </Badge>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleDownload}
+              loading={downloading}
+            />
             <ActionDropdown
               onPrimaryAction={openCreate}
               onCopy={openCopy}

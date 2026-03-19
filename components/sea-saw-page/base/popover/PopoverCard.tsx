@@ -107,7 +107,7 @@ function PopoverCard({
       {orderedFields.length === 0 ? (
         <Text className="text-xs text-gray-400">No data available</Text>
       ) : (
-        <View className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-start">
+        <View className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center">
           {orderedFields.map(([fieldKey, fieldDef]) => {
             const label = fieldDef.label || fieldKey;
             const fieldValue = value[fieldKey];

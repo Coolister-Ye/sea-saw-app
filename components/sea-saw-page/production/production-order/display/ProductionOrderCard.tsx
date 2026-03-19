@@ -15,16 +15,8 @@ import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import ProductionStatusTag from "./renderers/ProductionStatusTag";
 import ProductionItemsViewToggle from "./items/ProductionItemsViewToggle";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
-import type { FormDef } from "@/hooks/useFormDefs";
-
-interface ProductionOrderItemsCardProps {
-  def?: FormDef[];
-  value?: any[] | null;
-  onItemClick?: (index: number) => void;
-  pipelineStatus?: string;
-  activeEntity?: string;
-  hideEmptyFields?: boolean;
-}
+import OrderPopover from "@/components/sea-saw-page/sales/order/display/OrderPopover";
+import type { ProductionOrderCardProps } from "./types";
 
 export default function ProductionOrderCard({
   def,
@@ -33,7 +25,7 @@ export default function ProductionOrderCard({
   pipelineStatus,
   activeEntity,
   hideEmptyFields = false,
-}: ProductionOrderItemsCardProps) {
+}: ProductionOrderCardProps) {
   // Normalize value to array
   const items = useMemo(() => {
     if (!value) return [];
@@ -55,7 +47,9 @@ export default function ProductionOrderCard({
     (item: any, fieldName: string) => {
       if (!hideEmptyFields) return true;
       const fieldValue = item[fieldName];
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
+      return (
+        fieldValue !== null && fieldValue !== undefined && fieldValue !== ""
+      );
     },
     [hideEmptyFields],
   );
@@ -83,6 +77,8 @@ export default function ProductionOrderCard({
       activeEntity || "",
     );
 
+    const relatedOrderDef = getFieldDef("related_order")?.children;
+
     return (
       <Card key={item.id ?? index}>
         {/* Header: Code + Status */}
@@ -99,11 +95,35 @@ export default function ProductionOrderCard({
           }
         />
 
+        {/* Basic Information Section */}
+        <Card.Section className="bg-slate-50/70">
+          <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            {i18n.t("basic information")}
+          </Text>
+          <FieldGrid>
+            {item.related_order && (
+              <Field
+                label={getFieldLabel("related_order")}
+                value={
+                  <OrderPopover
+                    def={relatedOrderDef}
+                    value={
+                      typeof item.related_order === "object"
+                        ? item.related_order
+                        : null
+                    }
+                  />
+                }
+              />
+            )}
+          </FieldGrid>
+        </Card.Section>
+
         {/* Schedule Information Section */}
         {["planned_date", "start_date", "end_date"].some((f) =>
           shouldShowField(item, f),
         ) && (
-          <Card.Section className="bg-slate-50/70">
+          <Card.Section>
             <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
               {i18n.t("schedule information")}
             </Text>

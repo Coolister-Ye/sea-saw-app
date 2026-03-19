@@ -26,7 +26,8 @@ export default function ContactTable({
       account: {
         cellRenderer: (params: CustomCellRendererProps) => {
           const value = params.value ?? {};
-          return <AccountPopover value={value} />;
+          const def = params.context?.meta?.account?.children;
+          return <AccountPopover value={value} def={def} />;
         },
       },
     }),

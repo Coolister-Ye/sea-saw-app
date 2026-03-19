@@ -38,6 +38,8 @@ export const constants = {
     listOrdersByMonth: "/api/sales/orders-stats/s2/",
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",
 
+    orderExportPi: "/api/sales/orders/{id}/export-pi/",
+
     createProductionOrder: "/api/pipeline/pipelines/{id}/create_production/",
     createOutboundOrder: "/api/pipeline/pipelines/{id}/create_outbound/",
     createPurchaseOrder: "/api/pipeline/pipelines/{id}/create_purchase/",
@@ -53,7 +55,7 @@ export const constants = {
     profileUpdate: "/api/auth/profile/update/",
 
     listDownloads: "/api/download/download-tasks/",
-    crmDownload: "/api/sea-saw-crm/download/",
+    crmDownload: "/api/download/crm-downloads/",
 
     getUserColPreference: "/api/preference/user-column-preference/",
     createUserColPreference: "/api/preference/user-column-preference/",

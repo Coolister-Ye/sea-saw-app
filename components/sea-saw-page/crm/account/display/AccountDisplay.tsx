@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
-import { Drawer, DrawerButton, SectionContainer } from "@/components/sea-saw-page/base";
+import {
+  Drawer,
+  DrawerButton,
+  SectionContainer,
+} from "@/components/sea-saw-page/base";
 import AccountFormInput from "../input/AccountFormInput";
 import AccountCard from "./AccountCard";
 
@@ -40,28 +44,22 @@ export default function AccountDisplay({
       }
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <SectionContainer
-          title={i18n.t("Account Information")}
-          contentClassName="border-gray-200"
-        >
-          <AccountCard
-            def={def}
-            data={account}
-            onEdit={() => setEditingAccount(account)}
-            columnOrder={columnOrder}
-          />
-          <AccountFormInput
-            isOpen={Boolean(editingAccount)}
-            def={def}
-            data={editingAccount ?? {}}
-            onClose={() => {
-              setEditingAccount(null);
-            }}
-            onCreate={onCreate}
-            onUpdate={onUpdate}
-            columnOrder={columnOrder}
-          />
-        </SectionContainer>
+        <AccountCard
+          def={def}
+          data={account}
+          onEdit={() => setEditingAccount(account)}
+        />
+        <AccountFormInput
+          isOpen={Boolean(editingAccount)}
+          def={def}
+          data={editingAccount ?? {}}
+          onClose={() => {
+            setEditingAccount(null);
+          }}
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+          columnOrder={columnOrder}
+        />
       </ScrollView>
     </Drawer>
   );

@@ -168,13 +168,36 @@ export function SearchFieldInput({
     return <AutoComplete style={{ width: "100%" }} options={options} />;
   }
 
+  const showOprSelector = showOperationSelector && operationOpts.length > 1;
+
+  const valueItem = (
+    <Form.Item
+      name={formatedDi}
+      getValueProps={(value) => ({
+        value:
+          variant === "datepicker"
+            ? formatDateValue(value, dateFormat)
+            : value,
+      })}
+      normalize={(value) =>
+        variant === "datepicker" ? formatDateValue(value, dateFormat) : value
+      }
+      noStyle
+    >
+      {renderInput()}
+    </Form.Item>
+  );
+
+  if (!showOprSelector) {
+    return valueItem;
+  }
+
   return (
     <Space.Compact block>
       <Form.Item
         name={`${formatedDi}-operation`}
         noStyle
         initialValue={currentOpr}
-        hidden={!showOperationSelector || operationOpts.length <= 1}
       >
         <Select
           options={operationOpts}
@@ -183,21 +206,7 @@ export function SearchFieldInput({
           className="bg-gray-50"
         />
       </Form.Item>
-      <Form.Item
-        name={formatedDi}
-        getValueProps={(value) => ({
-          value:
-            variant === "datepicker"
-              ? formatDateValue(value, dateFormat)
-              : value,
-        })}
-        normalize={(value) =>
-          variant === "datepicker" ? formatDateValue(value, dateFormat) : value
-        }
-        noStyle
-      >
-        {renderInput()}
-      </Form.Item>
+      {valueItem}
     </Space.Compact>
   );
 }

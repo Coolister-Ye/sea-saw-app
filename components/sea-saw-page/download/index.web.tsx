@@ -1,13 +1,11 @@
-import React, { useCallback } from "react";
-import { TouchableOpacity, Linking, ActivityIndicator } from "react-native";
+import React from "react";
+import { TouchableOpacity, ActivityIndicator } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import i18n from "@/locale/i18n";
 import { getBaseUrl } from "@/utils";
-import { devError } from "@/utils/logger";
 import { NativeTable } from "@/components/sea-saw-design/table/native";
 import type { NativeColDefinition } from "@/components/sea-saw-design/table/native";
 
-/* ── Status colour map ─────────────────────────────────────────────────────── */
 const STATUS_COLORS: Record<string, string> = {
   completed: "#52c41a",
   failed: "#ff4d4f",
@@ -15,16 +13,15 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "#faad14",
 };
 
-/* ── Column definitions ────────────────────────────────────────────────────── */
 const COL_DEFS: Record<string, NativeColDefinition> = {
   file_name: {
-    headerName: i18n.t("File Name"),
-    width: 220,
+    headerName: i18n.t("File"),
+    width: 280,
     sortable: true,
   },
   status: {
     headerName: i18n.t("Status"),
-    width: 100,
+    width: 110,
     sortable: true,
     renderCell: (value: string) => {
       const { Text } = require("react-native");
@@ -43,7 +40,7 @@ const COL_DEFS: Record<string, NativeColDefinition> = {
   },
   created_at: {
     headerName: i18n.t("Created At"),
-    width: 160,
+    width: 180,
     sortable: true,
   },
   download_url: {
@@ -59,14 +56,16 @@ const COL_DEFS: Record<string, NativeColDefinition> = {
         const url = row.download_url.startsWith("http")
           ? row.download_url
           : `${getBaseUrl()}/${row.download_url}`;
-        Linking.openURL(url).catch((err) =>
-          devError("Failed to open download URL:", err),
-        );
+        window.open(url, "_blank");
       };
 
       if (isCompleted) {
         return (
-          <TouchableOpacity onPress={handleDownload} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            onPress={handleDownload}
+            // @ts-ignore — web only
+            style={{ cursor: "pointer" }}
+          >
             <Ionicons name="arrow-down-circle" size={22} color="#0e7490" />
           </TouchableOpacity>
         );

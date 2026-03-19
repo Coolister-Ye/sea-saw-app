@@ -12,7 +12,6 @@ interface AccountTableProps {
   tableRef?: React.Ref<any>;
   headerMeta?: HeaderMetaProps | Record<string, HeaderMetaProps>;
   queryParams?: Record<string, any>;
-  roleFilter: string;
   columnOrder?: string[];
   [key: string]: any;
 }
@@ -21,7 +20,6 @@ export default function AccountTable({
   tableRef,
   headerMeta,
   queryParams,
-  roleFilter,
   columnOrder,
   ...tableProps
 }: AccountTableProps) {
@@ -46,7 +44,7 @@ export default function AccountTable({
 
   return (
     <Table
-      key={roleFilter}
+      key={JSON.stringify(queryParams)}
       ref={tableRef}
       table="account"
       headerMeta={headerMeta}
