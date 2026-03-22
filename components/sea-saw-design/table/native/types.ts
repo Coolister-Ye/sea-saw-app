@@ -16,6 +16,28 @@ export type CellRendererProps = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   VALUE GETTER / FORMATTER  (mirrors ag-grid ColDef pattern)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Parameters passed to valueGetter — mirrors ag-grid ValueGetterParams */
+export type ValueGetterParams = {
+  /** The full row data object */
+  data: Record<string, any>;
+  /** Context passed to the table via the `context` prop */
+  context?: Record<string, any>;
+};
+
+/** Parameters passed to valueFormatter — mirrors ag-grid ValueFormatterParams */
+export type ValueFormatterParams = {
+  /** The raw (or valueGetter-resolved) cell value */
+  value: any;
+  /** The full row data object */
+  data: Record<string, any>;
+  /** Context passed to the table via the `context` prop */
+  context?: Record<string, any>;
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
    COLUMN DEFINITION
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -35,22 +57,57 @@ export type NativeColDefinition = {
   pinned?: "left" | "right";
   /** Override the displayed column header text */
   headerName?: string;
-  /** Column width in pixels (default: 120) */
+  /** Column width in pixels. Ignored when `flex` is set. */
   width?: number;
-  /** Minimum width — used when `width` is not set */
+  /** Minimum width in pixels — enforced during flex distribution (default: 50) */
   minWidth?: number;
+  /**
+   * Maximum width in pixels — enforced during flex distribution.
+   * No limit when omitted.
+   */
+  maxWidth?: number;
+  /**
+   * Flex factor for proportional width distribution — mirrors ag-grid `flex`.
+   *
+   * When one or more columns in the center section have `flex` set, the
+   * available container width (minus pinned columns) is distributed among
+   * them proportionally to their flex values, respecting `minWidth`/`maxWidth`.
+   *
+   * Columns without `flex` keep their explicit `width`.
+   * `flex` takes precedence over `width`.
+   *
+   * @example
+   *   // Two columns share space equally
+   *   { flex: 1 }  { flex: 1 }
+   *   // First column gets 2× the space of the second
+   *   { flex: 2 }  { flex: 1 }
+   */
+  flex?: number;
   /**
    * AgGrid-compatible cell renderer.
    * Receives `{ value, data, context }` — same signature as AgGrid
    * CustomCellRendererProps so web renderers work without modification.
-   * Takes precedence over `renderCell`.
+   * Takes precedence over `renderCell`, `valueFormatter`, and `valueGetter`.
    */
   cellRenderer?: (props: CellRendererProps) => ReactNode;
   /**
    * Simpler native-only renderer: receives `(value, row)`.
    * Used only when `cellRenderer` is not provided.
+   * Takes precedence over `valueFormatter` and `valueGetter`.
    */
   renderCell?: (value: any, row: Record<string, any>) => ReactNode;
+  /**
+   * Compute a derived cell value from row data — mirrors ag-grid `valueGetter`.
+   * The returned value is passed to `valueFormatter` (or the default formatter).
+   * Evaluated after `cellRenderer`/`renderCell` are checked (those bypass it).
+   */
+  valueGetter?: (params: ValueGetterParams) => any;
+  /**
+   * Format the (possibly valueGetter-resolved) value into a display string —
+   * mirrors ag-grid `valueFormatter`.
+   * Used only when neither `cellRenderer` nor `renderCell` are set.
+   */
+  valueFormatter?: (params: ValueFormatterParams) => string;
   /** Enable sorting for this column (default: true) */
   sortable?: boolean;
 };
@@ -71,6 +128,36 @@ export type SortItem = { field: string; direction: "asc" | "desc" };
  *   tap once → asc, tap again → desc, tap third time → remove from sort.
  */
 export type SortState = SortItem[];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COLUMN STATE  (mirrors ag-grid ColumnState)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Serialisable snapshot of a single column's current state.
+ * Mirrors the subset of ag-grid's `ColumnState` that applies to native.
+ *
+ * Obtain via `tableRef.current.getColumnState()`.
+ */
+export type ColState = {
+  /** Column field name (maps to `field` / `colId`) */
+  colId: string;
+  /** Whether the column is hidden */
+  hide?: boolean;
+  /** Current pixel width (after flex computation) */
+  width?: number;
+  /** Flex factor, if set */
+  flex?: number;
+  /** Pinned side, or null if not pinned */
+  pinned?: "left" | "right" | null;
+  /** Current sort direction, or null if unsorted */
+  sort?: "asc" | "desc" | null;
+  /**
+   * 0-based sort priority index — used to restore multi-sort order.
+   * Absent when the column is not sorted.
+   */
+  sortIndex?: number;
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TABLE PROPS
@@ -138,16 +225,38 @@ export type NativeTableProps = {
 export type ComputedColumn = {
   field: string;
   headerName: string;
+  /** Pixel width — for flex columns this is set after container layout */
   width: number;
   sortable: boolean;
   /** 'left' | 'right' | undefined */
   pinned?: "left" | "right";
+  /** Flex factor — undefined means fixed-width column */
+  flex?: number;
+  /** Minimum pixel width enforced during flex distribution */
+  minWidth?: number;
+  /** Maximum pixel width enforced during flex distribution */
+  maxWidth?: number;
   cellRenderer?: (props: CellRendererProps) => ReactNode;
   renderCell?: (value: any, row: Record<string, any>) => ReactNode;
+  valueGetter?: (params: ValueGetterParams) => any;
+  valueFormatter?: (params: ValueFormatterParams) => string;
   fieldMeta?: HeaderMetaProps;
 };
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   IMPERATIVE HANDLE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 /** Imperative handle exposed via forwardRef */
 export type NativeTableRef = {
+  /** Force a re-fetch of the current page without resetting pagination/sort */
   refresh: () => void;
+  /**
+   * Returns a serialisable snapshot of every column's current state —
+   * mirrors ag-grid's `api.getColumnState()`.
+   *
+   * The snapshot captures: colId, hide, width (post-flex), flex, pinned,
+   * sort direction, and sort priority index.
+   */
+  getColumnState: () => ColState[];
 };

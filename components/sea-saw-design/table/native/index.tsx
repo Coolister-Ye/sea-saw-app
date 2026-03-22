@@ -18,44 +18,21 @@
  * │  PaginationBar                                          │
  * └─────────────────────────────────────────────────────────┘
  *
- * Column pinning:
- *   Set `pinned: 'left'` in colDefinitions to keep a column visible
- *   while the user scrolls right.  Matches AgGrid's column pinning API.
- *   The pinned section is rendered as a separate fixed-width flex column;
- *   its vertical scroll is driven programmatically (scrollEnabled: false)
- *   and kept in sync with the main body's vertical scroll.
- *
- * Multi-sort:
- *   Tap a column header to add/toggle it in the sort list.
- *   Multiple columns can be sorted simultaneously (alwaysMultiSort).
- *   Priority numbers appear on each sorted column when >1 are active.
- *
- * Quick filter:
- *   Enable with `enableQuickFilter`. Adds a debounced TextInput that
- *   sends its value to the API as `?{quickFilterParam}=value`.
- *   Default param name: "search".
- *
- * Pull-to-refresh:
- *   Standard RefreshControl on the vertical scroll area.
- *
- * Skeleton loading:
- *   Animated shimmer rows shown during the initial data fetch,
- *   matching AG Grid's loading skeleton overlay behaviour.
+ * Architecture (mirrors ag-grid service separation):
+ *   useColumnModel  — column pipeline: meta → sections → flex widths
+ *   useScrollSync   — scroll synchronisation across fixed/scrollable panes
+ *   useTableData    — data fetching, pagination, multi-sort
+ *   TableBody       — row renderer: skeleton | empty | data rows
  */
 
 import React, {
   useCallback,
-  useEffect,
   useImperativeHandle,
   useMemo,
-  useRef,
-  useState,
   forwardRef,
 } from "react";
 import {
   ActivityIndicator,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -64,24 +41,18 @@ import {
 
 import useDataService from "@/hooks/useDataService";
 
-import { useTableMeta } from "./hooks/useTableMeta";
+import { useColumnModel } from "./hooks/useColumnModel";
+import { useScrollSync } from "./hooks/useScrollSync";
 import { useTableData } from "./hooks/useTableData";
+import { useRowSelection } from "./hooks/useRowSelection";
 import { HeaderRow, HEADER_HEIGHT } from "./components/HeaderRow";
-import { DataRow } from "./components/DataRow";
+import { TableBody } from "./components/TableBody";
 import { PaginationBar } from "./components/PaginationBar";
-import { EmptyState, ErrorState } from "./components/EmptyState";
-import { SkeletonRows } from "./components/SkeletonRow";
+import { ErrorState } from "./components/EmptyState";
 import { QuickFilterBar } from "./components/QuickFilterBar";
-import { getRowKey } from "./utils";
 
-import type { ComputedColumn, NativeTableProps, NativeTableRef } from "./types";
+import type { NativeTableProps, NativeTableRef } from "./types";
 
-/* ─── Debounce delay for the quick-filter input ─────────────────────────── */
-const QUICK_FILTER_DEBOUNCE_MS = 400;
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   COMPONENT
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
   function NativeTable(
@@ -112,48 +83,29 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
     const { getViewSet } = useDataService();
     const viewSet = useMemo(() => getViewSet(table), [getViewSet, table]);
 
-    /* ── Metadata → columns ── */
+    /* ── Column pipeline (meta → sections → flex) ── */
     const {
-      columns,
+      leftCols,
+      centerCols,
+      rightCols,
+      allCols,
+      leftWidth,
+      rightWidth,
+      scrollableWidth,
+      hasPinnedLeft,
+      hasPinnedRight,
+      onContainerLayout,
       isLoading: isMetaLoading,
       error: metaError,
-    } = useTableMeta({
+    } = useColumnModel({
       viewSet,
       initialHeaderMeta,
       colDefinitions,
-      hideWriteOnly,
+      hideWriteOnly: hideWriteOnly,
       columnOrder,
     });
 
-    /* ── Quick filter state with debounce ── */
-    const [quickFilterInput, setQuickFilterInput] = useState("");
-    const [debouncedFilter, setDebouncedFilter] = useState("");
-    const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-      undefined,
-    );
-
-    const handleQuickFilterChange = useCallback((text: string) => {
-      setQuickFilterInput(text);
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        setDebouncedFilter(text.trim());
-      }, QUICK_FILTER_DEBOUNCE_MS);
-    }, []);
-
-    useEffect(
-      () => () => {
-        if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      },
-      [],
-    );
-
-    /* ── Merge quick-filter value into queryParams ── */
-    const mergedQueryParams = useMemo(() => {
-      if (!enableQuickFilter || !debouncedFilter) return queryParams;
-      return { ...queryParams, [quickFilterParam]: debouncedFilter };
-    }, [queryParams, enableQuickFilter, debouncedFilter, quickFilterParam]);
-
-    /* ── Data fetching ── */
+    /* ── Data pipeline (fetch, pagination, multi-sort) ── */
     const {
       rows,
       total,
@@ -161,126 +113,88 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
       pageSize,
       sortState,
       isLoading: isDataLoading,
-      setPage,
-      setPageSize,
       handleSort,
       refresh,
+      handleFirst,
+      handlePrev,
+      handleNext,
+      handleLast,
+      handleGoToPage,
+      handlePageSizeChange,
+      quickFilterInput,
+      onQuickFilterChange,
     } = useTableData({
       viewSet,
-      queryParams: mergedQueryParams,
+      queryParams,
       isMetaLoading,
       metaError,
+      enableQuickFilter,
+      quickFilterParam,
     });
 
     /* ── Row selection ── */
-    const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
-    const isSelectable = !!rowSelection;
+    const { selectedRowKey, isSelectable, toggleRow } = useRowSelection(rowSelection);
 
-    /* ── Split columns: pinned-left | center | pinned-right ── */
-    const pinnedLeftCols = useMemo(
-      () => columns.filter((c) => c.pinned === "left"),
-      [columns],
-    );
-    const centerCols = useMemo(
-      () => columns.filter((c) => !c.pinned),
-      [columns],
-    );
-    const pinnedRightCols = useMemo(
-      () => columns.filter((c) => c.pinned === "right"),
-      [columns],
-    );
-    const hasPinnedLeft = pinnedLeftCols.length > 0;
-    const hasPinnedRight = pinnedRightCols.length > 0;
-
-    const pinnedLeftWidth = useMemo(
-      () => pinnedLeftCols.reduce((s, c) => s + c.width, 0),
-      [pinnedLeftCols],
-    );
-    const pinnedRightWidth = useMemo(
-      () => pinnedRightCols.reduce((s, c) => s + c.width, 0),
-      [pinnedRightCols],
-    );
-    const scrollableWidth = useMemo(
-      () =>
-        Math.max(
-          centerCols.reduce((s, c) => s + c.width, 0),
-          300,
-        ),
-      [centerCols],
-    );
-
-    /* ── Scroll sync refs ── */
-    // Header scrollable section mirrors body horizontal position
-    const headerScrollRef = useRef<ScrollView>(null);
-    // Pinned-left body mirrors body vertical position
-    const pinnedLeftBodyRef = useRef<ScrollView>(null);
-    // Pinned-right body mirrors body vertical position
-    const pinnedRightBodyRef = useRef<ScrollView>(null);
-    // Main body refs
-    const verticalScrollRef = useRef<ScrollView>(null);
-    const horizontalScrollRef = useRef<ScrollView>(null);
-
-    const onVerticalScroll = useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const y = e.nativeEvent.contentOffset.y;
-        pinnedLeftBodyRef.current?.scrollTo({ y, animated: false });
-        pinnedRightBodyRef.current?.scrollTo({ y, animated: false });
-      },
-      [],
-    );
-
-    const onHorizontalScroll = useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        headerScrollRef.current?.scrollTo({
-          x: e.nativeEvent.contentOffset.x,
-          animated: false,
-        });
-      },
-      [],
-    );
+    /* ── Scroll synchronisation ── */
+    const {
+      headerScrollRef,
+      pinnedLeftBodyRef,
+      pinnedRightBodyRef,
+      verticalScrollRef,
+      horizontalScrollRef,
+      onVerticalScroll,
+      onHorizontalScroll,
+    } = useScrollSync();
 
     /* ── Imperative handle ── */
-    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    useImperativeHandle(
+      ref,
+      () => ({
+        refresh,
+        getColumnState: () =>
+          allCols.map((col) => {
+            const sortIdx = sortState.findIndex((s) => s.field === col.field);
+            const isSorted = sortIdx !== -1;
+            return {
+              colId: col.field,
+              width: col.width,
+              flex: col.flex,
+              pinned: col.pinned ?? null,
+              sort: isSorted ? sortState[sortIdx].direction : null,
+              sortIndex: isSorted ? sortIdx : undefined,
+            };
+          }),
+      }),
+      [refresh, allCols, sortState],
+    );
 
     /* ── Row interaction ── */
     const handleRowPress = useCallback(
       (row: Record<string, any>, key: string) => {
-        if (isSelectable) {
-          setSelectedRowKey((prev) => (prev === key ? null : key));
-        }
+        if (isSelectable) toggleRow(key);
         onRowPress?.(row);
         onRowClicked?.({ data: row });
       },
-      [isSelectable, onRowPress, onRowClicked],
+      [isSelectable, toggleRow, onRowPress, onRowClicked],
     );
 
-    /* ── Pagination handlers ── */
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const handleFirst = useCallback(() => setPage(1), [setPage]);
-    const handlePrev = useCallback(
-      () => setPage(Math.max(1, page - 1)),
-      [setPage, page],
-    );
-    const handleNext = useCallback(() => setPage(page + 1), [setPage, page]);
-    const handleLast = useCallback(
-      () => setPage(totalPages),
-      [setPage, totalPages],
-    );
-    const handleGoToPage = useCallback(
-      (p: number) => setPage(Math.min(Math.max(1, p), totalPages)),
-      [setPage, totalPages],
-    );
-    const handlePageSizeChange = useCallback(
-      (size: number) => {
-        setPageSize(size);
-        setPage(1);
-      },
-      [setPage, setPageSize],
-    );
-
-    /* ── Whether we are in the initial skeleton-loading state ── */
-    // Show skeleton on the very first fetch (rows empty + loading)
     const showSkeleton = isDataLoading && rows.length === 0;
+
+    /* ── Shared TableBody props — avoids repeating the same 6 values three times ── */
+    const rowPressHandler =
+      isSelectable || onRowPress || onRowClicked ? handleRowPress : undefined;
+    const sharedBodyProps = useMemo(
+      () => ({
+        rows,
+        showSkeleton,
+        isDataLoading,
+        selectedRowKey,
+        context,
+        onRowPress: rowPressHandler,
+      }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [rows, showSkeleton, isDataLoading, selectedRowKey, context, rowPressHandler],
+    );
 
     /* ══════════════════════════════════════════════════════════════════════
        EARLY RETURNS
@@ -299,66 +213,32 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
     }
 
     /* ══════════════════════════════════════════════════════════════════════
-       HELPERS
-       ══════════════════════════════════════════════════════════════════════ */
-
-    /** Render body content (skeleton | empty | rows) for a given column set */
-    function renderBodyContent(cols: ComputedColumn[]) {
-      if (showSkeleton) {
-        return <SkeletonRows columns={cols} />;
-      }
-      if (!isDataLoading && rows.length === 0) {
-        return <EmptyState />;
-      }
-      return rows.map((row, idx) => {
-        const key = getRowKey(row, idx);
-        const pressHandler =
-          isSelectable || onRowPress || onRowClicked
-            ? () => handleRowPress(row, key)
-            : undefined;
-        return (
-          <DataRow
-            key={key}
-            row={row}
-            columns={cols}
-            isEven={idx % 2 === 0}
-            isSelected={selectedRowKey === key}
-            context={context}
-            onPress={pressHandler}
-          />
-        );
-      });
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════
        RENDER
        ══════════════════════════════════════════════════════════════════════ */
 
     return (
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onContainerLayout}>
         {/* Quick filter bar */}
         {enableQuickFilter && (
           <QuickFilterBar
             value={quickFilterInput}
-            onChangeText={handleQuickFilterChange}
+            onChangeText={onQuickFilterChange}
             placeholder={quickFilterPlaceholder}
           />
         )}
 
         {/* ── Header row ─────────────────────────────────────────────────── */}
         <View style={styles.headerContainer}>
-          {/* Pinned-left header */}
           {hasPinnedLeft && (
-            <View style={[styles.pinnedLeftHeader, { width: pinnedLeftWidth }]}>
+            <View style={[styles.pinnedLeftHeader, { width: leftWidth }]}>
               <HeaderRow
-                columns={pinnedLeftCols}
+                columns={leftCols}
                 sortState={sortState}
                 onSort={handleSort}
               />
             </View>
           )}
 
-          {/* Scrollable header — driven by body horizontal scroll */}
           <View style={styles.scrollableHeaderOuter}>
             <ScrollView
               ref={headerScrollRef}
@@ -377,13 +257,10 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
             </ScrollView>
           </View>
 
-          {/* Pinned-right header */}
           {hasPinnedRight && (
-            <View
-              style={[styles.pinnedRightHeader, { width: pinnedRightWidth }]}
-            >
+            <View style={[styles.pinnedRightHeader, { width: rightWidth }]}>
               <HeaderRow
-                columns={pinnedRightCols}
+                columns={rightCols}
                 sortState={sortState}
                 onSort={handleSort}
               />
@@ -393,20 +270,18 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
 
         {/* ── Body ───────────────────────────────────────────────────────── */}
         <View style={styles.bodyContainer}>
-          {/* Pinned-left body — vertical scroll driven by main body */}
           {hasPinnedLeft && (
-            <View style={[styles.pinnedLeftBody, { width: pinnedLeftWidth }]}>
+            <View style={[styles.pinnedLeftBody, { width: leftWidth }]}>
               <ScrollView
                 ref={pinnedLeftBodyRef}
                 scrollEnabled={false}
                 showsVerticalScrollIndicator={false}
               >
-                {renderBodyContent(pinnedLeftCols)}
+                <TableBody columns={leftCols} showEmptyState={false} {...sharedBodyProps} />
               </ScrollView>
             </View>
           )}
 
-          {/* Main scrollable body: vertical outer, horizontal inner */}
           <ScrollView
             ref={verticalScrollRef}
             style={styles.bodyOuter}
@@ -430,20 +305,19 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
               bounces={false}
             >
               <View style={{ width: scrollableWidth }}>
-                {renderBodyContent(centerCols)}
+                <TableBody columns={centerCols} {...sharedBodyProps} />
               </View>
             </ScrollView>
           </ScrollView>
 
-          {/* Pinned-right body — vertical scroll driven by main body */}
           {hasPinnedRight && (
-            <View style={[styles.pinnedRightBody, { width: pinnedRightWidth }]}>
+            <View style={[styles.pinnedRightBody, { width: rightWidth }]}>
               <ScrollView
                 ref={pinnedRightBodyRef}
                 scrollEnabled={false}
                 showsVerticalScrollIndicator={false}
               >
-                {renderBodyContent(pinnedRightCols)}
+                <TableBody columns={rightCols} showEmptyState={false} {...sharedBodyProps} />
               </ScrollView>
             </View>
           )}
@@ -467,10 +341,6 @@ const NativeTable = forwardRef<NativeTableRef, NativeTableProps>(
   },
 );
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   STYLES
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -488,7 +358,6 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
   },
   pinnedLeftHeader: {
-    // Shadow separating pinned from scrollable
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.06,
@@ -517,7 +386,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   pinnedLeftBody: {
-    // Drop shadow on the right edge to visually separate from scrollable
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.08,
@@ -539,10 +407,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   EXPORTS
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 export default NativeTable;
 export { NativeTable };

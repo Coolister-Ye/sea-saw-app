@@ -1,9 +1,82 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComputedColumn, SortState } from "../types";
 
 export const HEADER_HEIGHT = 40;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HeaderCell — mirrors ag-grid's HeaderCellCtrl per-column lifecycle.
+   Memoised so a sort-state change only re-renders the affected column's
+   header cell, not the entire header row.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+type HeaderCellProps = {
+  col: ComputedColumn;
+  /** null when this column is not part of the current sort */
+  direction: "asc" | "desc" | null;
+  /** 1-based sort priority; 0 when not sorted */
+  priority: number;
+  /** Whether more than one column is currently sorted */
+  hasMultiSort: boolean;
+  /** Stable callback from useTableData.handleSort */
+  onSort: (field: string) => void;
+};
+
+const HeaderCell = memo(function HeaderCell({
+  col,
+  direction,
+  priority,
+  hasMultiSort,
+  onSort,
+}: HeaderCellProps) {
+  const handlePress = useCallback(
+    () => col.sortable && onSort(col.field),
+    [col.sortable, col.field, onSort],
+  );
+
+  const isSorted = direction !== null;
+
+  return (
+    <TouchableOpacity
+      style={[styles.cell, { width: col.width }]}
+      onPress={handlePress}
+      activeOpacity={col.sortable ? 0.6 : 1}
+    >
+      <Text style={styles.label} numberOfLines={1}>
+        {col.headerName}
+      </Text>
+
+      {col.sortable && isSorted && direction ? (
+        <View style={styles.sortIndicator}>
+          <Ionicons
+            name={direction === "asc" ? "arrow-up" : "arrow-down"}
+            size={11}
+            color="#1677ff"
+          />
+          {hasMultiSort && (
+            <View style={styles.priorityBadge}>
+              <Text style={styles.priorityText}>{priority}</Text>
+            </View>
+          )}
+        </View>
+      ) : col.sortable ? (
+        <Ionicons
+          name="swap-vertical-outline"
+          size={11}
+          color="#d9d9d9"
+          style={{ marginLeft: 3 }}
+        />
+      ) : null}
+    </TouchableOpacity>
+  );
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HeaderRow — maps columns to HeaderCell components.
+   Derives per-cell sort state so each HeaderCell only receives the props
+   it needs; memo then ensures only the changed cell re-renders.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 type HeaderRowProps = {
   columns: ComputedColumn[];
@@ -29,42 +102,15 @@ export function HeaderRow({ columns, sortState, onSort }: HeaderRowProps) {
       {columns.map((col) => {
         const sortIdx = sortState.findIndex((s) => s.field === col.field);
         const isSorted = sortIdx !== -1;
-        const direction = isSorted ? sortState[sortIdx].direction : null;
-        const priority = sortIdx + 1; // 1-based for display
-
         return (
-          <TouchableOpacity
+          <HeaderCell
             key={col.field}
-            style={[styles.cell, { width: col.width }]}
-            onPress={() => col.sortable && onSort(col.field)}
-            activeOpacity={col.sortable ? 0.6 : 1}
-          >
-            <Text style={styles.label} numberOfLines={1}>
-              {col.headerName}
-            </Text>
-
-            {col.sortable && isSorted && direction ? (
-              <View style={styles.sortIndicator}>
-                <Ionicons
-                  name={direction === "asc" ? "arrow-up" : "arrow-down"}
-                  size={11}
-                  color="#1677ff"
-                />
-                {hasMultiSort && (
-                  <View style={styles.priorityBadge}>
-                    <Text style={styles.priorityText}>{priority}</Text>
-                  </View>
-                )}
-              </View>
-            ) : col.sortable ? (
-              <Ionicons
-                name="swap-vertical-outline"
-                size={11}
-                color="#d9d9d9"
-                style={{ marginLeft: 3 }}
-              />
-            ) : null}
-          </TouchableOpacity>
+            col={col}
+            direction={isSorted ? sortState[sortIdx].direction : null}
+            priority={sortIdx + 1}
+            hasMultiSort={hasMultiSort}
+            onSort={onSort}
+          />
         );
       })}
     </View>

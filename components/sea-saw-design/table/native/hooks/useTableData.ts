@@ -11,6 +11,16 @@ type UseTableDataParams = {
   /** Block fetching until metadata is ready */
   isMetaLoading: boolean;
   metaError: string | null;
+  /**
+   * When true, a quick-filter text input is managed internally.
+   * Mirrors ag-grid FilterManager.
+   */
+  enableQuickFilter?: boolean;
+  /**
+   * Query-param key used for the quick filter value (default: "search").
+   * Merged into queryParams as `{ [quickFilterParam]: debouncedValue }`.
+   */
+  quickFilterParam?: string;
 };
 
 type UseTableDataResult = {
@@ -18,28 +28,43 @@ type UseTableDataResult = {
   total: number;
   page: number;
   pageSize: number;
+  totalPages: number;
   /** Ordered multi-sort array — index 0 = primary sort */
   sortState: SortState;
   isLoading: boolean;
-  setPage: (page: number) => void;
-  setPageSize: (size: number) => void;
   /**
    * Toggle sort for a column (always-multi-sort, matching AgGrid alwaysMultiSort).
    * Cycles: unsorted → asc → desc → unsorted.
-   * Other already-sorted columns are unaffected.
    */
   handleSort: (field: string) => void;
+  /** Pagination handlers — mirrors ag-grid PaginationService API */
+  handleFirst: () => void;
+  handlePrev: () => void;
+  handleNext: () => void;
+  handleLast: () => void;
+  handleGoToPage: (p: number) => void;
+  handlePageSizeChange: (size: number) => void;
   /** Optimistic row removal after delete */
   removeRow: (rowId: number | string) => void;
   /** Force a re-fetch without resetting page or sort */
   refresh: () => void;
+  // NOTE: setPage / setPageSize are intentionally not exposed.
+  // Use the pagination handlers above instead.
+  /** Raw (unDebounced) quick filter text — bind to QuickFilterBar value */
+  quickFilterInput: string;
+  /** Handler for QuickFilterBar onChangeText */
+  onQuickFilterChange: (text: string) => void;
 };
+
+const QUICK_FILTER_DEBOUNCE_MS = 400;
 
 export function useTableData({
   viewSet,
   queryParams,
   isMetaLoading,
   metaError,
+  enableQuickFilter = false,
+  quickFilterParam = "search",
 }: UseTableDataParams): UseTableDataResult {
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,11 +75,38 @@ export function useTableData({
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
+  /* ── Quick filter (mirrors ag-grid FilterManager) ── */
+  const [quickFilterInput, setQuickFilterInput] = useState("");
+  const [debouncedFilter, setDebouncedFilter] = useState("");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  const onQuickFilterChange = useCallback((text: string) => {
+    setQuickFilterInput(text);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedFilter(text.trim());
+      setPage(1);
+    }, QUICK_FILTER_DEBOUNCE_MS);
+  }, []);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => () => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+  }, []);
+
+  // Merge quick filter into queryParams when active
+  const effectiveQueryParams = useMemo(() => {
+    if (!enableQuickFilter || !debouncedFilter) return queryParams;
+    return { ...queryParams, [quickFilterParam]: debouncedFilter };
+  }, [queryParams, enableQuickFilter, debouncedFilter, quickFilterParam]);
+
   // Stable string for queryParams — prevents infinite loops when caller
   // creates a new object literal with the same content on every render.
   const queryParamsStr = useMemo(
-    () => JSON.stringify(queryParams ?? {}),
-    [queryParams],
+    () => JSON.stringify(effectiveQueryParams ?? {}),
+    [effectiveQueryParams],
   );
 
   // Reset to page 1 whenever the external filter params change
@@ -90,7 +142,7 @@ export function useTableData({
             offset,
             pager: "limit_offset",
             ...(ordering ? { ordering } : {}),
-            ...queryParams,
+            ...effectiveQueryParams,
           },
         });
 
@@ -118,8 +170,6 @@ export function useTableData({
    *   tap 1 → added as asc (lowest priority in sort list)
    *   tap 2 → changed to desc
    *   tap 3 → removed from sort list
-   *
-   * Sort order of other columns is preserved.
    */
   const handleSort = useCallback((field: string) => {
     setSortState((prev) => {
@@ -144,17 +194,52 @@ export function useTableData({
     setTotal((t) => Math.max(0, t - 1));
   }, []);
 
+  /* ── Pagination handlers (mirrors ag-grid PaginationService) ── */
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handleFirst = useCallback(() => setPage(1), []);
+  const handlePrev = useCallback(
+    () => setPage((p) => Math.max(1, p - 1)),
+    [],
+  );
+  const handleNext = useCallback(
+    () => setPage((p) => Math.min(p + 1, totalPages)),
+    [totalPages],
+  );
+  const handleLast = useCallback(
+    () => setPage(totalPages),
+    [totalPages],
+  );
+  const handleGoToPage = useCallback(
+    (p: number) => setPage(Math.min(Math.max(1, p), totalPages)),
+    [totalPages],
+  );
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      setPage(1);
+    },
+    [],
+  );
+
   return {
     rows,
     total,
     page,
     pageSize,
+    totalPages,
     sortState,
     isLoading,
-    setPage,
-    setPageSize,
     handleSort,
+    handleFirst,
+    handlePrev,
+    handleNext,
+    handleLast,
+    handleGoToPage,
+    handlePageSizeChange,
     removeRow,
     refresh,
+    quickFilterInput,
+    onQuickFilterChange,
   };
 }

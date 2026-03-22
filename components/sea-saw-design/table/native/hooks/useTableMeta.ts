@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import i18n from "@/locale/i18n";
 import { devError } from "@/utils/logger";
 import type { HeaderMetaProps } from "../../interface";
@@ -30,6 +30,18 @@ export function useTableMeta({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Stable strings for object/array props — callers often pass inline literals
+  // that create new references on every render without changing content.
+  // Using JSON.stringify prevents spurious OPTIONS re-fetches.
+  const colDefsStr = useMemo(
+    () => JSON.stringify(colDefinitions ?? null),
+    [colDefinitions],
+  );
+  const columnOrderStr = useMemo(
+    () => JSON.stringify(columnOrder ?? null),
+    [columnOrder],
+  );
+
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
@@ -47,7 +59,14 @@ export function useTableMeta({
         }
 
         if (mounted) {
-          setColumns(buildColumns(meta, colDefinitions, hideWriteOnly, columnOrder));
+          setColumns(
+            buildColumns(
+              meta,
+              colDefinitions,
+              hideWriteOnly,
+              columnOrder,
+            ),
+          );
         }
       } catch (err) {
         devError("NativeTable useTableMeta: failed", err);
@@ -57,9 +76,11 @@ export function useTableMeta({
       }
     })();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialHeaderMeta, viewSet, colDefinitions, hideWriteOnly, columnOrder]);
+  }, [initialHeaderMeta, viewSet, colDefsStr, hideWriteOnly, columnOrderStr]);
 
   return { columns, isLoading, error };
 }

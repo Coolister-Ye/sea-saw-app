@@ -1,56 +1,42 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import type { ComputedColumn, CellRendererProps } from "../types";
-import { formatValue } from "../utils";
+import { resolveValue, formatCellValue } from "../utils";
 
 export const ROW_HEIGHT = 44;
 
-type DataRowProps = {
+/* ═══════════════════════════════════════════════════════════════════════════
+   DataCell — mirrors ag-grid's per-cell component lifecycle.
+   Memoised so only cells whose column or row data changes re-render,
+   e.g. flex width recalculation only re-renders affected column cells.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+type DataCellProps = {
+  col: ComputedColumn;
   row: Record<string, any>;
-  columns: ComputedColumn[];
-  isEven: boolean;
   isSelected: boolean;
   context?: Record<string, any>;
-  onPress?: () => void;
 };
 
-export function DataRow({
+const DataCell = memo(function DataCell({
+  col,
   row,
-  columns,
-  isEven,
   isSelected,
   context,
-  onPress,
-}: DataRowProps) {
+}: DataCellProps) {
+  const value = resolveValue(col, row, context);
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
+    <View
       style={[
-        styles.row,
-        isEven && styles.rowEven,
-        isSelected && styles.rowSelected,
+        styles.cell,
+        { width: col.width },
+        isSelected && styles.cellSelected,
       ]}
     >
-      {isSelected && <View style={styles.selectionAccent} />}
-      {columns.map((col) => {
-        const value = row[col.field];
-        return (
-          <View
-            key={col.field}
-            style={[
-              styles.cell,
-              { width: col.width },
-              isSelected && styles.cellSelected,
-            ]}
-          >
-            {resolveCellContent(col, value, row, context)}
-          </View>
-        );
-      })}
-    </TouchableOpacity>
+      {resolveCellContent(col, value, row, context)}
+    </View>
   );
-}
+});
 
 function resolveCellContent(
   col: ComputedColumn,
@@ -67,10 +53,72 @@ function resolveCellContent(
   }
   return (
     <Text style={styles.cellText} numberOfLines={1}>
-      {formatValue(value, col.fieldMeta)}
+      {formatCellValue(col, value, row, context)}
     </Text>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DataRow — memoised row container.
+   Owns its press closure so TableBody never needs to wrap it per-row,
+   enabling React.memo to bail out when row data is unchanged.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+type DataRowProps = {
+  row: Record<string, any>;
+  /**
+   * Stable string key — passed explicitly so DataRow can create its own
+   * press closure without TableBody re-wrapping it on every render.
+   */
+  rowKey: string;
+  columns: ComputedColumn[];
+  isEven: boolean;
+  isSelected: boolean;
+  context?: Record<string, any>;
+  /**
+   * Stable callback (useCallback from the orchestrator).
+   * DataRow creates a single internal closure from it.
+   */
+  onRowPress?: (row: Record<string, any>, key: string) => void;
+};
+
+export const DataRow = memo(function DataRow({
+  row,
+  rowKey,
+  columns,
+  isEven,
+  isSelected,
+  context,
+  onRowPress,
+}: DataRowProps) {
+  const handlePress = useCallback(
+    () => onRowPress?.(row, rowKey),
+    [onRowPress, row, rowKey],
+  );
+
+  return (
+    <TouchableOpacity
+      onPress={onRowPress ? handlePress : undefined}
+      activeOpacity={onRowPress ? 0.7 : 1}
+      style={[
+        styles.row,
+        isEven && styles.rowEven,
+        isSelected && styles.rowSelected,
+      ]}
+    >
+      {isSelected && <View style={styles.selectionAccent} />}
+      {columns.map((col) => (
+        <DataCell
+          key={col.field}
+          col={col}
+          row={row}
+          isSelected={isSelected}
+          context={context}
+        />
+      ))}
+    </TouchableOpacity>
+  );
+});
 
 const styles = StyleSheet.create({
   row: {
