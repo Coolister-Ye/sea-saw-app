@@ -1,23 +1,34 @@
 import React, { useMemo, useState, useCallback } from "react";
 import "@/css/tableStyle.css";
 import { View } from "react-native";
-import { Badge, Button, Form, message } from "antd";
-import { FilterOutlined, DownloadOutlined, FileExcelOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import { DownloadOutlined, FileExcelOutlined } from "@ant-design/icons";
 
 import i18n from "@/locale/i18n";
-import { getUrl } from "@/utils";
+import { getUrl, stripIdsDeep } from "@/utils";
+import { filterFormDefs } from "@/utils/formDefUtils";
 import { AuthService } from "@/services/AuthService";
 import { downloadFileWithAuth } from "@/utils/fileDownload";
-import { useEntityPage } from "@/hooks/useEntityPage";
+import { useEntityMeta } from "@/hooks/useEntityMeta";
+import { useEditDrawer } from "@/hooks/useEditDrawer";
+import { useTableHandlers } from "@/hooks/useTableHandlers";
+import { useSearchState } from "@/hooks/useSearchState";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
-import { stripIdsDeep } from "@/utils";
+import { PageToolbar } from "@/components/sea-saw-design/page-toolbar";
 import useDataService from "@/hooks/useDataService";
 import { OrderSearch } from "@/components/sea-saw-page/sales/order/search/OrderSearch";
 
 import OrderTable from "@/components/sea-saw-page/sales/order/table/OrderTable";
-import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
 import OrderInput from "@/components/sea-saw-page/sales/order/input/OrderInput";
 import OrderDisplay from "@/components/sea-saw-page/sales/order/display/OrderDisplay";
+
+type OrderRow = Record<string, unknown> & { id: number; order_code: string };
+
+interface OrderViewState {
+  row: OrderRow | null;
+  isOpen: boolean;
+}
 
 const DEFAULT_COL_ORDER = [
   "id",
@@ -25,6 +36,7 @@ const DEFAULT_COL_ORDER = [
   "order_date",
   "account",
   "contact",
+  "bank_account",
   "etd",
   "status",
   "loading_port",
@@ -47,24 +59,28 @@ const DEFAULT_COL_ORDER = [
 ];
 
 export default function OrderScreen() {
-  // Order view state
-  const [orderViewRow, setOrderViewRow] = useState<any>(null);
-  const [isOrderViewOpen, setIsOrderViewOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [exportingPi, setExportingPi] = useState(false);
+  // Order 自己管理 view 状态（不使用 useViewDrawer，因为行为不同）
+  const [orderView, setOrderView] = useState<OrderViewState>({
+    row: null,
+    isOpen: false,
+  });
+  const [selectedRows, setSelectedRows] = useState<OrderRow[]>([]);
 
   const { request } = useDataService();
 
-  // Search state
-  const [searchForm] = Form.useForm();
-  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
+  const {
+    searchParams,
+    searchParamCount,
+    isSearchOpen,
+    searchForm,
+    toggleSearch,
+    handleSearchFinish,
+    handleSearchReset,
+  } = useSearchState();
 
   // Custom copy builder for order
   const buildOrderCopyData = useCallback((data: any) => {
     if (!data) return null;
-
-    // Remove metadata fields and extract account/contact for special handling
     const {
       id,
       pk,
@@ -77,139 +93,146 @@ export default function OrderScreen() {
       contact,
       ...rest
     } = data;
-
-    // Strip IDs from rest of the data (like order_items)
     const strippedRest = stripIdsDeep(rest);
-
-    // Build final copy data
     return {
       ...strippedRest,
-      // Keep account/contact objects for display in InputForm
       account,
       contact,
-      // Extract IDs for write operations
       account_id: account?.id || data.account_id,
       contact_id: contact?.id || data.contact_id,
     };
   }, []);
 
-  const {
-    loadingMeta,
-    metaError,
-    headerMeta,
-    formDefs,
-    isEditOpen,
-    editData,
-    copyDisabled,
-    openCreate,
-    openCopy,
-    closeEdit,
-    handleCreateSuccess,
-    handleUpdateSuccess,
-    tableRef,
-    tableProps,
-  } = useEntityPage({
-    entity: "order",
-    nameField: "order_number",
-    buildCopyData: buildOrderCopyData,
-    filterMetaFields: ["allowed_actions"],
-  });
+  // 原子 hooks
+  const { loadingMeta, metaError, headerMeta, formDefs } = useEntityMeta(
+    "order",
+    { filterMetaFields: ["allowed_actions"] },
+  );
 
-  const defs = useMemo(
-    () => ({
-      base: formDefs.filter((d) => !["allowed_actions"].includes(d.field)),
-    }),
+  const { tableRef, gridApiRef, onGridReady, refreshTable } =
+    useTableHandlers();
+
+  const { isEditOpen, editData, openCreate, openCopy, closeEditDrawer } =
+    useEditDrawer(gridApiRef, { buildCopyData: buildOrderCopyData });
+
+  const baseDefs = useMemo(
+    () => filterFormDefs(formDefs, ["allowed_actions"]),
     [formDefs],
   );
 
+  // Order 自己的 success handlers（更新 orderView.row）
+  const handleCreateSuccess = useCallback(
+    (res?: any) => {
+      if (!res) return;
+      tableRef.current?.api?.refreshServerSide();
+      const data = res.data ?? res;
+      if (data?.id) setOrderView({ row: data as OrderRow, isOpen: true });
+    },
+    [tableRef],
+  );
+
+  const handleUpdateSuccess = useCallback(
+    (res?: any) => {
+      const updated = res?.data ?? res;
+      if (!updated) return;
+
+      const api = tableRef.current?.api;
+      if (!api) return;
+
+      const node = api.getRowNode(String(updated.id));
+      if (node) {
+        node.updateData(updated);
+        api.ensureNodeVisible(node, "middle");
+      } else {
+        api.refreshServerSide({ route: [], purge: false });
+      }
+    },
+    [tableRef],
+  );
+
   const closeOrderView = useCallback(() => {
-    setIsOrderViewOpen(false);
-    setOrderViewRow(null);
+    setOrderView({ row: null, isOpen: false });
   }, []);
 
   const handleOrderUpdate = useCallback(
     (res: any) => {
       handleUpdateSuccess(res);
       const updated = res?.data ?? res;
-      if (updated) setOrderViewRow(updated);
+      if (updated)
+        setOrderView((prev) => ({ ...prev, row: updated as OrderRow }));
     },
     [handleUpdateSuccess],
   );
 
   const handlePipelineCreated = useCallback(
     (res: any) => {
-      // Refresh table when pipeline is created
-      tableRef.current?.api?.refreshServerSide();
-      // Update display with new order data (includes related_pipeline)
+      refreshTable();
       const updated = res?.data ?? res;
-      if (updated) setOrderViewRow(updated);
+      if (updated)
+        setOrderView((prev) => ({ ...prev, row: updated as OrderRow }));
     },
-    [tableRef],
+    [refreshTable],
   );
 
-  const handlePipelineUpdated = useCallback(() => {
-    // Refresh table when pipeline is updated (e.g., status change)
-    tableRef.current?.api?.refreshServerSide();
-  }, [tableRef]);
-
-  const handleRowClick = useCallback((e: any) => {
+  const handleRowClick = useCallback((e: { data: OrderRow }) => {
     const row = e.data;
     if (!row) return;
-    // Always open OrderDisplay first, user can click related_pipeline inside to view pipeline
-    setOrderViewRow(row);
-    setIsOrderViewOpen(true);
+    setOrderView({ row, isOpen: true });
   }, []);
 
-  const handleSearchFinish = useCallback(
-    (filterParams: Record<string, any>) => {
-      setSearchParams(filterParams);
+  const handleSelectionChanged = useCallback(
+    (e: { api: { getSelectedRows: () => OrderRow[] } }) => {
+      setSelectedRows(e.api.getSelectedRows());
     },
     [],
   );
 
-  const handleSearchReset = useCallback(() => {
-    searchForm.resetFields();
-    setSearchParams({});
-  }, [searchForm]);
-
-  const handleDownload = useCallback(async () => {
-    setDownloading(true);
-    try {
-      await request({
+  // Download
+  const downloadFn = useCallback(
+    () =>
+      request({
         uri: "crmDownload",
         method: "POST",
-        body: {
-          model: "orders",
-          filter: searchParams,
-        },
-      });
-      message.success(i18n.t("Download task created"));
-    } catch {
-      message.error(i18n.t("Failed to create download task"));
-    } finally {
-      setDownloading(false);
-    }
-  }, [request, searchParams]);
+        body: { model: "orders", filter: searchParams },
+      }),
+    [request, searchParams],
+  );
+  const { loading: downloading, execute: handleDownload } = useAsyncAction(
+    downloadFn,
+    {
+      successMessage: "Download task created",
+      errorMessage: "Failed to create download task",
+    },
+  );
 
-  const handleExportPi = useCallback(async () => {
-    if (!orderViewRow?.id) return;
-    setExportingPi(true);
-    try {
-      const urlTemplate = getUrl("orderExportPi");
-      const url = urlTemplate.replace("{id}", String(orderViewRow.id));
-      const token = await AuthService.getJwtToken();
-      await downloadFileWithAuth(url, `PI-${orderViewRow.order_code}.xlsx`, token);
-    } catch {
-      message.error(i18n.t("Failed to export PI"));
-    } finally {
-      setExportingPi(false);
+  // Export PI
+  const exportPiFn = useCallback(async () => {
+    if (selectedRows.length === 0) return;
+    const token = await AuthService.getJwtToken();
+    if (selectedRows.length === 1) {
+      const row = selectedRows[0];
+      const url = getUrl("orderExportPi").replace("{id}", String(row.id));
+      await downloadFileWithAuth(url, `PI-${row.order_code}.xlsx`, token);
+    } else {
+      const url = getUrl("orderExportPiBulk");
+      const ids = selectedRows.map((r) => r.id);
+      const filename = `PI-bulk-${ids.length}-orders.xlsx`;
+      await downloadFileWithAuth(url, filename, token, {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+        headers: { "Content-Type": "application/json" },
+      });
     }
-  }, [orderViewRow]);
+  }, [selectedRows]);
+  const { loading: exportingPi, execute: handleExportPi } = useAsyncAction(
+    exportPiFn,
+    { errorMessage: i18n.t("Failed to export PI") },
+  );
 
   return (
     <PageLoading loading={loadingMeta} error={metaError}>
       <View className="flex-1 bg-white flex-row">
-        {/* Left search sidebar — full page height */}
+        {/* Left search sidebar */}
         {isSearchOpen && (
           <OrderSearch
             form={searchForm}
@@ -221,51 +244,53 @@ export default function OrderScreen() {
 
         {/* Right: toolbar + table */}
         <View className="flex-1">
-          <View className="flex-row justify-end gap-1 p-1 py-1.5">
-            <Badge count={Object.keys(searchParams).length} size="small">
-              <Button
-                icon={<FilterOutlined />}
-                onClick={() => setIsSearchOpen((prev) => !prev)}
-                type={isSearchOpen ? "primary" : "default"}
-              />
-            </Badge>
-            <Button
-              icon={<DownloadOutlined />}
-              onClick={handleDownload}
-              loading={downloading}
-            />
-            <ActionDropdown
-              onPrimaryAction={openCreate}
-              onCopy={openCopy}
-              copyDisabled={copyDisabled}
-            />
-          </View>
+          <PageToolbar
+            filterCount={searchParamCount}
+            isSearchOpen={isSearchOpen}
+            onToggleSearch={toggleSearch}
+            actionDropdownProps={{
+              onPrimaryAction: openCreate,
+              onCopy: openCopy,
+              copyDisabled: selectedRows.length !== 1,
+            }}
+            extra={
+              <>
+                <Button
+                  icon={<DownloadOutlined />}
+                  onClick={() => handleDownload()}
+                  loading={downloading}
+                />
+                <Button
+                  icon={<FileExcelOutlined />}
+                  onClick={() => handleExportPi()}
+                  loading={exportingPi}
+                  disabled={selectedRows.length === 0}
+                />
+              </>
+            }
+          />
 
-          {isEditOpen && (
-            <OrderInput
-              mode="standalone"
-              isOpen
-              def={defs.base}
-              data={editData}
-              columnOrder={DEFAULT_COL_ORDER}
-              onClose={closeEdit}
-              onCreate={handleCreateSuccess}
-              onUpdate={handleUpdateSuccess}
-            />
-          )}
+          <OrderInput
+            mode="standalone"
+            isOpen={isEditOpen}
+            def={baseDefs}
+            data={editData}
+            columnOrder={DEFAULT_COL_ORDER}
+            onClose={closeEditDrawer}
+            onCreate={handleCreateSuccess}
+            onUpdate={handleUpdateSuccess}
+          />
 
-          {isOrderViewOpen && (
-            <OrderDisplay
-              isOpen
-              def={defs.base}
-              data={orderViewRow}
-              onClose={closeOrderView}
-              onCreate={handleCreateSuccess}
-              onUpdate={handleOrderUpdate}
-              onPipelineCreated={handlePipelineCreated}
-              onPipelineUpdate={handlePipelineUpdated}
-            />
-          )}
+          <OrderDisplay
+            isOpen={orderView.isOpen}
+            def={baseDefs}
+            data={orderView.row}
+            onClose={closeOrderView}
+            onCreate={handleCreateSuccess}
+            onUpdate={handleOrderUpdate}
+            onPipelineCreated={handlePipelineCreated}
+            onPipelineUpdate={refreshTable}
+          />
 
           <OrderTable
             ref={tableRef}
@@ -273,8 +298,9 @@ export default function OrderScreen() {
             columnOrder={DEFAULT_COL_ORDER}
             searchable={false}
             queryParams={searchParams}
-            {...tableProps}
+            onGridReady={onGridReady}
             onRowClicked={handleRowClick}
+            onSelectionChanged={handleSelectionChanged}
           />
         </View>
       </View>

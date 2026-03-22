@@ -7,6 +7,7 @@ import { round2, toNumber } from "@/utils/number";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
+import BankAccountSelector from "@/components/sea-saw-page/crm/bank-account/input/BankAccountSelector";
 import OrderItemsInput from "./OrderItemsInput";
 import OrderStatusSelector from "./OrderStatusSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
@@ -51,6 +52,7 @@ export default function OrderInput({
     const payload = { ...values };
     delete payload.account;
     delete payload.contact;
+    delete payload.bank_account;
     return payload;
   };
 
@@ -100,6 +102,11 @@ export default function OrderInput({
         render: (def: any) => <ContactSelector def={def} />,
       },
       contact_id: { hidden: true },
+      bank_account: {
+        read_only: false,
+        render: (def: any) => <BankAccountSelector def={def} />,
+      },
+      bank_account_id: { hidden: true },
       status: {
         // Status is managed by Pipeline once a pipeline exists
         read_only: !!(data?.related_pipeline?.id),

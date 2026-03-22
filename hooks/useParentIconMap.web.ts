@@ -17,6 +17,7 @@ import {
   LockClosedIcon,
   BeakerIcon,
   DocumentTextIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 
 const ICON_STYLE = { width: 16, height: 16 };
@@ -27,6 +28,7 @@ export const useParentIconMap = (): ParentIconMap => ({
   "(crm)": React.createElement(UsersIcon, { style: ICON_STYLE }),
   "(crm)/contact": React.createElement(UserIcon, { style: ICON_STYLE }),
   "(crm)/account": React.createElement(BuildingOfficeIcon, { style: ICON_STYLE }),
+  "(crm)/bank-account": React.createElement(CreditCardIcon, { style: ICON_STYLE }),
   "(sales)": React.createElement(ShoppingCartIcon, { style: ICON_STYLE }),
   "(sales)/order": React.createElement(ClipboardDocumentListIcon, { style: ICON_STYLE }),
   "(production)": React.createElement(WrenchScrewdriverIcon, { style: ICON_STYLE }),

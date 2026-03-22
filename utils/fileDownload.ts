@@ -7,9 +7,15 @@ export async function downloadFileWithAuth(
   url: string,
   filename: string,
   accessToken: string,
+  init?: RequestInit,
 ): Promise<void> {
+  const { headers: extraHeaders, ...restInit } = init ?? {};
   const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    ...restInit,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(extraHeaders as Record<string, string>),
+    },
   });
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status} ${response.statusText}`);

@@ -22,6 +22,7 @@ import { AttachmentsDisplay } from "@/components/sea-saw-design/attachments";
 import PurchaseOrderStatusTag from "./renderers/PurchaseOrderStatusTag";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
+import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/display";
 import PurchaseItemsViewToggle from "./items/PurchaseItemsViewToggle";
 import PurchaseOrderInput from "../input/PurchaseOrderInput";
 import PipelineDisplay from "@/components/sea-saw-page/pipeline/display/PipelineDisplay";
@@ -168,6 +169,7 @@ export default function PurchaseOrderDisplay({
     () => ({
       supplier_id: { hidden: true },
       contact_id: { hidden: true },
+      bank_account_id: { hidden: true },
       related_order_id: { hidden: true },
       // Hide metadata fields - rendered via CardMetadata
       ...Object.fromEntries(METADATA_FIELDS.map((f) => [f, { hidden: true }])),
@@ -184,6 +186,11 @@ export default function PurchaseOrderDisplay({
       contact: {
         render: (def: any, value: any) => (
           <ContactPopover def={def} value={value} />
+        ),
+      },
+      bank_account: {
+        render: (def: any, value: any) => (
+          <BankAccountPopover def={def} value={value} />
         ),
       },
       related_pipeline: {

@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { useEntityPage } from "@/hooks/useEntityPage";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
+import { pickFormDef, filterFormDefs } from "@/utils/formDefUtils";
 
 import Table from "@/components/sea-saw-design/table";
 import { theme } from "@/components/sea-saw-design/table/theme";
@@ -54,28 +55,23 @@ export default function PipelineScreen() {
   });
 
   /* ================= Defs 拆分 ================= */
-  const defs = useMemo(() => {
-    const pick = (field: string) => formDefs.find((d) => d.field === field);
+  const EXCLUDED_FIELDS = [
+    "orders",
+    "production_orders",
+    "purchase_orders",
+    "outbound_orders",
+    "payments",
+    "allowed_actions",
+  ];
 
-    return {
-      base: formDefs.filter(
-        (d) =>
-          ![
-            "orders",
-            "production_orders",
-            "purchase_orders",
-            "outbound_orders",
-            "payments",
-            "allowed_actions",
-          ].includes(d.field),
-      ),
-      orders: pick("orders"),
-      productionOrders: pick("production_orders"),
-      purchaseOrders: pick("purchase_orders"),
-      outboundOrders: pick("outbound_orders"),
-      payments: pick("payments"),
-    };
-  }, [formDefs]);
+  const defs = useMemo(() => ({
+    base: filterFormDefs(formDefs, EXCLUDED_FIELDS),
+    orders: pickFormDef(formDefs, "orders"),
+    productionOrders: pickFormDef(formDefs, "production_orders"),
+    purchaseOrders: pickFormDef(formDefs, "purchase_orders"),
+    outboundOrders: pickFormDef(formDefs, "outbound_orders"),
+    payments: pickFormDef(formDefs, "payments"),
+  }), [formDefs]);
 
   /* ================= Column Renderers ================= */
   const colRenderers = useMemo(

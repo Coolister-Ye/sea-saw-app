@@ -25,6 +25,7 @@ const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "index", label: "Home" },
   { name: "(crm)/contact", label: "contact", groups: ["Sale"] },
   { name: "(crm)/account", label: "account", groups: ["Sale"] },
+  { name: "(crm)/bank-account", label: "bank_account", groups: ["Sale", "Purchase"] },
   { name: "(sales)/order", label: "order", groups: ["Sale"] },
   {
     name: "(production)/production",
@@ -59,6 +60,12 @@ export default function AppLayout() {
       "(production)": i18n.t("production"),
       "(setting)": i18n.t("setting"),
     }),
+    [locale],
+  );
+
+  // 用 locale 依赖重新计算 screen labels，避免对 Drawer 使用 key={locale} 全量销毁重建
+  const screenLabels = useMemo(
+    () => Object.fromEntries(SCREEN_CONFIGS.map((c) => [c.name, i18n.t(c.label)])),
     [locale],
   );
 
@@ -114,7 +121,6 @@ export default function AppLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       {isWeb && <DrawerHeader title="Sea saw" />}
       <Drawer
-        key={locale}
         screenOptions={screenOptions}
         drawerContent={drawerContent}
       >
@@ -123,7 +129,7 @@ export default function AppLayout() {
             key={config.name}
             name={config.name}
             options={{
-              drawerLabel: i18n.t(config.label),
+              drawerLabel: screenLabels[config.name],
               drawerItemStyle: getDrawerItemStyle(config),
             }}
           />

@@ -15,6 +15,7 @@ export const constants = {
     listFields: "/sea-saw-crm/fields/",
 
     contact: "/api/sea-saw-crm/contacts/",
+    bankAccount: "/api/sea-saw-crm/bank-accounts/",
     order: "/api/sales/orders/",
     nestedOrder: "/api/sales/nested-orders/",
     pipeline: "/api/pipeline/pipelines/",
@@ -39,6 +40,7 @@ export const constants = {
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",
 
     orderExportPi: "/api/sales/orders/{id}/export-pi/",
+    orderExportPiBulk: "/api/sales/orders/export-pi-bulk/",
 
     createProductionOrder: "/api/pipeline/pipelines/{id}/create_production/",
     createOutboundOrder: "/api/pipeline/pipelines/{id}/create_outbound/",

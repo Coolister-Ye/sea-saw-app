@@ -12,6 +12,7 @@ import {
 import { canEditPurchaseOrder } from "@/constants/PipelineStatus";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
+import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/display";
 import PurchaseOrderStatusTag from "./renderers/PurchaseOrderStatusTag";
 import PurchaseItemsViewToggle from "./items/PurchaseItemsViewToggle";
 import { convertToFormDefs } from "@/utils/formDefUtils";
@@ -82,6 +83,7 @@ export default function PurchaseOrderCard({
     const statusDef = getFieldDef("status");
     const supplierDef = getFieldDef("supplier")?.children;
     const contactDef = getFieldDef("contact")?.children;
+    const bankAccountDef = getFieldDef("bank_account")?.children;
     const purchaseItemsDef = getFieldDef("purchase_items")?.child?.children;
 
     const isEditable = canEditPurchaseOrder(
@@ -127,6 +129,18 @@ export default function PurchaseOrderCard({
                   value={typeof item.contact === "object" ? item.contact : null}
                 />
               </View>
+              {/* Bank Account */}
+              {item.bank_account && (
+                <View className="items-end">
+                  <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                    {getFieldLabel("bank_account")}
+                  </Text>
+                  <BankAccountPopover
+                    def={bankAccountDef}
+                    value={typeof item.bank_account === "object" ? item.bank_account : null}
+                  />
+                </View>
+              )}
             </View>
           }
         />

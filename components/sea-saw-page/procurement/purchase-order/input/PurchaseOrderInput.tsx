@@ -9,6 +9,7 @@ import PurchaseOrderItemsInput from "./PurchaseOrderItemsInput";
 import PurchaseOrderStatusSelector from "./PurchaseOrderStatusSelector";
 import PurchaseRelatedOrderSelector from "./PurchaseRelatedOrderSelector";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
+import BankAccountSelector from "@/components/sea-saw-page/crm/bank-account/input/BankAccountSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
@@ -55,6 +56,7 @@ export default function PurchaseOrderInput({
     const payload = { ...values };
     delete payload.supplier;
     delete payload.contact;
+    delete payload.bank_account;
     delete payload.related_order;
     payload.related_order =
       values.related_order?.id ||
@@ -116,6 +118,11 @@ export default function PurchaseOrderInput({
         render: (def: any) => <ContactSelector def={def} />,
       },
       contact_id: { hidden: true },
+      bank_account: {
+        read_only: false,
+        render: (def: any) => <BankAccountSelector def={def} />,
+      },
+      bank_account_id: { hidden: true },
       status: {
         render: (def: any) => <PurchaseOrderStatusSelector def={def} />,
       },

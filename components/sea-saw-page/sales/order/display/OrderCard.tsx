@@ -12,6 +12,7 @@ import {
 import { canEditOrder } from "@/constants/PipelineStatus";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
+import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/display";
 import OrderStatusTag from "./OrderStatusTag";
 import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
 import { convertToFormDefs } from "@/utils/formDefUtils";
@@ -85,6 +86,7 @@ export default function OrderCard({
     const statusDef = getFieldDef("status");
     const accountDef = getFieldDef("account")?.children;
     const contactDef = getFieldDef("contact")?.children;
+    const bankAccountDef = getFieldDef("bank_account")?.children;
     const orderItemsDef = getFieldDef("order_items")?.child?.children;
 
     const isEditable = canEditOrder(pipelineStatus || "", item.status || "");
@@ -131,6 +133,18 @@ export default function OrderCard({
                   }
                 />
               </View>
+              {/* Bank Account */}
+              {item.bank_account && (
+                <View className="items-end">
+                  <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                    {getFieldLabel("bank_account")}
+                  </Text>
+                  <BankAccountPopover
+                    def={bankAccountDef}
+                    value={typeof item.bank_account === "object" ? item.bank_account : null}
+                  />
+                </View>
+              )}
             </View>
           }
         />
