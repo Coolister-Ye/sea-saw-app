@@ -28,6 +28,16 @@ const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "(crm)/bank-account", label: "bank_account", groups: ["Sale", "Purchase"] },
   { name: "(sales)/order", label: "order", groups: ["Sale"] },
   {
+    name: "(procurement)/purchase-order",
+    label: "purchase_order",
+    groups: ["Purchase"],
+  },
+  {
+    name: "(warehouse)/outbound-order",
+    label: "outbound_order",
+    groups: ["Warehouse"],
+  },
+  {
     name: "(production)/production",
     label: "production",
     groups: ["Production"],
@@ -55,6 +65,8 @@ export default function AppLayout() {
       "(playground)": i18n.t("playground"),
       "(crm)": i18n.t("crm"),
       "(sales)": i18n.t("sales"),
+      "(procurement)": i18n.t("procurement"),
+      "(warehouse)": i18n.t("warehouse"),
       "(download)": i18n.t("download"),
       "(pipeline)": i18n.t("pipeline"),
       "(production)": i18n.t("production"),

@@ -55,7 +55,9 @@ export function useTableMeta({
           meta = normalizeHeaderMeta(initialHeaderMeta);
         } else {
           const res = await viewSet.options();
-          meta = normalizeHeaderMeta(res.actions?.POST);
+          meta = normalizeHeaderMeta(
+            res.actions?.POST ?? res.actions?.OPTIONS ?? res.actions?.GET,
+          );
         }
 
         if (mounted) {

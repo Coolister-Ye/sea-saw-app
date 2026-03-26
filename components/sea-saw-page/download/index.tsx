@@ -1,82 +1,53 @@
-import React, { useCallback } from "react";
-import { TouchableOpacity, Linking, ActivityIndicator } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import React from "react";
+import dayjs from "dayjs";
 import i18n from "@/locale/i18n";
-import { getBaseUrl } from "@/utils";
-import { devError } from "@/utils/logger";
 import { NativeTable } from "@/components/sea-saw-design/table/native";
 import type { NativeColDefinition } from "@/components/sea-saw-design/table/native";
+import { StatusCell } from "./StatusCell";
+import { DownloadActionCell } from "./DownloadActionCell";
 
-/* ── Status colour map ─────────────────────────────────────────────────────── */
-const STATUS_COLORS: Record<string, string> = {
-  completed: "#52c41a",
-  failed: "#ff4d4f",
-  processing: "#1677ff",
-  pending: "#faad14",
-};
-
-/* ── Column definitions ────────────────────────────────────────────────────── */
 const COL_DEFS: Record<string, NativeColDefinition> = {
-  file_name: {
-    headerName: i18n.t("File Name"),
-    width: 220,
-    sortable: true,
-  },
+  // visible columns
+  file_name: { flex: 3, minWidth: 200, sortable: true },
   status: {
-    headerName: i18n.t("Status"),
-    width: 100,
+    flex: 1,
+    minWidth: 100,
     sortable: true,
-    renderCell: (value: string) => {
-      const { Text } = require("react-native");
-      return (
-        <Text
-          style={{
-            color: STATUS_COLORS[value] ?? "#595959",
-            fontSize: 12,
-            fontWeight: "500",
-          }}
-        >
-          {i18n.t(value ?? "")}
-        </Text>
-      );
-    },
+    renderCell: (value, _row, fieldMeta) => (
+      <StatusCell value={value} fieldMeta={fieldMeta} />
+    ),
   },
   created_at: {
-    headerName: i18n.t("Created At"),
-    width: 160,
+    flex: 2,
+    minWidth: 140,
     sortable: true,
+    valueFormatter: ({ value }) => {
+      if (!value) return "";
+      const d = dayjs(value);
+      return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : String(value);
+    },
   },
   download_url: {
     headerName: "",
     width: 52,
     sortable: false,
-    renderCell: (_value: any, row: Record<string, any>) => {
-      const isCompleted = row.status === "completed";
-      const isFailed = row.status === "failed";
-
-      const handleDownload = () => {
-        if (!isCompleted || !row.download_url) return;
-        const url = row.download_url.startsWith("http")
-          ? row.download_url
-          : `${getBaseUrl()}/${row.download_url}`;
-        Linking.openURL(url).catch((err) =>
-          devError("Failed to open download URL:", err),
-        );
-      };
-
-      if (isCompleted) {
-        return (
-          <TouchableOpacity onPress={handleDownload} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="arrow-down-circle" size={22} color="#0e7490" />
-          </TouchableOpacity>
-        );
-      }
-      if (isFailed) {
-        return <Ionicons name="close-circle" size={22} color="#ff4d4f" />;
-      }
-      return <ActivityIndicator size="small" color="#1677ff" />;
-    },
+    suppressMenu: true,
+    suppressAutoSize: true,
+    renderCell: (_value, row) => <DownloadActionCell row={row} />,
   },
+  // visible extra columns
+  pk: { width: 80, sortable: false },
+  error_message: { flex: 2, minWidth: 120, sortable: false },
+  // hidden columns
+  user: { skip: true },
+  task_id: { skip: true },
+  file_path: { skip: true },
+  completed_at: { skip: true },
+  expires_at: { skip: true },
+  deleted: { skip: true },
+  total_records: { skip: true },
+  processed_records: { skip: true },
+  progress_percentage: { skip: true },
 };
 
 export default function DownloadScreen() {
@@ -84,6 +55,14 @@ export default function DownloadScreen() {
     <NativeTable
       table="listDownloads"
       colDefinitions={COL_DEFS}
+      columnOrder={[
+        "pk",
+        "file_name",
+        "status",
+        "created_at",
+        "error_message",
+        "download_url",
+      ]}
       queryParams={{ ordering: "-created_at" }}
       enableQuickFilter
       quickFilterParam="search"

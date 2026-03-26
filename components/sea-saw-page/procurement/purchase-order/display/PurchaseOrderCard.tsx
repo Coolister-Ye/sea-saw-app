@@ -18,14 +18,19 @@ import PurchaseItemsViewToggle from "./items/PurchaseItemsViewToggle";
 import { convertToFormDefs } from "@/utils/formDefUtils";
 import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
+import RelatedPipelineLink from "@/components/sea-saw-page/sales/order/display/RelatedPipelineLink";
 import type { FormDef } from "@/hooks/useFormDefs";
 
 interface PurchaseOrderCardProps {
   def?: FormDef[];
   value?: any[] | null;
   onItemClick?: (index: number) => void;
+  onPipelineClick?: () => void;
+  pipelineLoading?: boolean;
   pipelineStatus?: string;
   activeEntity?: string;
+  /** Override edit permission (e.g. for standalone mode) */
+  canEdit?: boolean;
   hideEmptyFields?: boolean;
 }
 
@@ -33,8 +38,11 @@ export default function PurchaseOrderCard({
   def,
   value,
   onItemClick,
+  onPipelineClick,
+  pipelineLoading,
   pipelineStatus,
   activeEntity,
+  canEdit,
   hideEmptyFields = false,
 }: PurchaseOrderCardProps) {
   // Normalize value to array
@@ -86,10 +94,8 @@ export default function PurchaseOrderCard({
     const bankAccountDef = getFieldDef("bank_account")?.children;
     const purchaseItemsDef = getFieldDef("purchase_items")?.child?.children;
 
-    const isEditable = canEditPurchaseOrder(
-      pipelineStatus || "",
-      activeEntity || "",
-    );
+    const isEditable =
+      canEdit ?? canEditPurchaseOrder(pipelineStatus || "", activeEntity || "");
 
     return (
       <Card key={item.id ?? index}>
@@ -160,6 +166,18 @@ export default function PurchaseOrderCard({
                     value={renderField(fieldName, item[fieldName])}
                   />
                 ),
+            )}
+            {item.related_pipeline?.pipeline_code && (
+              <Field
+                label={getFieldLabel("related_pipeline")}
+                value={
+                  <RelatedPipelineLink
+                    value={item.related_pipeline}
+                    loading={pipelineLoading}
+                    onClick={onPipelineClick}
+                  />
+                }
+              />
             )}
           </FieldGrid>
         </Card.Section>

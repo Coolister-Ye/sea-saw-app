@@ -23,7 +23,7 @@ export type UseScrollSyncResult = {
 };
 
 /**
- * Manages scroll synchronisation across the table's fixed and scrollable
+ * Manages scroll synchronisation across the grid's fixed and scrollable
  * sections — mirrors ag-grid's GridBodyScrollFeature.
  *
  * Coordinates:

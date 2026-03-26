@@ -22,6 +22,7 @@ interface OutboundOrderInputProps {
     [key: string]: any;
   };
   pipelineId?: string | number;
+  mode?: "nested" | "standalone";
 }
 
 export default function OutboundOrderInput({
@@ -32,10 +33,11 @@ export default function OutboundOrderInput({
   def,
   data = {},
   pipelineId,
+  mode = "nested",
 }: OutboundOrderInputProps) {
   const { form, loading, contextHolder, isEdit, handleSave } =
     useOrderDrawerForm({
-      mode: "nested",
+      mode,
       isOpen,
       data,
       pipelineId,

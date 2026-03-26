@@ -53,6 +53,7 @@
     "@rn-primitives/select": "^1.1.0",
     "@rn-primitives/slot": "^1.2.0",
     "@rn-primitives/types": "^1.1.0",
+    "@tanstack/react-table": "^8.21.3",
     "@types/i18n-js": "^3.8.9",
     "@types/lodash": "^4.17.13",
     "ag-grid-community": "^33.1.1",

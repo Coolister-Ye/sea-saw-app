@@ -26,10 +26,10 @@ export const constants = {
     nestedPayment: "/api/finance/nested-payments/",
     productionOrder: "/api/production/production-orders/",
     nestedProductionOrder: "/api/production/nested-production-orders/",
-    purchaseOrder: "/api/sea-saw-crm/purchase-orders/",
+    purchaseOrder: "/api/procurement/purchase-orders/",
     nestedPurchaseOrder: "/api/procurement/nested-purchase-orders/",
     supplier: "/api/sea-saw-crm/suppliers/",
-    outboundOrder: "/api/sea-saw-crm/outbound-orders/",
+    outboundOrder: "/api/warehouse/outbound-orders/",
     nestedOutboundOrder: "/api/warehouse/nested-outbound-orders/",
 
     overviewStats: "/api/dashboard/overview/",
@@ -41,6 +41,8 @@ export const constants = {
 
     orderExportPi: "/api/sales/orders/{id}/export-pi/",
     orderExportPiBulk: "/api/sales/orders/export-pi-bulk/",
+    purchaseOrderExportPo: "/api/procurement/purchase-orders/{id}/export-po/",
+    purchaseOrderExportPoBulk: "/api/procurement/purchase-orders/export-po-bulk/",
 
     createProductionOrder: "/api/pipeline/pipelines/{id}/create_production/",
     createOutboundOrder: "/api/pipeline/pipelines/{id}/create_outbound/",

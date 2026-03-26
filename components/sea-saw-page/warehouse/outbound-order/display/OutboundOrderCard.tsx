@@ -24,6 +24,8 @@ interface OutboundOrderCardProps {
   pipelineStatus?: string;
   activeEntity?: string;
   hideEmptyFields?: boolean;
+  /** Override pipeline-based edit permission (for standalone use) */
+  canEdit?: boolean;
 }
 
 export default function OutboundOrderCard({
@@ -33,6 +35,7 @@ export default function OutboundOrderCard({
   pipelineStatus,
   activeEntity,
   hideEmptyFields = false,
+  canEdit: canEditProp,
 }: OutboundOrderCardProps) {
   // Normalize value to array
   const items = useMemo(() => {
@@ -78,7 +81,7 @@ export default function OutboundOrderCard({
     const statusDef = getFieldDef("status");
     const outboundItemsDef = getFieldDef("outbound_items")?.child?.children;
 
-    const isEditable = canEditOutboundOrder(
+    const isEditable = canEditProp ?? canEditOutboundOrder(
       pipelineStatus || "",
       activeEntity || "",
     );

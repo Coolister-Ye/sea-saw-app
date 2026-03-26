@@ -18,6 +18,7 @@ import {
   BeakerIcon,
   DocumentTextIcon,
   CreditCardIcon,
+  TruckIcon,
 } from "@heroicons/react/24/outline";
 
 const ICON_STYLE = { width: 16, height: 16 };
@@ -31,6 +32,10 @@ export const useParentIconMap = (): ParentIconMap => ({
   "(crm)/bank-account": React.createElement(CreditCardIcon, { style: ICON_STYLE }),
   "(sales)": React.createElement(ShoppingCartIcon, { style: ICON_STYLE }),
   "(sales)/order": React.createElement(ClipboardDocumentListIcon, { style: ICON_STYLE }),
+  "(procurement)": React.createElement(TruckIcon, { style: ICON_STYLE }),
+  "(procurement)/purchase-order": React.createElement(ClipboardDocumentListIcon, { style: ICON_STYLE }),
+  "(warehouse)": React.createElement(TruckIcon, { style: ICON_STYLE }),
+  "(warehouse)/outbound-order": React.createElement(ClipboardDocumentListIcon, { style: ICON_STYLE }),
   "(production)": React.createElement(WrenchScrewdriverIcon, { style: ICON_STYLE }),
   "(production)/production": React.createElement(CogIcon, { style: ICON_STYLE }),
   "(pipeline)": React.createElement(ChartBarIcon, { style: ICON_STYLE }),

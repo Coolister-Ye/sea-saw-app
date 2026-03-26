@@ -2,6 +2,41 @@
     --ag-cell-horizontal-border: var(--ag-row-border-width) var(--ag-row-border-style) var(--ag-row-border-color);
 }
 
+/* ── Header cell ─────────────────────────────────────────────────────────── */
+
+/* mirrors ag-grid's default font-weight: 600 for header text */
+.ag-header-cell-text {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* gap between text and sort indicator — mirrors ag-header-cell-label gap */
+.ag-header-cell-label {
+    gap: 6px;
+}
+
+/* accent color on sorted column text — mirrors ag-header-cell-sortable active */
+.ag-header-cell[aria-sort="ascending"] .ag-header-cell-text,
+.ag-header-cell[aria-sort="descending"] .ag-header-cell-text {
+    color: var(--ag-accent-color);
+}
+
+/* filter-active indicator — mirrors ag-header-cell-filtered */
+.ag-header-cell-filtered .ag-header-cell-text {
+    font-style: italic;
+}
+
+/* ── Resize handle ───────────────────────────────────────────────────────── */
+
+/* inset the resize handle vertically — matches native resizeHandle marginVertical: 6 */
+.ag-header-cell-resize::after {
+    top: 6px;
+    bottom: 6px;
+    height: auto;
+}
+
+/* ── Cell span ───────────────────────────────────────────────────────────── */
+
 .cell-span {
     background-color: #fff;
     display: flex;
