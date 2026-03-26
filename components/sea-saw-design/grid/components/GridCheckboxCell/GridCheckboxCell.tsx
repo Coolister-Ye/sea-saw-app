@@ -7,14 +7,14 @@ import { styles } from "./styles";
 
 export function GridCheckboxCell({ data, context }: CellRendererProps) {
   const sel = context?.__rowSelection as GridRowSelectionContext | undefined;
-  if (!sel) return null;
-
   const rowId = String(data?.pk ?? data?.id ?? "");
 
   const handlePress = useCallback(
-    () => sel.toggleRow(rowId),
+    () => sel?.toggleRow(rowId),
     [sel, rowId],
   );
+
+  if (!sel) return null;
 
   return (
     <View style={styles.cellContainer}>
