@@ -128,6 +128,7 @@ export default function OutboundOrderCard({
           "container_no",
           "seal_no",
           "destination_port",
+          "eta",
           "logistics_provider",
         ].some((f) => shouldShowField(item, f)) && (
           <Card.Section className="bg-white-50/30">
@@ -139,6 +140,7 @@ export default function OutboundOrderCard({
                 "container_no",
                 "seal_no",
                 "destination_port",
+                "eta",
                 "logistics_provider",
               ].map(
                 (fieldName) =>
