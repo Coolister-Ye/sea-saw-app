@@ -10,6 +10,7 @@ export type OrderEntry = {
   order_code: string;
   account_name: string;
   etd: string;
+  eta: string | null;
   order_status: string;
   pipeline_id: number | null;
   pipeline_code: string | null;
@@ -17,6 +18,23 @@ export type OrderEntry = {
   shipping_status: ShippingStatus;
   outbound_date: string | null;
   total_amount: string;
+};
+
+export type EtaOrderEntry = {
+  order_id: number;
+  order_code: string;
+  account_name: string;
+  etd: string;
+  eta: string;
+  outbound_code: string;
+  outbound_status: string;
+  pipeline_id: number;
+  pipeline_code: string;
+  pipeline_status: string | null;
+};
+
+export type EtaWarningEntry = EtaOrderEntry & {
+  days_until_eta: number;
 };
 
 export type ETDCalendarData = {
@@ -31,6 +49,8 @@ export type ETDCalendarData = {
     overdue: number;
     no_pipeline: number;
   };
+  orders_by_eta_date: Record<string, EtaOrderEntry[]>;
+  eta_warning_list: EtaWarningEntry[];
 };
 
 export type SummaryKey = keyof ETDCalendarData["summary"];

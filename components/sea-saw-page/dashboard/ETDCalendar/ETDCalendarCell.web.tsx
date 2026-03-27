@@ -9,6 +9,7 @@ import {
   ANT_STATUS_COLOR,
   ORDER_TAG_STYLE,
   STATUS_LABEL,
+  type EtaOrderEntry,
   type OrderEntry,
 } from "./types";
 
@@ -47,6 +48,13 @@ function OrderPopoverContent({
 
       {/* Divider */}
       <div style={{ height: 1, background: "#f0f0f0", marginBottom: 10 }} />
+
+      {/* ETA */}
+      {order.eta && (
+        <div style={{ marginBottom: 8, fontSize: 11, color: "#8c8c8c" }}>
+          预计到货：<span style={{ color: "#1677ff" }}>{order.eta}</span>
+        </div>
+      )}
 
       {/* Pipeline timeline */}
       <PipelineTimeline
@@ -144,22 +152,153 @@ function OrderPopoverItem({
 }
 
 // ---------------------------------------------------------------------------
+// EtaPopoverContent — ETA 到货 popover 内容
+// ---------------------------------------------------------------------------
+
+function EtaPopoverContent({
+  entry,
+  timestamps,
+  loading,
+}: {
+  entry: EtaOrderEntry;
+  timestamps?: PipelineTimestamps;
+  loading: boolean;
+}) {
+  return (
+    <div style={{ width: 210, padding: "4px 0" }}>
+      <div style={{ marginBottom: 6 }}>
+        <span style={{ fontWeight: 600, fontSize: 13 }}>{entry.account_name}</span>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <AntTag color="purple" style={{ fontSize: 11 }}>
+          预计到货
+        </AntTag>
+      </div>
+      <div style={{ height: 1, background: "#f0f0f0", marginBottom: 10 }} />
+      <div style={{ marginBottom: 8, fontSize: 11, color: "#8c8c8c" }}>
+        ETD：<span style={{ color: "#595959" }}>{entry.etd}</span>
+      </div>
+      <div style={{ marginBottom: 8, fontSize: 11, color: "#8c8c8c" }}>
+        ETA：<span style={{ color: "#722ed1" }}>{entry.eta}</span>
+      </div>
+      <div style={{ marginBottom: 10, fontSize: 11, color: "#8c8c8c" }}>
+        出库单：<span style={{ color: "#595959" }}>{entry.outbound_code}</span>
+      </div>
+      <div style={{ height: 1, background: "#f0f0f0", marginBottom: 10 }} />
+      <PipelineTimeline
+        pipelineCode={entry.pipeline_code}
+        pipelineStatus={entry.pipeline_status}
+        timestamps={timestamps}
+        loading={loading}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// EtaOrderTag — 到货日标签 + lazy-loaded popover
+// ---------------------------------------------------------------------------
+
+function EtaOrderTag({
+  entry,
+  onOrderClick,
+}: {
+  entry: EtaOrderEntry;
+  onOrderClick: () => void;
+}) {
+  const { getViewSet } = useDataService();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const pipelineViewSet = useMemo(() => getViewSet("pipeline"), [getViewSet]);
+
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [timestamps, setTimestamps] = useState<PipelineTimestamps | undefined>(undefined);
+
+  const handleOpenChange = useCallback(
+    async (visible: boolean) => {
+      setOpen(visible);
+      if (!visible || !entry.pipeline_id || timestamps !== undefined) return;
+
+      setLoading(true);
+      try {
+        const data = await pipelineViewSet.retrieve({ id: entry.pipeline_id });
+        setTimestamps({
+          created_at: data?.created_at ?? null,
+          confirmed_at: data?.confirmed_at ?? null,
+          in_purchase_at: data?.in_purchase_at ?? null,
+          purchase_completed_at: data?.purchase_completed_at ?? null,
+          in_production_at: data?.in_production_at ?? null,
+          production_completed_at: data?.production_completed_at ?? null,
+          in_purchase_and_production_at: data?.in_purchase_and_production_at ?? null,
+          purchase_and_production_completed_at: data?.purchase_and_production_completed_at ?? null,
+          in_outbound_at: data?.in_outbound_at ?? null,
+          outbound_completed_at: data?.outbound_completed_at ?? null,
+          completed_at: data?.completed_at ?? null,
+          cancelled_at: data?.cancelled_at ?? null,
+        });
+      } catch {
+        setTimestamps({});
+      } finally {
+        setLoading(false);
+      }
+    },
+    [entry.pipeline_id, pipelineViewSet, timestamps]
+  );
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={handleOpenChange}
+      content={
+        <EtaPopoverContent entry={entry} timestamps={timestamps} loading={loading} />
+      }
+      title={entry.order_code}
+      trigger="hover"
+      placement="right"
+      mouseEnterDelay={0.3}
+      destroyOnHidden
+    >
+      <AntTag
+        style={{
+          ...ORDER_TAG_STYLE,
+          border: "1px dashed #722ed1",
+          background: "transparent",
+          color: "#531dab",
+          cursor: "pointer",
+        }}
+        onClick={onOrderClick}
+      >
+        ↓ {entry.order_code}
+      </AntTag>
+    </Popover>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // ETDCalendarCell — public export
 // ---------------------------------------------------------------------------
 
 type Props = {
   orders: OrderEntry[];
+  etaOrders?: EtaOrderEntry[];
   onOrderClick: () => void;
 };
 
-export function ETDCalendarCell({ orders, onOrderClick }: Props) {
-  if (orders.length === 0) return null;
+export function ETDCalendarCell({ orders, etaOrders = [], onOrderClick }: Props) {
+  if (orders.length === 0 && etaOrders.length === 0) return null;
   return (
     <>
       {orders.map((order) => (
         <OrderPopoverItem
           key={order.order_code}
           order={order}
+          onOrderClick={onOrderClick}
+        />
+      ))}
+      {etaOrders.map((entry) => (
+        <EtaOrderTag
+          key={`eta-${entry.outbound_code}`}
+          entry={entry}
           onOrderClick={onOrderClick}
         />
       ))}
