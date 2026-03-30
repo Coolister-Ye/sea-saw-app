@@ -1,10 +1,8 @@
-import React, { useMemo } from "react";
+import React from "react";
 import i18n from "@/locale/i18n";
 import { Text } from "@/components/sea-saw-design/text";
-import { Card, Field, FieldGrid } from "@/components/sea-saw-page/base";
-import { convertToFormDefs } from "@/utils/formDefUtils";
-import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import Tag from "@/components/sea-saw-design/tag";
+import { DisplayCard } from "@/components/sea-saw-design/display-card";
 
 interface BankAccountCardProps {
   def?: any[];
@@ -17,71 +15,46 @@ export default function BankAccountCard({
   data,
   onEdit,
 }: BankAccountCardProps) {
-  const bankAccount = data ?? {};
-
-  const formDefs = useMemo(() => convertToFormDefs(def), [def]);
-  const { getFieldLabel } = useFieldHelpers(formDefs);
-
   return (
-    <Card>
-      <Card.Header
-        code={bankAccount.id ? `#${bankAccount.id}` : undefined}
-        statusValue={
+    <DisplayCard
+      def={def}
+      value={data}
+      canEdit={!!onEdit}
+      onItemClick={data && onEdit ? () => onEdit(data) : undefined}
+      header={{
+        codeField: "id",
+        statusField: "bank_name",
+        statusRender: (_fieldDef, name) => (
           <Text className="text-base font-semibold text-slate-800">
-            {bankAccount.bank_name || "—"}
+            {name || "—"}
           </Text>
-        }
-      />
-
-      {/* Bank Info */}
-      <Card.Section className="bg-slate-50/70">
-        <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          {i18n.t("basic information")}
-        </Text>
-        <FieldGrid>
-          {["account_number", "account_holder", "currency"].map((fieldName) => (
-            <Field
-              key={fieldName}
-              label={getFieldLabel(fieldName)}
-              value={bankAccount[fieldName]}
-            />
-          ))}
-        </FieldGrid>
-      </Card.Section>
-
-      {/* Bank Details */}
-      <Card.Section>
-        <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          {i18n.t("bank details")}
-        </Text>
-        <FieldGrid>
-          {["swift_code", "branch", "bank_address"].map((fieldName) => (
-            <Field
-              key={fieldName}
-              label={getFieldLabel(fieldName)}
-              value={bankAccount[fieldName]}
-            />
-          ))}
-          {bankAccount.is_primary && (
-            <Field
-              label={getFieldLabel("is_primary")}
-              value={<Tag color="green">{i18n.t("Primary")}</Tag>}
-            />
-          )}
-        </FieldGrid>
-      </Card.Section>
-
-      {bankAccount.remark && (
-        <Card.Section>
-          <Field label={getFieldLabel("remark")} value={bankAccount.remark} />
-        </Card.Section>
-      )}
-
-      <Card.Footer
-        metadata={bankAccount}
-        canEdit={!!onEdit}
-        onEdit={() => onEdit?.(bankAccount)}
-      />
-    </Card>
+        ),
+      }}
+      sections={[
+        {
+          title: i18n.t("basic information"),
+          fields: ["account_number", "account_holder", "currency"],
+          className: "bg-slate-50/70",
+        },
+        {
+          title: i18n.t("bank details"),
+          fields: ["swift_code", "branch", "bank_address", "is_primary"],
+        },
+        {
+          fields: ["remark"],
+          hidden: (item) => !item.remark,
+        },
+      ]}
+      fieldConfig={{
+        id: { label: (v) => (v ? `#${v}` : "—") },
+        is_primary: {
+          render: (value) =>
+            value ? (
+              <Tag color="green">{i18n.t("Primary")}</Tag>
+            ) : undefined,
+        },
+        remark: { fullWidth: true },
+      }}
+    />
   );
 }

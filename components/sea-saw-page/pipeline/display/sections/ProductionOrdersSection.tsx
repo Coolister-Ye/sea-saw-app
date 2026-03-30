@@ -5,6 +5,7 @@ import {
   CubeIcon,
 } from "react-native-heroicons/outline";
 import { ProductionOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
+import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import {
   SectionWrapper,
   SectionHeader,
@@ -27,6 +28,8 @@ export default function ProductionOrdersSection({
   onCreate,
   onUpdate,
 }: ProductionOrdersSectionProps) {
+  const canAdd = canCreateSubEntity(pipelineStatus, "production");
+
   // Calculate production summary
   const productionCount = productionOrders.length;
   const totalItems = productionOrders.reduce(
@@ -74,14 +77,14 @@ export default function ProductionOrdersSection({
             />
 
             <ProductionAddDivider
-              disabled={!optionState.includes("in_production") && !optionState.includes("in_purchase_and_production")}
+              disabled={!canAdd}
               onAdd={() => setEditingProd({ order: order.id })}
             />
           </>
         ) : (
           <ProductionOrderEmptySlot
             pipelineId={order.id}
-            disabled={!optionState.includes("in_production") && !optionState.includes("in_purchase_and_production")}
+            disabled={!canAdd}
             onCreate={onUpdate}
           />
         )}

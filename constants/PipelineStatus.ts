@@ -101,7 +101,8 @@ export function canEditProductionOrder(
   return (
     (activeEntity === ActiveEntityType.PRODUCTION ||
       activeEntity === ActiveEntityType.PRODUCTION_AND_PURCHASE) &&
-    (pipelineStatus === PipelineStatus.IN_PRODUCTION ||
+    (pipelineStatus === PipelineStatus.ORDER_CONFIRMED ||
+      pipelineStatus === PipelineStatus.IN_PRODUCTION ||
       pipelineStatus === PipelineStatus.IN_PURCHASE_AND_PRODUCTION)
   );
 }
@@ -123,7 +124,8 @@ export function canEditPurchaseOrder(
   return (
     (activeEntity === ActiveEntityType.PURCHASE ||
       activeEntity === ActiveEntityType.PRODUCTION_AND_PURCHASE) &&
-    (pipelineStatus === PipelineStatus.IN_PURCHASE ||
+    (pipelineStatus === PipelineStatus.ORDER_CONFIRMED ||
+      pipelineStatus === PipelineStatus.IN_PURCHASE ||
       pipelineStatus === PipelineStatus.IN_PURCHASE_AND_PRODUCTION)
   );
 }
@@ -144,7 +146,10 @@ export function canEditOutboundOrder(
 ): boolean {
   return (
     activeEntity === ActiveEntityType.OUTBOUND &&
-    pipelineStatus === PipelineStatus.IN_OUTBOUND
+    (pipelineStatus === PipelineStatus.PURCHASE_COMPLETED ||
+      pipelineStatus === PipelineStatus.PRODUCTION_COMPLETED ||
+      pipelineStatus === PipelineStatus.PURCHASE_AND_PRODUCTION_COMPLETED ||
+      pipelineStatus === PipelineStatus.IN_OUTBOUND)
   );
 }
 

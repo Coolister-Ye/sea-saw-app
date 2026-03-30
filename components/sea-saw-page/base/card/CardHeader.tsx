@@ -72,9 +72,9 @@ export default function CardHeader({
 
   return (
     <View className={`p-4 pb-3 ${className}`}>
-      <View className="flex-row justify-between items-center">
+      <View className="flex-row justify-between items-start gap-3">
         {/* Left side */}
-        <View className="flex-1 pr-4">
+        <View className="flex-1 min-w-0">
           <Text className="text-xs font-mono text-slate-400 tracking-wider mb-1">
             {code || "—"}
           </Text>
@@ -95,8 +95,8 @@ export default function CardHeader({
               )}
         </View>
 
-        {/* Right side: Optional content */}
-        {rightContent && <View>{rightContent}</View>}
+        {/* Right side: shrink-0 prevents it from squishing the left side */}
+        {rightContent && <View className="shrink-0">{rightContent}</View>}
       </View>
     </View>
   );

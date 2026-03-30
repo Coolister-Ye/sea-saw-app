@@ -16,11 +16,13 @@ interface BankAccount {
 interface BankAccountPopoverProps {
   def?: Record<string, any>;
   value?: BankAccount | null;
+  placement?: "right" | "left" | "top" | "bottom" | "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
 }
 
 export default function BankAccountPopover({
   value,
   def,
+  placement = "right",
 }: BankAccountPopoverProps) {
   const content = useMemo(
     () =>
@@ -53,7 +55,7 @@ export default function BankAccountPopover({
     <Popover
       content={content}
       trigger="hover"
-      placement="right"
+      placement={placement}
       mouseEnterDelay={0.15}
     >
       <Button

@@ -4,6 +4,8 @@ import { View, ScrollView } from "react-native";
 import { Button } from "antd";
 import { Drawer } from "@/components/sea-saw-page/base";
 import { getChildrenFormDefs } from "@/utils/formDefUtils";
+import useDataService from "@/hooks/useDataService";
+import { PipelineStatus } from "@/constants/PipelineStatus";
 
 import PipelineSection from "./sections/PipelineSection";
 import OrdersSection from "./sections/OrdersSection";
@@ -29,6 +31,7 @@ export default function PipelineDisplay({
   data,
 }: PipelineDisplayProps) {
   const pipeline = data ?? {};
+  const { request } = useDataService();
 
   const {
     order,
@@ -78,6 +81,56 @@ export default function PipelineDisplay({
   const setEditingPayment = useCallback((v: any) => setEditing((e) => ({ ...e, payment: v })), []);
 
   const { pipeline: editingPipeline, order: editingOrder, prod: editingProd, purchase: editingPurchase, ob: editingOb, payment: editingPayment } = editing;
+
+  // Auto-advance pipeline status after sub-entity creation
+  const autoAdvance = useCallback(async (targetStatus: string) => {
+    try {
+      await request({
+        uri: "pipelineStatusTransition",
+        method: "POST",
+        id: pipeline.id,
+        body: { target_status: targetStatus },
+      });
+    } catch {
+      // Advance failure is non-blocking; onUpdate will refresh pipeline state
+    }
+    onUpdate?.();
+  }, [pipeline.id, request, onUpdate]);
+
+  const handlePurchaseCreate = useCallback(async (_res: any) => {
+    if (pipeline.status === PipelineStatus.ORDER_CONFIRMED) {
+      const target = allowed_actions.includes("in_purchase_and_production")
+        ? "in_purchase_and_production"
+        : "in_purchase";
+      await autoAdvance(target);
+    } else {
+      onUpdate?.();
+    }
+  }, [pipeline.status, allowed_actions, autoAdvance, onUpdate]);
+
+  const handleProductionCreate = useCallback(async (_res: any) => {
+    if (pipeline.status === PipelineStatus.ORDER_CONFIRMED) {
+      const target = allowed_actions.includes("in_purchase_and_production")
+        ? "in_purchase_and_production"
+        : "in_production";
+      await autoAdvance(target);
+    } else {
+      onUpdate?.();
+    }
+  }, [pipeline.status, allowed_actions, autoAdvance, onUpdate]);
+
+  const handleOutboundCreate = useCallback(async (_res: any) => {
+    const prePhaseStatuses: string[] = [
+      PipelineStatus.PURCHASE_COMPLETED,
+      PipelineStatus.PRODUCTION_COMPLETED,
+      PipelineStatus.PURCHASE_AND_PRODUCTION_COMPLETED,
+    ];
+    if (prePhaseStatuses.includes(pipeline.status)) {
+      await autoAdvance("in_outbound");
+    } else {
+      onUpdate?.();
+    }
+  }, [pipeline.status, autoAdvance, onUpdate]);
 
   return (
     <Drawer
@@ -136,7 +189,7 @@ export default function PipelineDisplay({
             optionState={allowed_actions}
             editingPurchase={editingPurchase}
             setEditingPurchase={setEditingPurchase}
-            onCreate={onCreate}
+            onCreate={handlePurchaseCreate}
             onUpdate={onUpdate}
           />
         )}
@@ -152,7 +205,7 @@ export default function PipelineDisplay({
             optionState={allowed_actions}
             editingProd={editingProd}
             setEditingProd={setEditingProd}
-            onCreate={onCreate}
+            onCreate={handleProductionCreate}
             onUpdate={onUpdate}
           />
         )}
@@ -168,7 +221,7 @@ export default function PipelineDisplay({
             optionState={allowed_actions}
             editingOb={editingOb}
             setEditingOb={setEditingOb}
-            onCreate={onCreate}
+            onCreate={handleOutboundCreate}
             onUpdate={onUpdate}
           />
         )}

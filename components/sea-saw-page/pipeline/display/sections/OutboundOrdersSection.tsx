@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
 import { TruckIcon, CubeIcon } from "react-native-heroicons/outline";
 import { OutboundOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
+import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import OutboundOrderCard from "@/components/sea-saw-page/warehouse/outbound-order/display/OutboundOrderCard";
 import OutboundAddDivider from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundAddDivider";
 import OutboundOrderEmptySlot from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundOrderEmptySlot";
@@ -19,6 +20,7 @@ export default function OutboundOrdersSection({
   onCreate,
   onUpdate,
 }: OutboundOrdersSectionProps) {
+  const canAdd = canCreateSubEntity(pipelineStatus, "outbound");
   // Calculate outbound summary
   const outboundCount = outboundOrders.length;
   const totalItems = outboundOrders.reduce(
@@ -85,7 +87,7 @@ export default function OutboundOrdersSection({
               />
 
               <OutboundAddDivider
-                disabled={pipelineStatus !== "in_outbound"}
+                disabled={!canAdd}
                 onAdd={() => setEditingOb({ pipeline: pipeline.id })}
               />
             </>
@@ -93,7 +95,7 @@ export default function OutboundOrdersSection({
             <OutboundOrderEmptySlot
               pipelineId={pipeline.id}
               onCreate={onUpdate}
-              disabled={pipelineStatus !== "in_outbound"}
+              disabled={!canAdd}
             />
           )}
         </View>

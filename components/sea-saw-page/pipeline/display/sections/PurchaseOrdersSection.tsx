@@ -2,6 +2,7 @@ import React from "react";
 import i18n from "@/locale/i18n";
 import { ShoppingBagIcon, CubeIcon } from "react-native-heroicons/outline";
 import { PurchaseOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
+import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import {
   SectionWrapper,
   SectionHeader,
@@ -24,6 +25,8 @@ export default function PurchaseOrdersSection({
   onCreate,
   onUpdate,
 }: PurchaseOrdersSectionProps) {
+  const canAdd = canCreateSubEntity(pipelineStatus, "purchase");
+
   // Calculate purchase summary
   const purchaseCount = purchaseOrders.length;
   const totalItems = purchaseOrders.reduce(
@@ -71,7 +74,7 @@ export default function PurchaseOrdersSection({
             />
 
             <PurchaseAddDivider
-              disabled={!optionState.includes("in_purchase") && !optionState.includes("in_purchase_and_production")}
+              disabled={!canAdd}
               onAdd={() => setEditingPurchase({ order: order.id })}
             />
           </>
@@ -79,7 +82,7 @@ export default function PurchaseOrdersSection({
           <PurchaseOrderEmptySlot
             orderId={order.id}
             onCreate={onUpdate}
-            disabled={!optionState.includes("in_purchase") && !optionState.includes("in_purchase_and_production")}
+            disabled={!canAdd}
           />
         )}
       </SectionContentCard>

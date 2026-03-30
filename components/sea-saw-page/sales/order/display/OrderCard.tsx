@@ -1,25 +1,17 @@
-import React, { useCallback, useMemo } from "react";
+import React from "react";
 import { View } from "react-native";
 import i18n from "@/locale/i18n";
 import { Text } from "@/components/sea-saw-design/text";
-import {
-  Card,
-  Field,
-  FieldGrid,
-  CardSection,
-  EmptySlot,
-} from "@/components/sea-saw-page/base";
 import { canEditOrder } from "@/constants/PipelineStatus";
 import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
 import { ContactPopover } from "@/components/sea-saw-page/crm/contact/display";
 import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/display";
 import OrderStatusTag from "./OrderStatusTag";
 import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
-import { convertToFormDefs } from "@/utils/formDefUtils";
-import { useFieldHelpers } from "@/hooks/useFieldHelpers";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import RelatedPipelineLink from "./RelatedPipelineLink";
 import type { FormDef } from "@/hooks/useFormDefs";
+import { DisplayCard } from "@/components/sea-saw-design/display-card";
 
 interface OrderCardProps {
   def?: FormDef[];
@@ -40,84 +32,39 @@ export default function OrderCard({
   pipelineLoading,
   hideEmptyFields = false,
 }: OrderCardProps) {
-  // Normalize value to array
-  const items = useMemo(() => {
-    if (!value) return [];
-    return Array.isArray(value) ? value : [value];
-  }, [value]);
-
-  // Convert def to FormDefs and get field helpers
-  const formDefs = useMemo(() => convertToFormDefs(def), [def]);
-  const { getFieldLabel, renderFieldValue } = useFieldHelpers(formDefs);
-
-  // Helper to get field def by name
-  const getFieldDef = useCallback(
-    (fieldName: string) => formDefs.find((d) => d.field === fieldName),
-    [formDefs],
-  );
-
-  // Helper to check if field should be shown
-  const shouldShowField = useCallback(
-    (item: any, fieldName: string) => {
-      if (!hideEmptyFields) return true;
-      const fieldValue = item[fieldName];
-      return (
-        fieldValue !== null && fieldValue !== undefined && fieldValue !== ""
-      );
-    },
-    [hideEmptyFields],
-  );
-
-  // Helper to safely render field value
-  const renderField = useCallback(
-    (fieldName: string, itemValue: any) => {
-      const fieldDef = getFieldDef(fieldName);
-      if (!fieldDef) return itemValue?.toString() || "—";
-      return renderFieldValue(fieldDef, itemValue);
-    },
-    [getFieldDef, renderFieldValue],
-  );
-
-  if (items.length === 0) {
-    return <EmptySlot message={i18n.t("No orders yet")} />;
-  }
-
-  const renderCard = (item: any, index: number) => {
-    const statusDef = getFieldDef("status");
-    const accountDef = getFieldDef("account")?.children;
-    const contactDef = getFieldDef("contact")?.children;
-    const bankAccountDef = getFieldDef("bank_account")?.children;
-    const orderItemsDef = getFieldDef("order_items")?.child?.children;
-
-    const isEditable = canEditOrder(pipelineStatus || "", item.status || "");
-
-    return (
-      <Card key={item.id ?? index}>
-        {/* Header: Code + Status + Account/Contact */}
-        <Card.Header
-          code={item.order_code}
-          statusValue={
-            item.status ? (
-              <OrderStatusTag
-                def={statusDef}
-                value={item.status}
-                className="w-fit"
-              />
-            ) : undefined
-          }
-          rightContent={
+  return (
+    <DisplayCard
+      def={def}
+      value={value}
+      hideEmptyFields={hideEmptyFields}
+      canEdit={(item) => canEditOrder(pipelineStatus || "", item.status || "")}
+      onItemClick={onItemClick}
+      emptyMessage={i18n.t("No orders yet")}
+      header={{
+        codeField: "order_code",
+        statusField: "status",
+        statusRender: (fieldDef, val) =>
+          val ? (
+            <OrderStatusTag def={fieldDef} value={val} className="w-fit" />
+          ) : undefined,
+        rightContent: (item, { getFieldLabel, formDefs }) => {
+          const accountDef = formDefs.find((d) => d.field === "account")
+            ?.children as any;
+          const contactDef = formDefs.find((d) => d.field === "contact")
+            ?.children as any;
+          return (
             <View className="flex-row items-end gap-3">
-              {/* Account */}
               <View className="items-end">
                 <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
                   {getFieldLabel("account")}
                 </Text>
                 <AccountPopover
                   def={accountDef}
-                  value={typeof item.account === "object" ? item.account : null}
+                  value={
+                    typeof item.account === "object" ? item.account : null
+                  }
                 />
               </View>
-              {/* Contact */}
               <View className="items-end">
                 <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
                   {getFieldLabel("contact")}
@@ -133,156 +80,91 @@ export default function OrderCard({
                   }
                 />
               </View>
-              {/* Bank Account */}
-              {item.bank_account && (
-                <View className="items-end">
-                  <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                    {getFieldLabel("bank_account")}
-                  </Text>
-                  <BankAccountPopover
-                    def={bankAccountDef}
-                    value={typeof item.bank_account === "object" ? item.bank_account : null}
-                  />
-                </View>
-              )}
             </View>
-          }
-        />
-
-        {/* Basic Information Section */}
-        <Card.Section className="bg-slate-50/70">
-          <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-            {i18n.t("basic information")}
-          </Text>
-          <FieldGrid>
-            {["order_date", "etd"].map(
-              (fieldName) =>
-                shouldShowField(item, fieldName) && (
-                  <Field
-                    key={fieldName}
-                    label={getFieldLabel(fieldName)}
-                    value={renderField(fieldName, item[fieldName])}
-                  />
-                ),
-            )}
-            {item.related_pipeline?.pipeline_code && (
-              <Field
-                label={getFieldLabel("related_pipeline")}
-                value={
-                  <RelatedPipelineLink
-                    value={item.related_pipeline}
-                    loading={pipelineLoading}
-                    onClick={onPipelineClick}
-                  />
-                }
+          );
+        },
+      }}
+      sections={[
+        {
+          title: i18n.t("basic information"),
+          fields: ["order_date", "etd", "related_pipeline"],
+          className: "bg-slate-50/70",
+        },
+        {
+          title: i18n.t("financial information"),
+          fields: [
+            "inco_terms",
+            "currency",
+            "deposit",
+            "balance",
+            "total_amount",
+            "bank_account",
+          ],
+          className: "bg-white-50/30",
+        },
+        {
+          title: i18n.t("logistics information"),
+          fields: ["loading_port", "destination_port", "shipment_term"],
+        },
+        {
+          fields: ["comment", "order_items", "attachments"],
+        },
+      ]}
+      fieldConfig={{
+        related_pipeline: {
+          render: (value, item) =>
+            item.related_pipeline?.pipeline_code ? (
+              <RelatedPipelineLink
+                value={value}
+                loading={pipelineLoading}
+                onClick={onPipelineClick}
               />
-            )}
-          </FieldGrid>
-        </Card.Section>
-
-        {/* Financial Information Section */}
-        {["inco_terms", "currency", "deposit", "balance", "total_amount"].some(
-          (f) => shouldShowField(item, f),
-        ) && (
-          <Card.Section className="bg-white-50/30">
-            <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-              {i18n.t("financial information")}
-            </Text>
-            <FieldGrid>
-              {[
-                "inco_terms",
-                "currency",
-                "deposit",
-                "balance",
-                "total_amount",
-              ].map(
-                (fieldName) =>
-                  shouldShowField(item, fieldName) && (
-                    <Field
-                      key={fieldName}
-                      label={getFieldLabel(fieldName)}
-                      value={renderField(fieldName, item[fieldName])}
-                    />
-                  ),
-              )}
-            </FieldGrid>
-          </Card.Section>
-        )}
-
-        {/* Logistics Information Section */}
-        {["loading_port", "destination_port", "shipment_term"].some((f) =>
-          shouldShowField(item, f),
-        ) && (
-          <Card.Section>
-            <Text className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-              {i18n.t("logistics information")}
-            </Text>
-            <FieldGrid>
-              {["loading_port", "destination_port", "shipment_term"].map(
-                (fieldName) =>
-                  shouldShowField(item, fieldName) && (
-                    <Field
-                      key={fieldName}
-                      label={getFieldLabel(fieldName)}
-                      value={renderField(fieldName, item[fieldName])}
-                    />
-                  ),
-              )}
-            </FieldGrid>
-          </Card.Section>
-        )}
-
-        {/* Full-width text fields */}
-        {["comment"].map(
-          (fieldName) =>
-            shouldShowField(item, fieldName) && (
-              <Card.Section key={fieldName}>
-                <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1.5">
-                  {getFieldLabel(fieldName)}
-                </Text>
-                <Text className="text-sm text-slate-600 leading-relaxed">
-                  {item[fieldName] || "—"}
-                </Text>
-              </Card.Section>
-            ),
-        )}
-
-        {/* Order Items */}
-        {item.order_items?.length > 0 && (
-          <CardSection>
-            <Text className="text-xs text-slate-400 uppercase tracking-wider mb-3">
-              {getFieldLabel("order_items")} ({item.order_items.length})
-            </Text>
-            <OrderItemsViewToggle
-              def={orderItemsDef}
-              value={item.order_items}
-            />
-          </CardSection>
-        )}
-
-        {/* Attachments */}
-        {item.attachments?.length > 0 && (
-          <CardSection>
-            <Text className="text-xs text-slate-400 uppercase tracking-wider mb-2">
-              {getFieldLabel("attachments")} ({item.attachments.length})
-            </Text>
-            <AttachmentsList value={item.attachments} />
-          </CardSection>
-        )}
-
-        {/* Footer: Metadata + Edit Button */}
-        <Card.Footer
-          metadata={item}
-          canEdit={isEditable}
-          onEdit={() => onItemClick?.(index)}
-        />
-      </Card>
-    );
-  };
-
-  return (
-    <View className="gap-4 w-full">
-      {items.map((item, index) => renderCard(item, index))}
-    </View>
+            ) : undefined,
+        },
+        bank_account: {
+          fullWidth: true,
+          render: (_v, item, fieldDef) =>
+            item.bank_account ? (
+              <View className="self-start">
+                <BankAccountPopover
+                  def={(fieldDef as any)?.children}
+                  value={
+                    typeof item.bank_account === "object"
+                      ? item.bank_account
+                      : null
+                  }
+                  placement="bottomLeft"
+                />
+              </View>
+            ) : undefined,
+        },
+        comment: { fullWidth: true },
+        order_items: {
+          fullWidth: true,
+          label: (_v, item) =>
+            `${i18n.t("order items")} (${item.order_items?.length ?? 0})`,
+          render: (_v, item) => {
+            const orderItemsDef = def
+              ?.find((d: FormDef) => d.field === "order_items")
+              ?.child?.children;
+            return item.order_items?.length > 0 ? (
+              <OrderItemsViewToggle
+                def={orderItemsDef}
+                value={item.order_items}
+              />
+            ) : undefined;
+          },
+        },
+        attachments: {
+          fullWidth: true,
+          label: (_v, item) =>
+            `${i18n.t("attachments")} (${item.attachments?.length ?? 0})`,
+          render: (_v, item) =>
+            item.attachments?.length > 0 ? (
+              <AttachmentsList value={item.attachments} />
+            ) : undefined,
+        },
+      }}
+    />
   );
 }
