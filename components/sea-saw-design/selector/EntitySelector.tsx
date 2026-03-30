@@ -13,7 +13,7 @@ const EntitySelectorInner = <T extends EntityItem>(
   props: EntitySelectorProps<T>,
   ref: React.Ref<View>,
 ) => {
-  const { renderSelectedChip, multiple = false } = props;
+  const { renderSelectedChip, multiple = false, hideTrigger = false } = props;
 
   const selector = useEntitySelector<T>(props);
 
@@ -41,21 +41,23 @@ const EntitySelectorInner = <T extends EntityItem>(
 
   return (
     <View className="w-full" ref={ref}>
-      <SelectorTrigger
-        disabled={readOnly}
-        onPress={() => setIsOpen(true)}
-        placeholder={placeholderText}
-        hasSelection={selected.length > 0}
-        renderSelected={() =>
-          selected.map((item: T) => (
-            <React.Fragment key={item.id}>
-              {renderSelectedChip
-                ? renderSelectedChip(item, () => handleRemove(item.id))
-                : defaultRenderChip(item, () => handleRemove(item.id))}
-            </React.Fragment>
-          ))
-        }
-      />
+      {!hideTrigger && (
+        <SelectorTrigger
+          disabled={readOnly}
+          onPress={() => setIsOpen(true)}
+          placeholder={placeholderText}
+          hasSelection={selected.length > 0}
+          renderSelected={() =>
+            selected.map((item: T) => (
+              <React.Fragment key={item.id}>
+                {renderSelectedChip
+                  ? renderSelectedChip(item, () => handleRemove(item.id))
+                  : defaultRenderChip(item, () => handleRemove(item.id))}
+              </React.Fragment>
+            ))
+          }
+        />
+      )}
 
       {!readOnly && (
         <EntitySelectorModal

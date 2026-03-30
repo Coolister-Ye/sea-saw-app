@@ -19,9 +19,11 @@ interface Contact {
 interface ContactPopoverProps {
   def?: Record<string, any>;
   value?: Contact | null;
+  /** Custom trigger element. Defaults to a link button showing name. */
+  children?: React.ReactNode;
 }
 
-export default function ContactPopover({ value, def }: ContactPopoverProps) {
+export default function ContactPopover({ value, def, children }: ContactPopoverProps) {
   const content = useMemo(
     () =>
       value ? (
@@ -61,18 +63,16 @@ export default function ContactPopover({ value, def }: ContactPopoverProps) {
       placement="right"
       mouseEnterDelay={0.15}
     >
-      <Button
-        type="link"
-        tabIndex={0}
-        style={{
-          padding: 0,
-          height: "auto",
-          lineHeight: "inherit",
-        }}
-        className="text-blue-600 hover:text-blue-700"
-      >
-        {value.name}
-      </Button>
+      {children ?? (
+        <Button
+          type="link"
+          tabIndex={0}
+          style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
+          className="text-blue-600 hover:text-blue-700"
+        >
+          {value.name}
+        </Button>
+      )}
     </Popover>
   );
 }

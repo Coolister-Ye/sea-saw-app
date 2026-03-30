@@ -17,12 +17,15 @@ interface BankAccountPopoverProps {
   def?: Record<string, any>;
   value?: BankAccount | null;
   placement?: "right" | "left" | "top" | "bottom" | "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  /** Custom trigger element. Defaults to a link button showing bank_name. */
+  children?: React.ReactNode;
 }
 
 export default function BankAccountPopover({
   value,
   def,
   placement = "right",
+  children,
 }: BankAccountPopoverProps) {
   const content = useMemo(
     () =>
@@ -58,14 +61,16 @@ export default function BankAccountPopover({
       placement={placement}
       mouseEnterDelay={0.15}
     >
-      <Button
-        type="link"
-        tabIndex={0}
-        style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
-        className="text-blue-600 hover:text-blue-700"
-      >
-        {value.bank_name}
-      </Button>
+      {children ?? (
+        <Button
+          type="link"
+          tabIndex={0}
+          style={{ padding: 0, height: "auto", lineHeight: "inherit" }}
+          className="text-blue-600 hover:text-blue-700"
+        >
+          {value.bank_name}
+        </Button>
+      )}
     </Popover>
   );
 }

@@ -3,4 +3,5 @@ export { default as ContactAvatar } from "./ContactAvatar";
 export { default as ContactTag } from "./ContactTag";
 export { default as ContactItem } from "./ContactItem";
 export { SelectableContactItem, SelectedContactItem } from "./ContactSelectorItem";
+export { ContactChip } from "./ContactChip";
 export type { Contact } from "./types";

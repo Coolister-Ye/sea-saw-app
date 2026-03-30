@@ -37,6 +37,8 @@ export function useEntitySelector<T extends EntityItem>({
   title,
   mapResponseToItems,
   queryParams,
+  open: controlledOpen,
+  onOpenChange,
 }: EntitySelectorProps<T>) {
   const { getViewSet } = useDataService();
   const viewSet = useMemo(
@@ -47,7 +49,14 @@ export function useEntitySelector<T extends EntityItem>({
   const readOnly = def?.read_only === true;
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = useCallback(
+    (open: boolean) => {
+      onOpenChange ? onOpenChange(open) : setInternalOpen(open);
+    },
+    [onOpenChange],
+  );
   const [options, setOptions] = useState<T[]>([]);
   const [selected, setSelected] = useState<T[]>(() => normalizeValue(value));
   const [loading, setLoading] = useState(false);
@@ -236,7 +245,7 @@ export function useEntitySelector<T extends EntityItem>({
   );
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const closeModal = useCallback(() => setIsOpen(false), []);
+  const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
   const modalTitle = title ?? `${i18n.t("Select")} ${contentType}`;
   const placeholderText =
     searchPlaceholder ?? `${i18n.t("Select")} ${title ?? contentType}`;

@@ -7,7 +7,11 @@ import i18n from "@/locale/i18n";
 
 import { AccountChip } from "./AccountChip";
 import { COL_DEFINITIONS } from "./constants";
-import type { Account, AccountApiResponse, AccountSelectorProps } from "./types";
+import type {
+  Account,
+  AccountApiResponse,
+  AccountSelectorProps,
+} from "./types";
 import { mapResponseToItems } from "./utils";
 
 export type { Account, AccountRole, AccountSelectorProps } from "./types";
@@ -31,7 +35,12 @@ const AccountSelector = forwardRef<View, AccountSelectorProps>(
 
     const renderSelectedChip = useCallback(
       (item: Account, onRemove: () => void) => (
-        <AccountChip item={item} def={chipDef} onRemove={onRemove} readOnly={readOnly} />
+        <AccountChip
+          item={item}
+          def={chipDef}
+          onRemove={onRemove}
+          readOnly={readOnly}
+        />
       ),
       [chipDef, readOnly],
     );
@@ -51,11 +60,15 @@ const AccountSelector = forwardRef<View, AccountSelectorProps>(
         const fieldValues = multiple
           ? {
               [fieldName]: account,
-              [idFieldName]: (account as Account[] | null)?.map((a) => a.id ?? a.pk),
+              [idFieldName]: (account as Account[] | null)?.map(
+                (a) => a.id ?? a.pk,
+              ),
             }
           : {
               [fieldName]: account,
-              [idFieldName]: (account as Account | null)?.id ?? (account as Account | null)?.pk,
+              [idFieldName]:
+                (account as Account | null)?.id ??
+                (account as Account | null)?.pk,
             };
 
         form.setFieldsValue(fieldValues);

@@ -35,4 +35,11 @@ export interface EntitySelectorProps<T extends EntityItem> {
 
   /** Additional query parameters to send with API requests */
   queryParams?: Record<string, any>;
+
+  /** Controlled open state */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+
+  /** Hide the trigger input (use when the parent controls opening) */
+  hideTrigger?: boolean;
 }

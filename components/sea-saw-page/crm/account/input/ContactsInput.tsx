@@ -75,7 +75,8 @@ function ContactsInput({
   }, [getSelectedIndex, list, updateList]);
 
   const handleContactSelect = useCallback(
-    (selectedContacts: any[]) => {
+    (val: any) => {
+      const selectedContacts = Array.isArray(val) ? val : val ? [val] : [];
       if (selectedContacts.length > 0) {
         updateList([...list, ...selectedContacts]);
         setIsModalOpen(false);
@@ -122,7 +123,6 @@ function ContactsInput({
         onOpenChange={setIsModalOpen}
         hideTrigger={true}
         onChange={handleContactSelect}
-        disabledIds={list.map((c) => c.id)}
       />
     </View>
   );

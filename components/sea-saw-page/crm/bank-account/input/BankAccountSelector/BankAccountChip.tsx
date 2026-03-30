@@ -3,28 +3,31 @@ import { View, Pressable } from "react-native";
 import { XMarkIcon } from "react-native-heroicons/outline";
 
 import { Text } from "@/components/sea-saw-design/text";
-import AccountPopover from "@/components/sea-saw-page/crm/account/display/AccountPopover";
+import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/display";
 
-import type { Account } from "./types";
+import type { BankAccount } from "./types";
 
-interface AccountChipProps {
-  item: Account;
+interface BankAccountChipProps {
+  item: BankAccount;
   def?: Record<string, any>;
   onRemove: () => void;
   readOnly?: boolean;
 }
 
-export function AccountChip({
+export function BankAccountChip({
   item,
   def,
   onRemove,
   readOnly,
-}: AccountChipProps) {
+}: BankAccountChipProps) {
   return (
-    <AccountPopover value={item} def={def}>
+    <BankAccountPopover value={item} def={def}>
       <View className="flex-row items-center">
         <Text className="text-sm text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700 cursor-pointer">
-          {item.account_name}
+          {item.bank_name}
+          {item.currency && (
+            <Text className="text-xs text-blue-400"> ({item.currency})</Text>
+          )}
         </Text>
         {!readOnly && (
           <Pressable
@@ -35,6 +38,6 @@ export function AccountChip({
           </Pressable>
         )}
       </View>
-    </AccountPopover>
+    </BankAccountPopover>
   );
 }
