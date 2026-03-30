@@ -5,7 +5,6 @@ import {
   CubeIcon,
 } from "react-native-heroicons/outline";
 import { ProductionOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
-import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import {
   SectionWrapper,
   SectionHeader,
@@ -28,7 +27,13 @@ export default function ProductionOrdersSection({
   onCreate,
   onUpdate,
 }: ProductionOrdersSectionProps) {
-  const canAdd = canCreateSubEntity(pipelineStatus, "production");
+  // Enabled when pipeline can transition into production phase (respects pipeline_type via optionState)
+  // OR when already in the production phase (optionState no longer contains the transition target)
+  const canAdd =
+    optionState.includes("in_production") ||
+    optionState.includes("in_purchase_and_production") ||
+    pipelineStatus === "in_production" ||
+    pipelineStatus === "in_purchase_and_production";
 
   // Calculate production summary
   const productionCount = productionOrders.length;

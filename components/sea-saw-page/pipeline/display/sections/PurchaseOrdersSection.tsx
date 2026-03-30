@@ -2,7 +2,6 @@ import React from "react";
 import i18n from "@/locale/i18n";
 import { ShoppingBagIcon, CubeIcon } from "react-native-heroicons/outline";
 import { PurchaseOrdersSectionProps } from "@/components/sea-saw-page/sales/order/display/types";
-import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import {
   SectionWrapper,
   SectionHeader,
@@ -25,7 +24,13 @@ export default function PurchaseOrdersSection({
   onCreate,
   onUpdate,
 }: PurchaseOrdersSectionProps) {
-  const canAdd = canCreateSubEntity(pipelineStatus, "purchase");
+  // Enabled when pipeline can transition into purchase phase (respects pipeline_type via optionState)
+  // OR when already in the purchase phase (optionState no longer contains the transition target)
+  const canAdd =
+    optionState.includes("in_purchase") ||
+    optionState.includes("in_purchase_and_production") ||
+    pipelineStatus === "in_purchase" ||
+    pipelineStatus === "in_purchase_and_production";
 
   // Calculate purchase summary
   const purchaseCount = purchaseOrders.length;
