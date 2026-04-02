@@ -23,12 +23,12 @@ export function BankAccountSearch({
 }: BankAccountSearchProps) {
   const config = useMemo(
     () => ({
-      account: {
+      account_holder: {
         read_only: false,
         render: (_col: any, meta: any) => <AccountSelector def={meta} />,
         skipFilter: true,
       },
-      account_id: { hidden: true },
+      account_holder_id: { hidden: true },
     }),
     [],
   );

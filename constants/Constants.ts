@@ -57,6 +57,8 @@ export const constants = {
     setPasswd: "/auth/users/set_password/",
     register: "/api/auth/register/",
     profileUpdate: "/api/auth/profile/update/",
+    adminUser: "/api/auth/admin/users/",
+    adminRole: "/api/auth/admin/roles/",
 
     listDownloads: "/api/download/download-tasks/",
     crmDownload: "/api/download/crm-downloads/",

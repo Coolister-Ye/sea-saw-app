@@ -33,7 +33,7 @@ export default function BankAccountCard({
       sections={[
         {
           title: i18n.t("basic information"),
-          fields: ["account_number", "account_holder", "currency"],
+          fields: ["account_number", "currency"],
           className: "bg-slate-50/70",
         },
         {

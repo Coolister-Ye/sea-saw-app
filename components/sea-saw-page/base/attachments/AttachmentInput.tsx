@@ -77,8 +77,10 @@ export default function AttachmentInput({
     (info: any) => {
       const { fileList: newFileList } = info;
 
-      // Convert fileList to Attachment array and notify parent
-      const attachments: Attachment[] = newFileList.map((file: UploadFile) => {
+      // Convert fileList to Attachment array and notify parent (exclude removed files)
+      const attachments: Attachment[] = newFileList
+        .filter((file: UploadFile) => file.status !== "removed")
+        .map((file: UploadFile) => {
         // If it's a new file being uploaded
         if (file.originFileObj) {
           return {

@@ -3,13 +3,12 @@ import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 import { Form, message } from "antd";
 
-import InputForm from "@/components/sea-saw-design/form/InputForm";
-import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
-
 import useDataService from "@/hooks/useDataService";
-import { InputFooter, Drawer } from "@/components/sea-saw-page/base";
+import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
+import { InputForm } from "@/components/sea-saw-design/form/InputForm";
+import { devError } from "@/utils/logger";
 
-interface BankAccountFormInputProps {
+interface RoleFormInputProps {
   isOpen: boolean;
   onClose: (res?: any) => void;
   onCreate?: (res?: any) => void;
@@ -19,21 +18,20 @@ interface BankAccountFormInputProps {
     id?: string | number;
     [key: string]: any;
   };
+  columnOrder?: string[];
 }
 
-export default function BankAccountFormInput({
+export default function RoleFormInput({
   isOpen,
   onClose,
   onCreate,
   onUpdate,
   def,
   data = {},
-}: BankAccountFormInputProps) {
+  columnOrder,
+}: RoleFormInputProps) {
   const { getViewSet } = useDataService();
-  const bankAccountViewSet = useMemo(
-    () => getViewSet("bankAccount"),
-    [getViewSet],
-  );
+  const roleViewSet = useMemo(() => getViewSet("adminRole"), [getViewSet]);
 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -49,26 +47,10 @@ export default function BankAccountFormInput({
     prevOpenRef.current = isOpen;
   }, [isOpen, form]);
 
-  const config = useMemo(
-    () => ({
-      account_holder: {
-        read_only: false,
-        render: (def: any) => <AccountSelector def={def} />,
-      },
-      account_holder_id: {
-        hidden: true,
-      },
-    }),
-    [],
-  );
-
   const handleSave = async () => {
     try {
       setLoading(true);
-
       const values = await form.validateFields();
-      const payload = { ...values };
-      delete payload.account_holder;
 
       messageApi.open({
         key: "save",
@@ -78,8 +60,8 @@ export default function BankAccountFormInput({
       });
 
       const res = isEdit
-        ? await bankAccountViewSet.update({ id: data.id!, body: payload })
-        : await bankAccountViewSet.create({ body: payload });
+        ? await roleViewSet.update({ id: data.id!, body: values })
+        : await roleViewSet.create({ body: values });
 
       messageApi.open({
         key: "save",
@@ -90,7 +72,7 @@ export default function BankAccountFormInput({
       isEdit ? onUpdate?.(res) : onCreate?.(res);
       onClose(res);
     } catch (err: any) {
-      console.error("BankAccount save failed:", err);
+      devError("Role save failed:", err);
       messageApi.open({
         key: "save",
         type: "error",
@@ -107,22 +89,21 @@ export default function BankAccountFormInput({
   return (
     <Drawer
       open={isOpen}
-      onClose={() => onClose()}
-      title={isEdit ? i18n.t("Edit Bank Account") : i18n.t("Create Bank Account")}
+      onClose={onClose}
+      title={isEdit ? i18n.t("Edit Role") : i18n.t("Create Role")}
       footer={
         <InputFooter loading={loading} onSave={handleSave} onCancel={onClose} />
       }
     >
       {contextHolder}
-
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <InputForm
-          table="bankAccount"
+          table="adminRole"
           form={form}
           def={def}
           data={data}
-          config={config}
           hideReadOnly={true}
+          columnOrder={columnOrder}
         />
       </ScrollView>
     </Drawer>

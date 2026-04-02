@@ -47,6 +47,8 @@ const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "(setting)/profile", label: "profile" },
   { name: "(setting)/profile-edit", label: "profile_edit" },
   { name: "(setting)/password", label: "password" },
+  { name: "(setting)/users", label: "users", staffOnly: true },
+  { name: "(setting)/roles", label: "roles", staffOnly: true },
   { name: "(playground)/playground", label: "playground", staffOnly: true },
   { name: "(playground)/example", label: "playground", staffOnly: true },
 ];

@@ -66,6 +66,13 @@ export interface DisplayCardFieldOverride {
   mono?: boolean;
   /** Render field full-width below the FieldGrid (e.g. for comment / notes) */
   fullWidth?: boolean;
+  /**
+   * Controls how this field behaves when its value is empty/null/undefined:
+   * - Not set: respects the global `hideEmptyFields` prop
+   * - `false`: always hide this field when empty (overrides global)
+   * - `string` (e.g. `"—"`): always show this placeholder when empty (overrides global)
+   */
+  emptyDisplay?: string | false;
 }
 
 export interface DisplayCardExtraSlot {
@@ -107,6 +114,13 @@ export interface DisplayCardProps {
   onItemClick?: (index: number) => void;
   /** Hide fields (and collapse empty sections) when value is null/undefined/"" */
   hideEmptyFields?: boolean;
+  /**
+   * Default placeholder shown for all fields when their value is empty.
+   * Can be overridden per-field via `fieldConfig[field].emptyDisplay`.
+   * When set, empty fields are always shown with this placeholder instead of being hidden.
+   * Example: `"—"`
+   */
+  defaultEmptyDisplay?: string;
   emptyMessage?: string;
 }
 
@@ -153,6 +167,7 @@ export default function DisplayCard({
   canEdit,
   onItemClick,
   hideEmptyFields = false,
+  defaultEmptyDisplay,
   emptyMessage,
 }: DisplayCardProps) {
   // ── Resolve field definitions ────────────────────────────────────────────
@@ -183,12 +198,31 @@ export default function DisplayCard({
 
   const fieldHasValue = useCallback(
     (item: any, fieldName: string) => {
+      const override = fieldConfig?.[fieldName];
+
+      // Resolve effective emptyDisplay: field-level takes priority over global default
+      const effectiveEmptyDisplay =
+        override?.emptyDisplay !== undefined ? override.emptyDisplay : defaultEmptyDisplay;
+
+      if (effectiveEmptyDisplay !== undefined) {
+        if (effectiveEmptyDisplay === false) return false;
+        // It's a string placeholder — field always counts as "present"
+        return true;
+      }
+
+      // Custom render — delegate to what render returns
+      if (override?.render) {
+        const fieldDef = formDefs.find((d) => d.field === fieldName);
+        const rendered = override.render(item[fieldName], item, fieldDef);
+        return rendered !== undefined && rendered !== null;
+      }
+
       const v = item[fieldName];
       if (v === null || v === undefined || v === "") return false;
       if (Array.isArray(v)) return v.length > 0;
       return true;
     },
-    []
+    [fieldConfig, formDefs, defaultEmptyDisplay]
   );
 
   /**
@@ -218,9 +252,13 @@ export default function DisplayCard({
       }
 
       // 4. Fallback
-      if (rawValue === null || rawValue === undefined || rawValue === "") return "—";
+      const effectivePlaceholder =
+        typeof override?.emptyDisplay === "string"
+          ? override.emptyDisplay
+          : defaultEmptyDisplay ?? "—";
+      if (rawValue === null || rawValue === undefined || rawValue === "") return effectivePlaceholder;
       // Objects without a custom renderer aren't meaningful as raw text
-      if (typeof rawValue === "object") return "—";
+      if (typeof rawValue === "object") return effectivePlaceholder;
       return String(rawValue);
     },
     [fieldConfig, getFieldDef, renderFieldValue]
@@ -338,7 +376,7 @@ export default function DisplayCard({
               )}
 
               {/* Full-width fields */}
-              {visibleFullWidth.map((fieldName) => {
+              {visibleFullWidth.map((fieldName, idx) => {
                 const override = fieldConfig?.[fieldName];
                 const rawLabel = override?.label;
                 const label =
@@ -348,7 +386,7 @@ export default function DisplayCard({
                 return (
                   <View
                     key={fieldName}
-                    className={visibleGrid.length > 0 ? "mt-3" : ""}
+                    className={idx > 0 || visibleGrid.length > 0 ? "mt-3" : ""}
                   >
                     <Field
                       label={label}

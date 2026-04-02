@@ -6,48 +6,27 @@ import type { FormInstance } from "antd";
 import i18n from "@/locale/i18n";
 import { SearchForm } from "@/components/sea-saw-design/form/SearchForm";
 import type { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
-import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
-import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 
-type OrderSearchProps = {
+type UserAdminSearchProps = {
   form: FormInstance;
   metadata: Record<string, HeaderMetaProps>;
   onFinish: (filterParams: Record<string, any>) => void;
   onReset: () => void;
 };
 
-export function OrderSearch({
+export function UserAdminSearch({
   form,
   metadata,
   onFinish,
   onReset,
-}: OrderSearchProps) {
+}: UserAdminSearchProps) {
+  // Hide write-only fields (password, role_id) and read-only nested role object from search
   const config = useMemo(
     () => ({
-      buyer: {
-        read_only: false,
-        render: (_col: any, meta: any) => <AccountSelector def={meta} fieldName="buyer" idFieldName="buyer_id" />,
-        skipFilter: true,
-      },
-      buyer_id: { hidden: true },
-      seller: {
-        read_only: false,
-        render: (_col: any, meta: any) => <AccountSelector def={meta} fieldName="seller" idFieldName="seller_id" />,
-        skipFilter: true,
-      },
-      seller_id: { hidden: true },
-      shipper: {
-        read_only: false,
-        render: (_col: any, meta: any) => <AccountSelector def={meta} fieldName="shipper" idFieldName="shipper_id" />,
-        skipFilter: true,
-      },
-      shipper_id: { hidden: true },
-      contact: {
-        read_only: false,
-        render: (_col: any, meta: any) => <ContactSelector def={meta} />,
-        skipFilter: true,
-      },
-      contact_id: { hidden: true },
+      password: { hidden: true },
+      role_id: { hidden: true },
+      role: { hidden: true },
+      date_joined: { hidden: true },
     }),
     [],
   );
@@ -85,4 +64,4 @@ export function OrderSearch({
   );
 }
 
-export default OrderSearch;
+export default UserAdminSearch;

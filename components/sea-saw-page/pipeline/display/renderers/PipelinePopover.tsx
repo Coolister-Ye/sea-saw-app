@@ -45,9 +45,10 @@ interface PipelinePopoverProps {
       pipeline_type?: FieldDef;
     };
   };
+  placement?: "top" | "bottom" | "left" | "right" | "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | "leftTop" | "leftBottom" | "rightTop" | "rightBottom";
 }
 
-export default function PipelinePopover({ value, def }: PipelinePopoverProps) {
+export default function PipelinePopover({ value, def, placement = "top" }: PipelinePopoverProps) {
   const content = useMemo(() => {
     if (!value) return null;
 
@@ -119,7 +120,7 @@ export default function PipelinePopover({ value, def }: PipelinePopoverProps) {
     : null;
 
   return (
-    <Popover content={content} trigger="hover" mouseEnterDelay={0.15}>
+    <Popover content={content} trigger="hover" mouseEnterDelay={0.15} placement={placement}>
       <Tag color={statusColor} className="hover:opacity-80 w-fit">
         {value.pipeline_code}
         {statusLabel && `· ${statusLabel}`}

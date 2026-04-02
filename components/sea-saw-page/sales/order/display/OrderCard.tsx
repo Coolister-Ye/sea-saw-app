@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import i18n from "@/locale/i18n";
 import { Text } from "@/components/sea-saw-design/text";
 import { canEditOrder } from "@/constants/PipelineStatus";
@@ -9,7 +9,8 @@ import { BankAccountPopover } from "@/components/sea-saw-page/crm/bank-account/d
 import OrderStatusTag from "./OrderStatusTag";
 import OrderItemsViewToggle from "./items/OrderItemsViewToggle";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
-import RelatedPipelineLink from "./RelatedPipelineLink";
+import { PipelinePopover } from "@/components/sea-saw-page/pipeline/display/renderers/PipelinePopover";
+import { EyeOutlined } from "@ant-design/icons";
 import type { FormDef } from "@/hooks/useFormDefs";
 import { DisplayCard } from "@/components/sea-saw-design/display-card";
 
@@ -19,7 +20,6 @@ interface OrderCardProps {
   onItemClick?: (index: number) => void;
   onPipelineClick?: () => void;
   pipelineStatus?: string;
-  pipelineLoading?: boolean;
   hideEmptyFields?: boolean;
 }
 
@@ -29,7 +29,6 @@ export default function OrderCard({
   onItemClick,
   onPipelineClick,
   pipelineStatus,
-  pipelineLoading,
   hideEmptyFields = false,
 }: OrderCardProps) {
   return (
@@ -40,6 +39,7 @@ export default function OrderCard({
       canEdit={(item) => canEditOrder(pipelineStatus || "", item.status || "")}
       onItemClick={onItemClick}
       emptyMessage={i18n.t("No orders yet")}
+      defaultEmptyDisplay="—"
       header={{
         codeField: "order_code",
         statusField: "status",
@@ -48,46 +48,39 @@ export default function OrderCard({
             <OrderStatusTag def={fieldDef} value={val} className="w-fit" />
           ) : undefined,
         rightContent: (item, { getFieldLabel, formDefs }) => {
-          const accountDef = formDefs.find((d) => d.field === "account")
-            ?.children as any;
-          const contactDef = formDefs.find((d) => d.field === "contact")
-            ?.children as any;
-          return (
-            <View className="flex-row items-end gap-3">
-              <View className="items-end">
-                <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                  {getFieldLabel("account")}
+          const pipelineDef = formDefs.find(
+            (d) => d.field === "related_pipeline",
+          ) as any;
+          return item.related_pipeline?.pipeline_code ? (
+            <View className="items-end">
+              <View className="flex-row items-center gap-1 mb-1">
+                <EyeOutlined style={{ fontSize: 10, color: "#94a3b8" }} />
+                <Text className="text-xs text-slate-400 uppercase tracking-wider">
+                  {getFieldLabel("related_pipeline")}
                 </Text>
-                <AccountPopover
-                  def={accountDef}
-                  value={
-                    typeof item.account === "object" ? item.account : null
-                  }
-                />
               </View>
-              <View className="items-end">
-                <Text className="text-xs text-slate-400 uppercase tracking-wider mb-1">
-                  {getFieldLabel("contact")}
-                </Text>
-                <ContactPopover
-                  def={contactDef}
-                  value={
-                    typeof item.contact === "object"
-                      ? item.contact
-                      : item.contact_display_name
-                        ? { name: item.contact_display_name }
-                        : null
-                  }
+              <Pressable onPress={onPipelineClick}>
+                <PipelinePopover
+                  value={item.related_pipeline}
+                  def={pipelineDef}
+                  placement="bottomLeft"
                 />
-              </View>
+              </Pressable>
             </View>
-          );
+          ) : undefined;
         },
       }}
       sections={[
         {
           title: i18n.t("basic information"),
-          fields: ["order_date", "etd", "related_pipeline"],
+          fields: [
+            "order_date",
+            "etd",
+            "buyer",
+            "contact",
+            "seller",
+            "shipper",
+          ],
           className: "bg-slate-50/70",
         },
         {
@@ -98,6 +91,7 @@ export default function OrderCard({
             "deposit",
             "balance",
             "total_amount",
+            "payment_terms",
             "bank_account",
           ],
           className: "bg-white-50/30",
@@ -107,17 +101,38 @@ export default function OrderCard({
           fields: ["loading_port", "destination_port", "shipment_term"],
         },
         {
-          fields: ["comment", "order_items", "attachments"],
+          title: i18n.t("notes"),
+          fields: ["additional_info", "comment"],
+        },
+        {
+          fields: ["order_items"],
+        },
+        {
+          fields: ["attachments"],
         },
       ]}
       fieldConfig={{
-        related_pipeline: {
-          render: (value, item) =>
-            item.related_pipeline?.pipeline_code ? (
-              <RelatedPipelineLink
-                value={value}
-                loading={pipelineLoading}
-                onClick={onPipelineClick}
+        buyer: {
+          render: (_v, item, fieldDef) =>
+            item.buyer ? (
+              <AccountPopover
+                def={(fieldDef as any)?.children}
+                value={typeof item.buyer === "object" ? item.buyer : null}
+              />
+            ) : undefined,
+        },
+        contact: {
+          render: (_v, item, fieldDef) =>
+            item.contact ? (
+              <ContactPopover
+                def={(fieldDef as any)?.children}
+                value={
+                  typeof item.contact === "object"
+                    ? item.contact
+                    : item.contact_display_name
+                      ? { name: item.contact_display_name }
+                      : null
+                }
               />
             ) : undefined,
         },
@@ -138,15 +153,35 @@ export default function OrderCard({
               </View>
             ) : undefined,
         },
+        seller: {
+          render: (_v, item, fieldDef) =>
+            item.seller ? (
+              <AccountPopover
+                def={(fieldDef as any)?.children}
+                value={typeof item.seller === "object" ? item.seller : null}
+              />
+            ) : undefined,
+        },
+        shipper: {
+          render: (_v, item, fieldDef) =>
+            item.shipper ? (
+              <AccountPopover
+                def={(fieldDef as any)?.children}
+                value={typeof item.shipper === "object" ? item.shipper : null}
+              />
+            ) : undefined,
+        },
+        payment_terms: { fullWidth: true },
         comment: { fullWidth: true },
+        additional_info: { fullWidth: true },
         order_items: {
           fullWidth: true,
           label: (_v, item) =>
             `${i18n.t("order items")} (${item.order_items?.length ?? 0})`,
           render: (_v, item) => {
-            const orderItemsDef = def
-              ?.find((d: FormDef) => d.field === "order_items")
-              ?.child?.children;
+            const orderItemsDef = def?.find(
+              (d: FormDef) => d.field === "order_items",
+            )?.child?.children;
             return item.order_items?.length > 0 ? (
               <OrderItemsViewToggle
                 def={orderItemsDef}

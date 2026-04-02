@@ -25,7 +25,9 @@ const OrderTable = forwardRef<AgGridReact, OrderTableProps>(
     const colRenderers = useMemo(
       () => ({
         order_code: { width: 200 },
-        account: { cellRenderer: AccountCell, width: 200 },
+        buyer: { cellRenderer: AccountCell },
+        seller: { cellRenderer: AccountCell },
+        shipper: { cellRenderer: AccountCell },
         contact: { cellRenderer: ContactCell },
         bank_account: {
           cellRenderer: (params: CustomCellRendererProps) => {

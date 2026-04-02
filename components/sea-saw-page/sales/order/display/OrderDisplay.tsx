@@ -193,7 +193,6 @@ export default function OrderDisplay({
             value={[order]}
             onItemClick={() => setEditingOrder(order)}
             onPipelineClick={handleOpenPipeline}
-            pipelineLoading={loadingPipeline}
             hideEmptyFields
           />
           <OrderInput

@@ -38,7 +38,9 @@ const DEFAULT_COL_ORDER = [
   "id",
   "purchase_code",
   "purchase_date",
+  "buyer",
   "supplier",
+  "shipper",
   "contact",
   "bank_account",
   "etd",
@@ -51,14 +53,14 @@ const DEFAULT_COL_ORDER = [
   "deposit",
   "balance",
   "total_amount",
+  "payment_terms",
+  "additional_info",
   "comment",
+  "purchase_items",
   "related_order",
   "related_pipeline",
-  "purchase_items",
   "attachments",
   "owner",
-  "created_by",
-  "updated_by",
   "created_at",
   "updated_at",
 ];
@@ -82,13 +84,30 @@ export default function PurchaseOrderScreen() {
 
   const buildCopyData = useCallback((data: any) => {
     if (!data) return null;
-    const { id, pk, status, created_at, updated_at, attachments, related_pipeline, supplier, contact, ...rest } = data;
+    const {
+      id,
+      pk,
+      status,
+      created_at,
+      updated_at,
+      attachments,
+      related_pipeline,
+      buyer,
+      supplier,
+      shipper,
+      contact,
+      ...rest
+    } = data;
     const strippedRest = stripIdsDeep(rest);
     return {
       ...strippedRest,
+      buyer,
       supplier,
+      shipper,
       contact,
+      buyer_id: buyer?.id || data.buyer_id,
       supplier_id: supplier?.id || data.supplier_id,
+      shipper_id: shipper?.id || data.shipper_id,
       contact_id: contact?.id || data.contact_id,
     };
   }, []);
@@ -98,7 +117,8 @@ export default function PurchaseOrderScreen() {
     { filterMetaFields: ["allowed_actions"] },
   );
 
-  const { tableRef, gridApiRef, onGridReady, refreshTable } = useTableHandlers();
+  const { tableRef, gridApiRef, onGridReady } =
+    useTableHandlers();
 
   const { isEditOpen, editData, openCreate, openCopy, closeEditDrawer } =
     useEditDrawer(gridApiRef, { buildCopyData });
@@ -174,7 +194,10 @@ export default function PurchaseOrderScreen() {
     const token = await AuthService.getJwtToken();
     if (selectedRows.length === 1) {
       const row = selectedRows[0];
-      const url = getUrl("purchaseOrderExportPo").replace("{id}", String(row.id));
+      const url = getUrl("purchaseOrderExportPo").replace(
+        "{id}",
+        String(row.id),
+      );
       await downloadFileWithAuth(url, `PO-${row.purchase_code}.xlsx`, token);
     } else {
       const url = getUrl("purchaseOrderExportPoBulk");

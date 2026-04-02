@@ -23,7 +23,7 @@ export default function BankAccountTable({
 }: BankAccountTableProps) {
   const colRenderers = useMemo(
     () => ({
-      account: {
+      account_holder: {
         cellRenderer: (params: CustomCellRendererProps) => {
           const value = params.value ?? {};
           const def = params.context?.meta?.account?.children;

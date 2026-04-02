@@ -8,7 +8,6 @@ interface BankAccount {
   id?: string | number;
   bank_name?: string;
   account_number?: string;
-  account_holder?: string;
   currency?: string;
   is_primary?: boolean;
 }
@@ -35,7 +34,7 @@ export default function BankAccountPopover({
           headerTitle={value.bank_name ?? "—"}
           value={value}
           metaDef={def}
-          columnOrder={["account_number", "account_holder", "currency"]}
+          columnOrder={["account_number", "currency"]}
         />
       ) : null,
     [value, def],

@@ -6,10 +6,9 @@ import { BankAccountSearch } from "@/components/sea-saw-page/crm/bank-account/se
 
 const DEFAULT_COL_ORDER = [
   "id",
-  "account",
+  "account_holder",
   "bank_name",
   "account_number",
-  "account_holder",
   "currency",
   "swift_code",
   "branch",

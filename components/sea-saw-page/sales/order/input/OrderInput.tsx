@@ -50,7 +50,9 @@ export default function OrderInput({
 
   const normalizePayload = (values: any) => {
     const payload = { ...values };
-    delete payload.account;
+    delete payload.buyer;
+    delete payload.seller;
+    delete payload.shipper;
     delete payload.contact;
     delete payload.bank_account;
     return payload;
@@ -76,6 +78,7 @@ export default function OrderInput({
 
   const deposit = Form.useWatch("deposit", form);
   const orderItems = Form.useWatch("order_items", form);
+  const currency = Form.useWatch("currency", form);
 
   useEffect(() => {
     const totalAmount = (orderItems ?? []).reduce(
@@ -83,20 +86,56 @@ export default function OrderInput({
       0,
     );
     const depositNum = toNumber(deposit) ?? 0;
+    const balance = round2(totalAmount - depositNum);
 
-    form.setFieldsValue({
+    const updates: Record<string, any> = {
       total_amount: round2(totalAmount),
-      balance: round2(totalAmount - depositNum),
-    });
-  }, [orderItems, deposit, form]);
+      balance,
+    };
+
+    if (totalAmount > 0 && depositNum > 0) {
+      const curr = currency || "USD";
+      const depPct = round2((depositNum / totalAmount) * 100);
+      const balPct = round2(100 - depPct);
+      updates.payment_terms =
+        `${curr} ${depositNum} (${depPct}%) deposit, ` +
+        `${curr} ${balance} (${balPct}%) balance`;
+    }
+
+    form.setFieldsValue(updates);
+  }, [orderItems, deposit, currency, form]);
 
   const config = useMemo(
     () => ({
-      account: {
+      buyer: {
         read_only: false,
-        render: (def: any) => <AccountSelector def={def} />,
+        render: (def: any) => (
+          <AccountSelector def={def} fieldName="buyer" idFieldName="buyer_id" />
+        ),
       },
-      account_id: { hidden: true },
+      buyer_id: { hidden: true },
+      seller: {
+        read_only: false,
+        render: (def: any) => (
+          <AccountSelector
+            def={def}
+            fieldName="seller"
+            idFieldName="seller_id"
+          />
+        ),
+      },
+      seller_id: { hidden: true },
+      shipper: {
+        read_only: false,
+        render: (def: any) => (
+          <AccountSelector
+            def={def}
+            fieldName="shipper"
+            idFieldName="shipper_id"
+          />
+        ),
+      },
+      shipper_id: { hidden: true },
       contact: {
         read_only: false,
         render: (def: any) => <ContactSelector def={def} />,
@@ -109,7 +148,7 @@ export default function OrderInput({
       bank_account_id: { hidden: true },
       status: {
         // Status is managed by Pipeline once a pipeline exists
-        read_only: !!(data?.related_pipeline?.id),
+        read_only: !!data?.related_pipeline?.id,
         render: (def: any) => <OrderStatusSelector def={def} />,
       },
       order_items: {
@@ -121,6 +160,8 @@ export default function OrderInput({
         render: (def: any) => <AttachmentInput def={def} />,
       },
       total_amount: { read_only: true, hidden: false },
+      payment_terms: { render: () => <TextArea rows={3} /> },
+      additional_info: { render: () => <TextArea rows={3} /> },
       comment: { render: () => <TextArea rows={3} /> },
     }),
     [data?.related_pipeline?.id],
