@@ -54,7 +54,9 @@ export default function PurchaseOrderInput({
 
   const normalizePayload = (values: any) => {
     const payload = { ...values };
+    delete payload.buyer;
     delete payload.supplier;
+    delete payload.shipper;
     delete payload.contact;
     delete payload.bank_account;
     delete payload.related_order;
@@ -86,6 +88,7 @@ export default function PurchaseOrderInput({
 
   const purchaseItems = Form.useWatch("purchase_items", form);
   const deposit = Form.useWatch("deposit", form);
+  const currency = Form.useWatch("currency", form);
 
   useEffect(() => {
     const totalAmount = (purchaseItems ?? []).reduce(
@@ -93,15 +96,34 @@ export default function PurchaseOrderInput({
       0,
     );
     const depositNum = toNumber(deposit) ?? 0;
+    const balance = round2(totalAmount - depositNum);
 
-    form.setFieldsValue({
+    const updates: Record<string, any> = {
       total_amount: round2(totalAmount),
-      balance: round2(totalAmount - depositNum),
-    });
-  }, [purchaseItems, deposit, form]);
+      balance,
+    };
+
+    if (totalAmount > 0 && depositNum > 0) {
+      const curr = currency || "USD";
+      const depPct = round2((depositNum / totalAmount) * 100);
+      const balPct = round2(100 - depPct);
+      updates.payment_terms =
+        `${curr} ${depositNum} (${depPct}%) deposit, ` +
+        `${curr} ${balance} (${balPct}%) balance`;
+    }
+
+    form.setFieldsValue(updates);
+  }, [purchaseItems, deposit, currency, form]);
 
   const config = useMemo(
     () => ({
+      buyer: {
+        read_only: false,
+        render: (def: any) => (
+          <AccountSelector def={def} fieldName="buyer" idFieldName="buyer_id" />
+        ),
+      },
+      buyer_id: { hidden: true },
       supplier: {
         read_only: false,
         render: (def: any) => (
@@ -113,6 +135,17 @@ export default function PurchaseOrderInput({
         ),
       },
       supplier_id: { hidden: true },
+      shipper: {
+        read_only: false,
+        render: (def: any) => (
+          <AccountSelector
+            def={def}
+            fieldName="shipper"
+            idFieldName="shipper_id"
+          />
+        ),
+      },
+      shipper_id: { hidden: true },
       contact: {
         read_only: false,
         render: (def: any) => <ContactSelector def={def} />,
@@ -137,29 +170,26 @@ export default function PurchaseOrderInput({
       },
       attachments: {
         fullWidth: true,
-        render: (def: any, value: any[] = [], onChange: (v: any[]) => void) => (
-          <AttachmentInput def={def} value={value} onChange={onChange} />
-        ),
+        render: (def: any) => <AttachmentInput def={def} />,
       },
       total_amount: { read_only: true, hidden: false },
+      payment_terms: { render: () => <TextArea rows={3} /> },
+      additional_info: { render: () => <TextArea rows={3} /> },
       comment: { render: () => <TextArea rows={3} /> },
       related_order: {
         hidden: mode === "nested",
         render: (def: any) => <PurchaseRelatedOrderSelector def={def} />,
       },
+      related_order_id: { hidden: true },
     }),
     [mode],
   );
-
-  const drawerTitle = isEdit
-    ? i18n.t("Edit Purchase Order")
-    : i18n.t("Create Purchase Order");
 
   return (
     <Drawer
       open={isOpen}
       onClose={onClose}
-      title={drawerTitle}
+      title={isEdit ? i18n.t("Edit Purchase Order") : i18n.t("Create Purchase Order")}
       footer={
         <InputFooter loading={loading} onSave={handleSave} onCancel={onClose} />
       }

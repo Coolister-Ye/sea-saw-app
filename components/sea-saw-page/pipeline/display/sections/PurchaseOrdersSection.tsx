@@ -69,6 +69,7 @@ export default function PurchaseOrdersSection({
         {purchaseOrders.length ? (
           <>
             <PurchaseOrderCard
+              mode="nested"
               def={def}
               value={purchaseOrders}
               onItemClick={(index: number) =>

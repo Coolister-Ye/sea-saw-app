@@ -5,7 +5,7 @@ import useDataService from "@/hooks/useDataService";
 
 interface PurchaseRelatedOrderSelectorProps {
   def: FormDef;
-  value?: number;
+  value?: number | { id?: number; pk?: number; [key: string]: any };
   onChange?: (value: number) => void;
 }
 
@@ -14,6 +14,10 @@ export default function PurchaseRelatedOrderSelector({
   value,
   onChange,
 }: PurchaseRelatedOrderSelectorProps) {
+  const resolvedValue =
+    typeof value === "object" && value !== null
+      ? (value?.id ?? value?.pk)
+      : value;
   const { getViewSet } = useDataService();
   const order = useMemo(() => getViewSet("order"), [getViewSet]);
 
@@ -44,7 +48,7 @@ export default function PurchaseRelatedOrderSelector({
 
   return (
     <Select
-      value={value}
+      value={resolvedValue}
       onChange={onChange}
       options={options}
       placeholder={def.help_text || "Select Related Order"}
