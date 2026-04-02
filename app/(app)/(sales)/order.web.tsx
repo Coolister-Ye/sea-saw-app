@@ -91,17 +91,26 @@ export default function OrderScreen() {
       updated_at,
       attachments,
       related_pipeline,
-      account,
+      buyer,
+      seller,
+      shipper,
       contact,
+      bank_account,
       ...rest
     } = data;
     const strippedRest = stripIdsDeep(rest);
     return {
       ...strippedRest,
-      account,
+      buyer,
+      seller,
+      shipper,
       contact,
-      account_id: account?.id || data.account_id,
-      contact_id: contact?.id || data.contact_id,
+      bank_account,
+      buyer_id: buyer?.id ?? buyer?.pk ?? data.buyer_id,
+      seller_id: seller?.id ?? seller?.pk ?? data.seller_id,
+      shipper_id: shipper?.id ?? shipper?.pk ?? data.shipper_id,
+      contact_id: contact?.id ?? contact?.pk ?? data.contact_id,
+      bank_account_id: bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
     };
   }, []);
 

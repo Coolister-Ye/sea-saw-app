@@ -74,17 +74,16 @@ export default function useOrderDrawerForm({
   useEffect(() => {
     if (!isOpen) return;
 
+    form.resetFields();
+    const defaults =
+      typeof defaultValues === "function" ? defaultValues() : (defaultValues ?? {});
+
     if (isEdit) {
+      // Edit: restore saved data as-is
       form.setFieldsValue(data);
     } else {
-      form.resetFields();
-      if (defaultValues) {
-        const defaults =
-          typeof defaultValues === "function"
-            ? defaultValues()
-            : defaultValues;
-        form.setFieldsValue(defaults);
-      }
+      // Create or copy: defaults first, then copy data (if any) overrides
+      form.setFieldsValue({ ...defaults, ...(data ?? {}) });
     }
     // defaultValues is a static config, excluded from deps to avoid unnecessary re-runs
     // eslint-disable-next-line react-hooks/exhaustive-deps

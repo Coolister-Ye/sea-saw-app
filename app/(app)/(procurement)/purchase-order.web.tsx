@@ -96,6 +96,7 @@ export default function PurchaseOrderScreen() {
       supplier,
       shipper,
       contact,
+      bank_account,
       ...rest
     } = data;
     const strippedRest = stripIdsDeep(rest);
@@ -105,10 +106,12 @@ export default function PurchaseOrderScreen() {
       supplier,
       shipper,
       contact,
-      buyer_id: buyer?.id || data.buyer_id,
-      supplier_id: supplier?.id || data.supplier_id,
-      shipper_id: shipper?.id || data.shipper_id,
-      contact_id: contact?.id || data.contact_id,
+      bank_account,
+      buyer_id: buyer?.id ?? buyer?.pk ?? data.buyer_id,
+      supplier_id: supplier?.id ?? supplier?.pk ?? data.supplier_id,
+      shipper_id: shipper?.id ?? shipper?.pk ?? data.shipper_id,
+      contact_id: contact?.id ?? contact?.pk ?? data.contact_id,
+      bank_account_id: bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
     };
   }, []);
 
