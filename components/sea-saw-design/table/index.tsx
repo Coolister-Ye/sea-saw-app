@@ -13,7 +13,6 @@ import { Button, Form } from "antd";
 import { AgGridReact } from "ag-grid-react";
 import {
   ColDef,
-  ColumnPinnedEvent,
   GetRowIdParams,
   GridReadyEvent,
   IServerSideGetRowsParams,
@@ -333,20 +332,6 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
     [onGridReady],
   );
 
-  // Keep selection column always first among pinned-left columns
-  const handleColumnPinned = useCallback((event: ColumnPinnedEvent) => {
-    const api = event.api;
-    if (!api) return;
-    const allCols = api.getColumns();
-    if (!allCols) return;
-    const selectionIdx = allCols.findIndex(
-      (col) => col.getColId() === "ag-Grid-SelectionColumn",
-    );
-    if (selectionIdx > 0) {
-      api.moveColumnByIndex(selectionIdx, 0);
-    }
-  }, []);
-
   // Update datasource whenever it changes (after grid is ready)
   useEffect(() => {
     if (gridReady && gridRef.current?.api) {
@@ -460,8 +445,8 @@ const Table = forwardRef<AgGridReact, TableProps>(function Table(
           pagination
           paginationPageSize={DEFAULT_PAGE_SIZE}
           paginationPageSizeSelector={PAGE_SIZE_OPTIONS}
+          selectionColumnDef={{ pinned: "left", lockPosition: true }}
           onGridReady={handleGridReady}
-          onColumnPinned={handleColumnPinned}
           noRowsOverlayComponent={NoRowsOverlay}
           noRowsOverlayComponentParams={{
             noRowsMessage: i18n.t("No data yet"),

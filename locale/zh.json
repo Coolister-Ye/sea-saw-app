@@ -451,5 +451,20 @@
   "Fri": "五",
   "Sat": "六",
   "Previous month": "上个月",
-  "Next month": "下个月"
+  "Next month": "下个月",
+  "ETD Shipping Calendar": "ETD 发货日历",
+  "ETA Arrival Calendar": "ETA 到货日历",
+  "ETD Shipping": "ETD 发货",
+  "ETA Arrival": "ETA 到货",
+  "Monthly Orders": "本月订单总数",
+  "On Time": "准时发货",
+  "Shipped Late": "延迟发货",
+  "ETD Overdue": "已逾期未发",
+  "Pending Shipment": "待发货",
+  "Monthly ETA": "本月 ETA 总数",
+  "ETA Overdue": "逾期未更新",
+  "Pending Arrival": "待到货",
+  "No Pipeline": "无流程",
+  "Expected Arrival": "预计到货",
+  "Update Pipeline Status": "请及时更新 Pipeline 状态"
 }

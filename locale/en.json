@@ -451,5 +451,20 @@
   "Fri": "Fri",
   "Sat": "Sat",
   "Previous month": "Previous month",
-  "Next month": "Next month"
+  "Next month": "Next month",
+  "ETD Shipping Calendar": "ETD Shipping Calendar",
+  "ETA Arrival Calendar": "ETA Arrival Calendar",
+  "ETD Shipping": "ETD Shipping",
+  "ETA Arrival": "ETA Arrival",
+  "Monthly Orders": "Monthly Orders",
+  "On Time": "On Time",
+  "Shipped Late": "Shipped Late",
+  "ETD Overdue": "Overdue",
+  "Pending Shipment": "Pending Shipment",
+  "Monthly ETA": "Monthly ETA",
+  "ETA Overdue": "Overdue (Not Updated)",
+  "Pending Arrival": "Pending Arrival",
+  "No Pipeline": "No Pipeline",
+  "Expected Arrival": "Expected Arrival",
+  "Update Pipeline Status": "Please update the Pipeline status promptly"
 }

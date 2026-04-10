@@ -84,14 +84,16 @@
     --info-bg: 215 100% 97%;
     --info-border: 215 100% 80%;
 
-    /* 次要色 - Secondary */
+    /* 次要色 - Secondary (用于次要按钮背景) */
     --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 25%;
+    --secondary-foreground: 0 0% 15%;
 
-    /* 中性色 */
+    /* 中性色 - Muted (用于输入框、占位、标签等浅色背景) */
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
+
+    /* 强调色 - Accent (用于 hover 高亮，比 muted 稍深) */
+    --accent: 0 0% 92%;
     --accent-foreground: 0 0% 15%;
 
     /* 边框和输入 */
@@ -187,12 +189,14 @@
 
     /* 次要色 - Secondary */
     --secondary: 0 0% 17%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary-foreground: 0 0% 93%;
 
-    /* 中性色 */
+    /* 中性色 - Muted */
     --muted: 0 0% 17%;
     --muted-foreground: 0 0% 55%;
-    --accent: 0 0% 17%;
+
+    /* 强调色 - Accent (比 muted 稍亮，用于 hover) */
+    --accent: 0 0% 22%;
     --accent-foreground: 0 0% 93%;
 
     /* 边框和输入 */
