@@ -1,5 +1,8 @@
-import { Text, Linking, Pressable, View } from "react-native";
+import { Platform, Text, Linking, Pressable, View } from "react-native";
 import { DocumentIcon } from "react-native-heroicons/outline";
+import { downloadFileWithAuth } from "@/utils/fileDownload";
+import { getLocalData } from "@/utils/storage";
+import { USER_TOKEN_KEY, type UserToken } from "@/utils/http";
 
 /* ========================
  * Types
@@ -34,12 +37,22 @@ export default function FileDisplay({ value }: FileDisplayProps) {
     fileName = value.url.split("/").pop() || "file";
   }
 
-  const handlePress = () => {
-    if (fileUrl) {
-      Linking.openURL(fileUrl).catch((err) =>
-        console.error("Failed to open file:", err)
-      );
+  const handlePress = async () => {
+    if (!fileUrl) return;
+    if (Platform.OS === "web") {
+      try {
+        const token = await getLocalData<UserToken>(USER_TOKEN_KEY);
+        if (token?.access) {
+          await downloadFileWithAuth(fileUrl, fileName, token.access);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to download file:", err);
+      }
     }
+    Linking.openURL(fileUrl).catch((err) =>
+      console.error("Failed to open file:", err)
+    );
   };
 
   return (

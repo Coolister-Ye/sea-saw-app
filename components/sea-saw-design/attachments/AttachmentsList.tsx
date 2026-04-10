@@ -1,6 +1,9 @@
 import React from "react";
-import { View, Linking, Pressable } from "react-native";
+import { Platform, View, Linking, Pressable } from "react-native";
 import { Text } from "@/components/sea-saw-design/text";
+import { downloadFileWithAuth } from "@/utils/fileDownload";
+import { getLocalData } from "@/utils/storage";
+import { USER_TOKEN_KEY, type UserToken } from "@/utils/http";
 
 /* ========================
  * Types
@@ -63,10 +66,27 @@ export default function AttachmentsList({
 
         if (!fileUrl) return null;
 
+        const handlePress = async () => {
+          if (Platform.OS === "web") {
+            try {
+              const token = await getLocalData<UserToken>(USER_TOKEN_KEY);
+              if (token?.access) {
+                await downloadFileWithAuth(fileUrl, fileName, token.access);
+                return;
+              }
+            } catch (err) {
+              console.error("Failed to download file:", err);
+            }
+          }
+          Linking.openURL(fileUrl).catch((err) =>
+            console.error("Failed to open file:", err)
+          );
+        };
+
         return (
           <Pressable
             key={attachment.id ?? idx}
-            onPress={() => Linking.openURL(fileUrl)}
+            onPress={handlePress}
             className="flex-row items-center bg-white border border-slate-200 rounded-lg p-2.5 active:bg-slate-50"
           >
             {/* File Type Badge */}
