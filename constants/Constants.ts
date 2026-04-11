@@ -65,6 +65,9 @@ export const constants = {
 
     getUserColPreference: "/api/preference/user-column-preference/",
     createUserColPreference: "/api/preference/user-column-preference/",
+
+    filterPresets: "/api/preference/filter-presets/",
+    filterPresetDetail: "/api/preference/filter-presets/{id}/",
   },
   agGridLicense:
     "115cf8e0-b7b1-4f71-9de7-943f7999b3f9[v32]0102_NDEwMjMyOTYwMDAwMA==a6199e52fee935ae85626d004d2023c7",

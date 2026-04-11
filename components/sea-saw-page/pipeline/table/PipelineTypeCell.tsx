@@ -8,7 +8,11 @@ function PipelineTypeCell(props: CustomCellRendererProps) {
 
   if (!value) return null;
 
-  return <PipelineTypeTag value={value} def={meta?.pipeline_type} />;
+  return (
+    <div className="flex h-full items-center">
+      <PipelineTypeTag value={value} def={meta?.pipeline_type} />
+    </div>
+  );
 }
 
 export default PipelineTypeCell;

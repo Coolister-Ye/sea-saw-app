@@ -155,11 +155,11 @@ const AlertDialogCancel = React.forwardRef<
   AlertDialogPrimitive.CancelProps
 >(({ className, ...props }, ref) => (
   <TextClassContext.Provider
-    value={buttonTextVariants({ className, variant: "outline" })}
+    value={buttonTextVariants({ className, type: "default" })}
   >
     <AlertDialogPrimitive.Cancel
       ref={ref}
-      className={cn(buttonVariants({ variant: "outline", className }))}
+      className={cn(buttonVariants({ type: "default", className }))}
       {...props}
     />
   </TextClassContext.Provider>

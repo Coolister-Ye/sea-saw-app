@@ -14,14 +14,23 @@ import { useEditDrawer } from "@/hooks/useEditDrawer";
 import { useTableHandlers } from "@/hooks/useTableHandlers";
 import { useSearchState } from "@/hooks/useSearchState";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import useQuickFilter from "@/hooks/useQuickFilter";
+import useFilterPresets from "@/hooks/useFilterPresets";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 import { PageToolbar } from "@/components/sea-saw-design/page-toolbar";
+import {
+  QuickFilter,
+  FilterPresetModal,
+  resolveParams,
+} from "@/components/sea-saw-design/quick-filter";
+import type { QuickFilterSection } from "@/components/sea-saw-design/quick-filter";
 import useDataService from "@/hooks/useDataService";
 import { OrderSearch } from "@/components/sea-saw-page/sales/order/search/OrderSearch";
 
 import OrderTable from "@/components/sea-saw-page/sales/order/table/OrderTable";
 import OrderInput from "@/components/sea-saw-page/sales/order/input/OrderInput";
 import OrderDisplay from "@/components/sea-saw-page/sales/order/display/OrderDisplay";
+
 
 type OrderRow = Record<string, unknown> & { id: number; order_code: string };
 
@@ -80,6 +89,71 @@ export default function OrderScreen() {
     handleSearchReset,
   } = useSearchState();
 
+  const { activeKey, setActiveKey, resetToAll } = useQuickFilter();
+  const { systemPresets, userPresets, createPreset, deletePreset } = useFilterPresets("order");
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
+
+  // Build QuickFilter sections from backend presets
+  const sections = useMemo<QuickFilterSection[]>(() => {
+    const sys: QuickFilterSection = {
+      title: i18n.t("quickFilter.presets"),
+      options: systemPresets.map((p) => ({
+        key: p.key ?? `system_${p.id}`,
+        label: p.name,
+        params: p.params,
+      })),
+    };
+    const user: QuickFilterSection = {
+      title: i18n.t("quickFilter.myPresets"),
+      options: userPresets.map((p) => ({
+        key: `user_${p.id}`,
+        label: p.name,
+        params: p.params,
+        deletable: true,
+        onDelete: () => deletePreset(p.id),
+      })),
+      divider: true,
+    };
+    return userPresets.length > 0 ? [sys, user] : [sys];
+  }, [systemPresets, userPresets, deletePreset]);
+
+  // Resolve active quick filter params at render time (keeps date-relative values fresh)
+  const activeQuickParams = useMemo(() => {
+    const option = sections.flatMap((s) => s.options).find((o) => o.key === activeKey);
+    if (!option) return {};
+    return resolveParams(option.params);
+  }, [activeKey, sections]);
+
+  // Merged query params: quick filter + sidebar (sidebar cleared when quick filter is active)
+  const mergedQueryParams = useMemo(
+    () => ({ ...activeQuickParams, ...searchParams }),
+    [activeQuickParams, searchParams],
+  );
+
+  // Current filter state for saving as preset
+  const currentFilterParams = useMemo(
+    () => ({ ...activeQuickParams, ...searchParams }),
+    [activeQuickParams, searchParams],
+  );
+
+  // Click quick filter → clear sidebar
+  const handleQuickFilterChange = useCallback(
+    (key: string) => {
+      setActiveKey(key);
+      handleSearchReset();
+    },
+    [setActiveKey, handleSearchReset],
+  );
+
+  // Apply sidebar → reset quick filter to "All"
+  const handleSearchWithReset = useCallback(
+    (params: any) => {
+      resetToAll();
+      handleSearchFinish(params);
+    },
+    [resetToAll, handleSearchFinish],
+  );
+
   // Custom copy builder for order
   const buildOrderCopyData = useCallback((data: any) => {
     if (!data) return null;
@@ -110,7 +184,8 @@ export default function OrderScreen() {
       seller_id: seller?.id ?? seller?.pk ?? data.seller_id,
       shipper_id: shipper?.id ?? shipper?.pk ?? data.shipper_id,
       contact_id: contact?.id ?? contact?.pk ?? data.contact_id,
-      bank_account_id: bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
+      bank_account_id:
+        bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
     };
   }, []);
 
@@ -204,9 +279,9 @@ export default function OrderScreen() {
       request({
         uri: "crmDownload",
         method: "POST",
-        body: { model: "orders", filter: searchParams },
+        body: { model: "orders", filter: mergedQueryParams },
       }),
-    [request, searchParams],
+    [request, mergedQueryParams],
   );
   const { loading: downloading, execute: handleDownload } = useAsyncAction(
     downloadFn,
@@ -248,7 +323,7 @@ export default function OrderScreen() {
           <OrderSearch
             form={searchForm}
             metadata={headerMeta}
-            onFinish={handleSearchFinish}
+            onFinish={handleSearchWithReset}
             onReset={handleSearchReset}
           />
         )}
@@ -264,6 +339,15 @@ export default function OrderScreen() {
               onCopy: openCopy,
               copyDisabled: selectedRows.length !== 1,
             }}
+            left={
+              <QuickFilter
+                sections={sections}
+                activeKey={activeKey}
+                onChange={handleQuickFilterChange}
+                onAddPreset={() => setPresetModalOpen(true)}
+                className="ml-2"
+              />
+            }
             extra={
               <>
                 <Button
@@ -279,6 +363,16 @@ export default function OrderScreen() {
                 />
               </>
             }
+          />
+
+          <FilterPresetModal
+            open={presetModalOpen}
+            onClose={() => setPresetModalOpen(false)}
+            currentParams={currentFilterParams}
+            onSave={async (name, params) => {
+              await createPreset(name, params);
+              setPresetModalOpen(false);
+            }}
           />
 
           <OrderInput
@@ -308,7 +402,7 @@ export default function OrderScreen() {
             headerMeta={headerMeta}
             columnOrder={DEFAULT_COL_ORDER}
             searchable={false}
-            queryParams={searchParams}
+            queryParams={mergedQueryParams}
             onGridReady={onGridReady}
             onRowClicked={handleRowClick}
             onSelectionChanged={handleSelectionChanged}

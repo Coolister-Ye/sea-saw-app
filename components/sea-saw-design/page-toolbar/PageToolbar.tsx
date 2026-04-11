@@ -17,6 +17,8 @@ export interface PageToolbarProps {
   actionDropdownProps: ActionDropdownProps;
   /** 额外操作按钮，插入在 Filter 按钮和 ActionDropdown 之间 */
   extra?: React.ReactNode;
+  /** 工具栏左侧内容（如 QuickFilter） */
+  left?: React.ReactNode;
 }
 
 export function PageToolbar({
@@ -25,18 +27,22 @@ export function PageToolbar({
   onToggleSearch,
   actionDropdownProps,
   extra,
+  left,
 }: PageToolbarProps) {
   return (
-    <View className="flex-row justify-end gap-1 p-1 py-1.5">
-      <Badge count={filterCount} size="small">
-        <Button
-          icon={<FilterOutlined />}
-          onClick={onToggleSearch}
-          type={isSearchOpen ? "primary" : "default"}
-        />
-      </Badge>
-      {extra}
-      <ActionDropdown {...actionDropdownProps} />
+    <View className="flex-row items-center border-b border-gray-100 bg-white">
+      {left != null && <View className="flex-1 min-w-0">{left}</View>}
+      <View className="flex-row gap-1 p-1 py-1.5 ml-auto">
+        <Badge count={filterCount} size="small">
+          <Button
+            icon={<FilterOutlined />}
+            onClick={onToggleSearch}
+            type={isSearchOpen ? "primary" : "default"}
+          />
+        </Badge>
+        {extra}
+        <ActionDropdown {...actionDropdownProps} />
+      </View>
     </View>
   );
 }

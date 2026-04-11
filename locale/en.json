@@ -466,5 +466,14 @@
   "Pending Arrival": "Pending Arrival",
   "No Pipeline": "No Pipeline",
   "Expected Arrival": "Expected Arrival",
-  "Update Pipeline Status": "Please update the Pipeline status promptly"
+  "Update Pipeline Status": "Please update the Pipeline status promptly",
+  "quickFilter.saveFilter": "Save filter",
+  "quickFilter.presets": "Presets",
+  "quickFilter.myPresets": "My Presets",
+  "quickFilter.deletePreset": "Delete this preset?",
+  "quickFilter.savePresetTitle": "Save Filter Preset",
+  "quickFilter.presetName": "Preset Name",
+  "quickFilter.presetNamePlaceholder": "Enter a name for this filter preset",
+  "quickFilter.activeFilters": "Active Filters",
+  "quickFilter.noActiveFilter": "No active filter to save. Apply a filter first."
 }

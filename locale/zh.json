@@ -466,5 +466,14 @@
   "Pending Arrival": "待到货",
   "No Pipeline": "无流程",
   "Expected Arrival": "预计到货",
-  "Update Pipeline Status": "请及时更新 Pipeline 状态"
+  "Update Pipeline Status": "请及时更新 Pipeline 状态",
+  "quickFilter.saveFilter": "保存筛选",
+  "quickFilter.presets": "预设",
+  "quickFilter.myPresets": "我的预设",
+  "quickFilter.deletePreset": "确认删除此预设？",
+  "quickFilter.savePresetTitle": "保存筛选预设",
+  "quickFilter.presetName": "预设名称",
+  "quickFilter.presetNamePlaceholder": "为该筛选预设起个名字",
+  "quickFilter.activeFilters": "当前筛选条件",
+  "quickFilter.noActiveFilter": "暂无筛选条件，请先应用筛选后再保存。"
 }

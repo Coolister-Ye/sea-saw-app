@@ -24,18 +24,43 @@ const EXCLUDED_FIELDS = [
 ] as const;
 
 const DEFAULT_COL_ORDER = [
+  // 基本信息
   "id",
   "pipeline_code",
-  "name",
   "pipeline_type",
   "status",
+  "active_entity",
+  // 客户信息
   "account",
   "contact",
+  // 时间节点
+  "order_date",
+  "confirmed_at",
+  "completed_at",
+  "cancelled_at",
+  // 财务汇总
+  "order_total_amount",
+  "received_order_total_amount",
+  "purchase_order_total_amount",
+  "paid_purchase_order_total_amount",
+  "purchase_margin",
+  // 阶段时间
+  "in_purchase_at",
+  "purchase_completed_at",
+  "in_production_at",
+  "production_completed_at",
+  "in_purchase_and_production_at",
+  "purchase_and_production_completed_at",
+  "in_outbound_at",
+  "outbound_completed_at",
+  // 关联单据
   "order",
   "purchase_orders",
   "production_orders",
   "outbound_orders",
   "payments",
+  // 其他
+  "remark",
   "owner",
   "created_by",
   "updated_by",

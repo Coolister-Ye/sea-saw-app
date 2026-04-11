@@ -71,7 +71,7 @@ export default function SwitchStatCard({
           }}
           className="bg-white"
           variant="borderless"
-          defaultValue={dateOptions[showStat || 0]}
+          defaultValue={dateOptions[showStat || 0].value}
         />
       </View>
 
