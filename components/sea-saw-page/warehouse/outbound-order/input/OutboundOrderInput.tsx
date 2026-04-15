@@ -3,13 +3,25 @@ import i18n from "@/locale/i18n";
 import { ScrollView } from "react-native";
 
 import InputForm from "@/components/sea-saw-design/form/InputForm";
-import OutboundOrderItemsInput from "../shared/items/OutboundOrderItemsInput";
-import OutboundOrderStatusSelector from "../shared/selectors/OutboundOrderStatusSelector";
+import OutboundOrderItemsInput from "./OutboundOrderItemsInput";
+import OutboundOrderStatusSelector from "./OutboundOrderStatusSelector";
 import AttachmentInput from "@/components/sea-saw-page/base/attachments/AttachmentInput";
+import PurchaseRelatedPipelineSelector from "@/components/sea-saw-page/procurement/purchase-order/input/PurchaseRelatedPipelineSelector";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 import useOrderDrawerForm from "@/hooks/useOrderDrawerForm";
 
-const DEFAULT_VALUES = { status: "pending" };
+const DEFAULT_VALUES = { status: "draft" };
+
+const normalizePayload = (values: any) => {
+  const payload = { ...values };
+  delete payload.related_pipeline;
+  payload.related_pipeline_id =
+    values.related_pipeline?.id ??
+    values.related_pipeline?.pk ??
+    values.related_pipeline ??
+    null;
+  return payload;
+};
 
 interface OutboundOrderInputProps {
   isOpen: boolean;
@@ -23,6 +35,7 @@ interface OutboundOrderInputProps {
   };
   pipelineId?: string | number;
   mode?: "nested" | "standalone";
+  columnOrder?: string[];
 }
 
 export default function OutboundOrderInput({
@@ -33,7 +46,8 @@ export default function OutboundOrderInput({
   def,
   data = {},
   pipelineId,
-  mode = "nested",
+  mode = "standalone",
+  columnOrder,
 }: OutboundOrderInputProps) {
   const { form, loading, contextHolder, isEdit, handleSave } =
     useOrderDrawerForm({
@@ -44,6 +58,7 @@ export default function OutboundOrderInput({
       nestedViewSetKey: "nestedOutboundOrder",
       standaloneViewSetKey: "outboundOrder",
       nestedParamName: "related_pipeline",
+      normalizePayload,
       defaultValues: DEFAULT_VALUES,
       entityName: "Outbound order",
       onClose,
@@ -63,11 +78,16 @@ export default function OutboundOrderInput({
       outbound_items: {
         fullWidth: true,
         render: (def: any) => (
-          <OutboundOrderItemsInput def={def} showToolbar={false} />
+          <OutboundOrderItemsInput def={def} showToolbar={mode === "standalone"} />
         ),
       },
+      related_pipeline: {
+        hidden: mode === "nested",
+        render: (def: any) => <PurchaseRelatedPipelineSelector def={def} />,
+      },
+      related_pipeline_id: { hidden: true },
     }),
-    [],
+    [mode],
   );
 
   const drawerTitle = isEdit
@@ -92,6 +112,7 @@ export default function OutboundOrderInput({
           def={def}
           data={data}
           config={config}
+          columnOrder={columnOrder}
           hideReadOnly
         />
       </ScrollView>

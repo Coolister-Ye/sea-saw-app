@@ -7,6 +7,7 @@ import i18n from "@/locale/i18n";
 import { SearchForm } from "@/components/sea-saw-design/form/SearchForm";
 import type { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
+import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
 
 type PurchaseOrderSearchProps = {
   form: FormInstance;
@@ -23,18 +24,36 @@ export function PurchaseOrderSearch({
 }: PurchaseOrderSearchProps) {
   const config = useMemo(
     () => ({
+      buyer: {
+        read_only: false,
+        render: (_col: any, meta: any) => (
+          <AccountSelector def={meta} fieldName="buyer" idFieldName="buyer_id" />
+        ),
+        skipFilter: true,
+      },
+      buyer_id: { hidden: true },
       supplier: {
         read_only: false,
         render: (_col: any, meta: any) => (
-          <AccountSelector
-            def={meta}
-            fieldName="supplier"
-            idFieldName="supplier_id"
-          />
+          <AccountSelector def={meta} fieldName="supplier" idFieldName="supplier_id" />
         ),
         skipFilter: true,
       },
       supplier_id: { hidden: true },
+      shipper: {
+        read_only: false,
+        render: (_col: any, meta: any) => (
+          <AccountSelector def={meta} fieldName="shipper" idFieldName="shipper_id" />
+        ),
+        skipFilter: true,
+      },
+      shipper_id: { hidden: true },
+      contact: {
+        read_only: false,
+        render: (_col: any, meta: any) => <ContactSelector def={meta} />,
+        skipFilter: true,
+      },
+      contact_id: { hidden: true },
     }),
     [],
   );

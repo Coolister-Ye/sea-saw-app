@@ -11,7 +11,7 @@ export interface PurchaseItem {
   glazing?: string;
   gross_weight?: string;
   net_weight?: string;
-  order_qty?: string;
+  purchase_qty?: string;
   total_gross_weight?: string;
   total_net_weight?: string;
   unit_price?: string;
@@ -29,8 +29,10 @@ export interface PurchaseOrderDisplayProps {
   onClose: () => void;
   onCreate?: (res: any) => void;
   onUpdate?: (res: any) => void;
-  /** Callback when a Pipeline is created/updated for this Purchase Order */
+  /** Callback when a Pipeline is created for this Purchase Order */
   onPipelineCreated?: (pipeline: any) => void;
+  /** Callback when a Pipeline is updated (e.g., status change) */
+  onPipelineUpdate?: (pipeline: any) => void;
   def?: any[];
   data?: Record<string, any> | null;
   /** Column order for display fields */
@@ -69,11 +71,3 @@ export interface PurchaseOrder {
   updated_by?: string;
 }
 
-export interface PurchaseOrderCardProps {
-  def?: any[];
-  value?: PurchaseOrder[] | PurchaseOrder | null;
-  onItemClick?: (index: number) => void;
-  pipelineStatus?: string;
-  activeEntity?: string;
-  hideEmptyFields?: boolean;
-}

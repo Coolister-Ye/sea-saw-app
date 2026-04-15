@@ -11,6 +11,7 @@ export default function Drawer({
   width = 900,
   title,
   footer,
+  extra,
   mask = true,
   maskClosable = true,
   maskOpacity = 0.1,
@@ -90,13 +91,16 @@ export default function Drawer({
           className={`${positionStyle} bg-white shadow-xl flex-col`}
         >
           {/* Title (可选) */}
-          {title && (
-            <View className="px-6 py-4 border-b border-gray-200">
-              {typeof title === "string" ? (
-                <Text className="text-lg font-semibold">{title}</Text>
-              ) : (
-                title
-              )}
+          {(title || extra) && (
+            <View className="px-6 py-4 border-b border-gray-200 flex-row items-center justify-between pr-16">
+              <View className="flex-1">
+                {typeof title === "string" ? (
+                  <Text className="text-lg font-semibold">{title}</Text>
+                ) : (
+                  title
+                )}
+              </View>
+              {extra && <View>{extra}</View>}
             </View>
           )}
 

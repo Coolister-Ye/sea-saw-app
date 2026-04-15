@@ -1,4 +1,4 @@
-import { Tag } from "antd";
+import Tag from "@/components/sea-saw-design/tag";
 import { useStatusLabelMap } from "@/hooks/useStatusLabelMap";
 
 /* ========================
@@ -12,11 +12,10 @@ interface OutboundStatusTagProps {
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "default",
-  packed: "blue",
-  shipped: "processing",
-  custom_cleared: "cyan",
-  arrived: "purple",
+  active: "processing",
   completed: "success",
+  cancelled: "error",
+  issue_reported: "warning",
 };
 
 function OutboundStatusTag({ def, value, className }: OutboundStatusTagProps) {

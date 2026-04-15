@@ -1,8 +1,10 @@
-import React, { forwardRef, useCallback } from "react";
+import React, { forwardRef, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import { Form } from "antd";
+import type { CustomCellRendererProps } from "ag-grid-react";
 
 import EntitySelector from "@/components/sea-saw-design/selector/EntitySelector";
+import { AccountPopover } from "@/components/sea-saw-page/crm/account/display";
 import i18n from "@/locale/i18n";
 
 import { BankAccountChip } from "./BankAccountChip";
@@ -26,6 +28,38 @@ const BankAccountSelector = forwardRef<View, BankAccountSelectorProps>(
     const readOnly = def?.read_only;
     const chipDef = def?.children;
 
+    const colDefinitions = useMemo(
+      () => ({
+        account_holder: {
+          cellRenderer: (params: CustomCellRendererProps) => (
+            <AccountPopover
+              value={params.value}
+              getPopupContainer={(trigger) =>
+                (trigger.closest(".entity-selector-grid") as HTMLElement) ??
+                document.body
+              }
+            />
+          ),
+        },
+      }),
+      [],
+    );
+
+    const columnOrder = useMemo(
+      () => [
+        "id",
+        "bank_name",
+        "account_holder",
+        "account_number",
+        "currency",
+        "swift_code",
+        "branch",
+        "bank_address",
+        "is_primary",
+      ],
+      [],
+    );
+
     const renderSelectedChip = useCallback(
       (item: BankAccount, onRemove: () => void) => (
         <BankAccountChip
@@ -40,7 +74,7 @@ const BankAccountSelector = forwardRef<View, BankAccountSelectorProps>(
 
     const handleChange = useCallback(
       (val: BankAccount | BankAccount[] | null) => {
-        const bankAccount = Array.isArray(val) ? val[0] ?? null : val;
+        const bankAccount = Array.isArray(val) ? (val[0] ?? null) : val;
         if (!form) {
           onChange?.(bankAccount);
           return;
@@ -68,6 +102,8 @@ const BankAccountSelector = forwardRef<View, BankAccountSelectorProps>(
         title={i18n.t("Select Bank Account")}
         renderSelectedChip={renderSelectedChip}
         queryParams={queryParams}
+        colDefinitions={colDefinitions}
+        columnOrder={columnOrder}
       />
     );
   },

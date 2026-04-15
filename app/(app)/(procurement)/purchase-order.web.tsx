@@ -15,8 +15,16 @@ import { useEditDrawer } from "@/hooks/useEditDrawer";
 import { useTableHandlers } from "@/hooks/useTableHandlers";
 import { useSearchState } from "@/hooks/useSearchState";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import useQuickFilter from "@/hooks/useQuickFilter";
+import useFilterPresets from "@/hooks/useFilterPresets";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 import { PageToolbar } from "@/components/sea-saw-design/page-toolbar";
+import {
+  QuickFilter,
+  FilterPresetModal,
+  resolveParams,
+} from "@/components/sea-saw-design/quick-filter";
+import type { QuickFilterSection } from "@/components/sea-saw-design/quick-filter";
 import useDataService from "@/hooks/useDataService";
 
 import PurchaseOrderTable from "@/components/sea-saw-page/procurement/purchase-order/table/PurchaseOrderTable";
@@ -82,6 +90,71 @@ export default function PurchaseOrderScreen() {
     handleSearchReset,
   } = useSearchState();
 
+  const { activeKey, setActiveKey, resetToAll } = useQuickFilter();
+  const { systemPresets, userPresets, createPreset, deletePreset } = useFilterPresets("purchaseOrder");
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
+
+  // Build QuickFilter sections from backend presets
+  const sections = useMemo<QuickFilterSection[]>(() => {
+    const sys: QuickFilterSection = {
+      title: i18n.t("quickFilter.presets"),
+      options: systemPresets.map((p) => ({
+        key: p.key ?? `system_${p.id}`,
+        label: p.name,
+        params: p.params,
+      })),
+    };
+    const user: QuickFilterSection = {
+      title: i18n.t("quickFilter.myPresets"),
+      options: userPresets.map((p) => ({
+        key: `user_${p.id}`,
+        label: p.name,
+        params: p.params,
+        deletable: true,
+        onDelete: () => deletePreset(p.id),
+      })),
+      divider: true,
+    };
+    return userPresets.length > 0 ? [sys, user] : [sys];
+  }, [systemPresets, userPresets, deletePreset]);
+
+  // Resolve active quick filter params at render time (keeps date-relative values fresh)
+  const activeQuickParams = useMemo(() => {
+    const option = sections.flatMap((s) => s.options).find((o) => o.key === activeKey);
+    if (!option) return {};
+    return resolveParams(option.params);
+  }, [activeKey, sections]);
+
+  // Merged query params: quick filter + sidebar
+  const mergedQueryParams = useMemo(
+    () => ({ ...activeQuickParams, ...searchParams }),
+    [activeQuickParams, searchParams],
+  );
+
+  // Current filter state for saving as preset
+  const currentFilterParams = useMemo(
+    () => ({ ...activeQuickParams, ...searchParams }),
+    [activeQuickParams, searchParams],
+  );
+
+  // Click quick filter → clear sidebar
+  const handleQuickFilterChange = useCallback(
+    (key: string) => {
+      setActiveKey(key);
+      handleSearchReset();
+    },
+    [setActiveKey, handleSearchReset],
+  );
+
+  // Apply sidebar → reset quick filter to "All"
+  const handleSearchWithReset = useCallback(
+    (params: any) => {
+      resetToAll();
+      handleSearchFinish(params);
+    },
+    [resetToAll, handleSearchFinish],
+  );
+
   const buildCopyData = useCallback((data: any) => {
     if (!data) return null;
     const {
@@ -92,6 +165,7 @@ export default function PurchaseOrderScreen() {
       updated_at,
       attachments,
       related_pipeline,
+      related_order,
       buyer,
       supplier,
       shipper,
@@ -111,7 +185,16 @@ export default function PurchaseOrderScreen() {
       supplier_id: supplier?.id ?? supplier?.pk ?? data.supplier_id,
       shipper_id: shipper?.id ?? shipper?.pk ?? data.shipper_id,
       contact_id: contact?.id ?? contact?.pk ?? data.contact_id,
-      bank_account_id: bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
+      bank_account_id:
+        bank_account?.id ?? bank_account?.pk ?? data.bank_account_id,
+      related_order,
+      related_order_id:
+        related_order?.id ?? related_order?.pk ?? data.related_order_id,
+      related_pipeline,
+      related_pipeline_id:
+        related_pipeline?.id ??
+        related_pipeline?.pk ??
+        data.related_pipeline_id,
     };
   }, []);
 
@@ -120,8 +203,7 @@ export default function PurchaseOrderScreen() {
     { filterMetaFields: ["allowed_actions"] },
   );
 
-  const { tableRef, gridApiRef, onGridReady } =
-    useTableHandlers();
+  const { tableRef, gridApiRef, onGridReady, refreshTable } = useTableHandlers();
 
   const { isEditOpen, editData, openCreate, openCopy, closeEditDrawer } =
     useEditDrawer(gridApiRef, { buildCopyData });
@@ -224,9 +306,9 @@ export default function PurchaseOrderScreen() {
       request({
         uri: "crmDownload",
         method: "POST",
-        body: { model: "purchase_orders", filter: searchParams },
+        body: { model: "purchase_orders", filter: mergedQueryParams },
       }),
-    [request, searchParams],
+    [request, mergedQueryParams],
   );
   const { loading: downloading, execute: handleDownload } = useAsyncAction(
     downloadFn,
@@ -244,7 +326,7 @@ export default function PurchaseOrderScreen() {
           <PurchaseOrderSearch
             form={searchForm}
             metadata={headerMeta}
-            onFinish={handleSearchFinish}
+            onFinish={handleSearchWithReset}
             onReset={handleSearchReset}
           />
         )}
@@ -260,6 +342,15 @@ export default function PurchaseOrderScreen() {
               onCopy: openCopy,
               copyDisabled: selectedRows.length !== 1,
             }}
+            left={
+              <QuickFilter
+                sections={sections}
+                activeKey={activeKey}
+                onChange={handleQuickFilterChange}
+                onAddPreset={() => setPresetModalOpen(true)}
+                className="ml-2"
+              />
+            }
             extra={
               <>
                 <Button
@@ -275,6 +366,16 @@ export default function PurchaseOrderScreen() {
                 />
               </>
             }
+          />
+
+          <FilterPresetModal
+            open={presetModalOpen}
+            onClose={() => setPresetModalOpen(false)}
+            currentParams={currentFilterParams}
+            onSave={async (name, params) => {
+              await createPreset(name, params);
+              setPresetModalOpen(false);
+            }}
           />
 
           <PurchaseOrderInput
@@ -303,7 +404,7 @@ export default function PurchaseOrderScreen() {
             headerMeta={headerMeta}
             columnOrder={DEFAULT_COL_ORDER}
             searchable={false}
-            queryParams={searchParams}
+            queryParams={mergedQueryParams}
             onGridReady={onGridReady}
             onRowClicked={handleRowClick}
             onSelectionChanged={handleSelectionChanged}

@@ -356,6 +356,7 @@
   "Some orders are not yet closed": "部分订单尚未关闭",
   "not yet closed": "尚未关闭",
   "Are you sure you want to proceed?": "确定要继续推进吗？",
+  "Proceeding will automatically mark them as completed. Are you sure you want to proceed?": "继续操作将自动把这些订单标记为已完成，确定要继续推进吗？",
   "Proceed": "继续",
   "purchase_orders": "采购单",
   "production_orders": "生产单",

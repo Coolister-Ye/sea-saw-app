@@ -93,7 +93,7 @@ export default function OrderInput({
       balance,
     };
 
-    if (totalAmount > 0 && depositNum > 0) {
+    if (totalAmount > 0) {
       const curr = currency || "USD";
       const depPct = round2((depositNum / totalAmount) * 100);
       const balPct = round2(100 - depPct);

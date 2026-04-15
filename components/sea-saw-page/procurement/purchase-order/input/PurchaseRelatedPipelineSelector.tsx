@@ -3,105 +3,104 @@ import { Select, Spin } from "antd";
 import { FormDef } from "@/hooks/useFormDefs";
 import useDataService from "@/hooks/useDataService";
 
-interface PurchaseRelatedOrderSelectorProps {
+interface PurchaseRelatedPipelineSelectorProps {
   def: FormDef;
   value?: number | { id?: number; pk?: number; [key: string]: any };
   onChange?: (value: number | null) => void;
-  /** Called with the full order object on selection — use to auto-fill related pipeline */
-  onOrderSelect?: (order: any | null) => void;
+  /** Called with the full pipeline object on selection — use to auto-fill related order */
+  onPipelineSelect?: (pipeline: any | null) => void;
 }
 
-export default function PurchaseRelatedOrderSelector({
+export default function PurchaseRelatedPipelineSelector({
   def,
   value,
   onChange,
-  onOrderSelect,
-}: PurchaseRelatedOrderSelectorProps) {
+  onPipelineSelect,
+}: PurchaseRelatedPipelineSelectorProps) {
   const resolvedValue =
     typeof value === "object" && value !== null
       ? (value?.id ?? value?.pk)
       : value;
+
   const { getViewSet } = useDataService();
-  const orderViewSet = useMemo(() => getViewSet("order"), [getViewSet]);
+  const pipelineViewSet = useMemo(() => getViewSet("pipeline"), [getViewSet]);
 
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [pipelines, setPipelines] = useState<any[]>([]);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchOrders = useCallback(
+  const fetchPipelines = useCallback(
     async (search: string) => {
       try {
         setLoading(true);
         const params = search ? { search } : {};
-        const res = await orderViewSet.list({ params });
-        setOrders(res?.results || res || []);
+        const res = await pipelineViewSet.list({ params });
+        setPipelines(res?.results || res || []);
       } catch {
-        setOrders([]);
+        setPipelines([]);
       } finally {
         setLoading(false);
       }
     },
-    [orderViewSet]
+    [pipelineViewSet],
   );
 
   const handleSearch = useCallback(
     (input: string) => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        fetchOrders(input);
-      }, 400);
+      debounceTimer.current = setTimeout(() => fetchPipelines(input), 400);
     },
-    [fetchOrders]
+    [fetchPipelines],
   );
 
   const handleFocus = useCallback(() => {
-    if (orders.length === 0) fetchOrders("");
-  }, [orders.length, fetchOrders]);
+    if (pipelines.length === 0) fetchPipelines("");
+  }, [pipelines.length, fetchPipelines]);
 
   const handleChange = useCallback(
     (id: number | null) => {
       onChange?.(id);
-      if (onOrderSelect) {
-        const order = id != null ? orders.find((o) => o.id === id) : null;
-        onOrderSelect(order ?? null);
+      if (onPipelineSelect) {
+        const pipeline = id != null ? pipelines.find((p) => p.id === id) : null;
+        onPipelineSelect(pipeline ?? null);
       }
     },
-    [onChange, onOrderSelect, orders],
+    [onChange, onPipelineSelect, pipelines],
   );
 
   // Ensure the currently-selected item always appears in options (e.g. when auto-filled)
   const currentOption = useMemo(() => {
     if (typeof value === "object" && value !== null) {
       const id = value?.id ?? value?.pk;
-      const label = value?.order_code;
+      const label = value?.pipeline_code;
       if (id && label) return { value: id, label };
     }
     return null;
   }, [value]);
 
   const options = useMemo(() => {
-    const base = orders.map((o) => ({
-      label: o.order_code || `Order #${o.id}`,
-      value: o.id,
+    const base = pipelines.map((p) => ({
+      label: p.pipeline_code || `Pipeline #${p.id}`,
+      value: p.id,
     }));
-    if (currentOption && !base.some((o) => o.value === currentOption.value)) {
+    if (currentOption && !base.some((p) => p.value === currentOption.value)) {
       return [currentOption, ...base];
     }
     return base;
-  }, [orders, currentOption]);
+  }, [pipelines, currentOption]);
 
   return (
     <Select
-      value={resolvedValue}
+      value={resolvedValue ?? null}
       onChange={handleChange}
       options={options}
-      placeholder={def.help_text || "Select Related Order"}
+      placeholder={def.help_text || "Select Related Pipeline"}
       style={{ width: "100%" }}
       showSearch
       filterOption={false}
       onSearch={handleSearch}
       onFocus={handleFocus}
-      notFoundContent={loading ? <Spin size="small" /> : "No orders found"}
+      notFoundContent={loading ? <Spin size="small" /> : "No pipelines found"}
       loading={loading}
       allowClear
     />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import OutboundStatusTag from "@/components/sea-saw-page/warehouse/outbound-order/display/OutboundStatusTag";
 
@@ -11,7 +11,11 @@ function OutboundStatusRender(props: CustomCellRendererProps) {
     return <Text className="text-muted-foreground">—</Text>;
   }
 
-  return <OutboundStatusTag value={statusValue} def={statusDef} />;
+  return (
+    <View className="h-full justify-center">
+      <OutboundStatusTag value={statusValue} def={statusDef} />
+    </View>
+  );
 }
 
 export default OutboundStatusRender;

@@ -7,7 +7,7 @@ import { round2, toNumber } from "@/utils/number";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import PurchaseOrderItemsInput from "./PurchaseOrderItemsInput";
 import PurchaseOrderStatusSelector from "./PurchaseOrderStatusSelector";
-import PurchaseRelatedOrderSelector from "./PurchaseRelatedOrderSelector";
+import PurchaseRelatedPipelineSelector from "./PurchaseRelatedPipelineSelector";
 import AccountSelector from "@/components/sea-saw-page/crm/account/input/AccountSelector";
 import BankAccountSelector from "@/components/sea-saw-page/crm/bank-account/input/BankAccountSelector";
 import { ContactSelector } from "@/components/sea-saw-page/crm/contact/input";
@@ -59,11 +59,11 @@ export default function PurchaseOrderInput({
     delete payload.shipper;
     delete payload.contact;
     delete payload.bank_account;
-    delete payload.related_order;
-    payload.related_order =
-      values.related_order?.id ||
-      values.related_order?.pk ||
-      values.related_order ||
+    delete payload.related_pipeline;
+    payload.related_pipeline_id =
+      values.related_pipeline?.id ??
+      values.related_pipeline?.pk ??
+      values.related_pipeline ??
       null;
     return payload;
   };
@@ -103,7 +103,7 @@ export default function PurchaseOrderInput({
       balance,
     };
 
-    if (totalAmount > 0 && depositNum > 0) {
+    if (totalAmount > 0) {
       const curr = currency || "USD";
       const depPct = round2((depositNum / totalAmount) * 100);
       const balPct = round2(100 - depPct);
@@ -176,10 +176,12 @@ export default function PurchaseOrderInput({
       payment_terms: { render: () => <TextArea rows={3} /> },
       additional_info: { render: () => <TextArea rows={3} /> },
       comment: { render: () => <TextArea rows={3} /> },
-      related_order: {
+      related_pipeline: {
         hidden: mode === "nested",
-        render: (def: any) => <PurchaseRelatedOrderSelector def={def} />,
+        render: (def: any) => <PurchaseRelatedPipelineSelector def={def} />,
       },
+      related_pipeline_id: { hidden: true },
+      related_order: { hidden: true },
       related_order_id: { hidden: true },
     }),
     [mode],

@@ -341,6 +341,7 @@
   "Some orders are not yet closed": "Some orders are not yet closed",
   "not yet closed": "not yet closed",
   "Are you sure you want to proceed?": "Are you sure you want to proceed?",
+  "Proceeding will automatically mark them as completed. Are you sure you want to proceed?": "Proceeding will automatically mark them as completed. Are you sure you want to proceed?",
   "Proceed": "Proceed",
   "purchase_orders": "Purchase Orders",
   "production_orders": "Production Orders",

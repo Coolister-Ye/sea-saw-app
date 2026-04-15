@@ -1,5 +1,4 @@
 import React, { useMemo, forwardRef } from "react";
-import type { CustomCellRendererProps } from "ag-grid-react";
 import { AgGridReact } from "ag-grid-react";
 
 import Table from "@/components/sea-saw-design/table";
@@ -7,7 +6,7 @@ import { theme } from "@/components/sea-saw-design/table/theme";
 import AttachmentsRender from "@/components/sea-saw-page/base/table/AttachmentsRender";
 import PipelineCell from "@/components/sea-saw-page/pipeline/table/PipelineCell";
 import { OutboundStatusRender } from "./OutboundStatusRender";
-import { OutboundOrdersRender } from "./OutboundOrdersRender";
+import { OutboundItemsCell } from "./OutboundItemsCell";
 
 interface OutboundOrderTableProps {
   headerMeta: Record<string, any>;
@@ -23,20 +22,7 @@ const OutboundOrderTable = forwardRef<AgGridReact, OutboundOrderTableProps>(
         outbound_code: { width: 220 },
         status: { cellRenderer: OutboundStatusRender },
         related_pipeline: { cellRenderer: PipelineCell, width: 200 },
-        outbound_items: {
-          cellRenderer: (params: CustomCellRendererProps) => {
-            const value = params.value ?? [];
-            const def = params.context?.meta?.outbound_items?.child?.children;
-            return (
-              <OutboundOrdersRender
-                {...params}
-                value={Array.isArray(value) ? value : [value]}
-                context={{ ...params.context, meta: { outbound_orders: { child: { children: def } } } }}
-              />
-            );
-          },
-          width: 200,
-        },
+        outbound_items: { cellRenderer: OutboundItemsCell, width: 200 },
         attachments: { cellRenderer: AttachmentsRender },
       }),
       [],

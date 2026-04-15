@@ -35,4 +35,6 @@ export interface DrawerProps {
   resizable?: boolean;
   /** 调整大小回调（仅 Web 支持） */
   onResize?: (width: number) => void;
+  /** 标题栏右侧额外内容（Web：Antd extra；Native：标题行右侧） */
+  extra?: ReactNode;
 }

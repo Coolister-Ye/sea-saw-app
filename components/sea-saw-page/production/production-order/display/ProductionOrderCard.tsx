@@ -5,8 +5,18 @@ import ProductionStatusTag from "./renderers/ProductionStatusTag";
 import ProductionItemsViewToggle from "./items/ProductionItemsViewToggle";
 import { AttachmentsList } from "@/components/sea-saw-design/attachments";
 import OrderPopover from "@/components/sea-saw-page/sales/order/display/OrderPopover";
-import type { ProductionOrderCardProps } from "./types";
 import { DisplayCard } from "@/components/sea-saw-design/display-card";
+
+interface ProductionOrderCardProps {
+  def?: any[];
+  value?: any[] | null;
+  onItemClick?: (index: number) => void;
+  pipelineStatus?: string;
+  activeEntity?: string;
+  /** Override edit permission (e.g. for standalone mode) */
+  canEdit?: boolean;
+  hideEmptyFields?: boolean;
+}
 
 export default function ProductionOrderCard({
   def,
@@ -14,12 +24,13 @@ export default function ProductionOrderCard({
   onItemClick,
   pipelineStatus,
   activeEntity,
+  canEdit,
   hideEmptyFields = false,
 }: ProductionOrderCardProps) {
-  const isEditable = canEditProductionOrder(
-    pipelineStatus || "",
-    activeEntity || ""
-  );
+  const isEditable =
+    canEdit !== undefined
+      ? canEdit
+      : canEditProductionOrder(pipelineStatus || "", activeEntity || "");
 
   return (
     <DisplayCard

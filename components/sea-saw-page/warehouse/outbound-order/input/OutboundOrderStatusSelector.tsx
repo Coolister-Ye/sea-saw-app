@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Select, Space } from "antd";
 import type { SelectProps } from "antd";
-import OutboundStatusTag from "../../../display/OutboundStatusTag";
+import OutboundStatusTag from "../display/OutboundStatusTag";
 
 interface OutboundOrderStatusSelectorProps {
   def: any;
@@ -30,7 +30,11 @@ export default function OutboundOrderStatusSelector({
 
   const labelRender: SelectProps["labelRender"] = (props) => {
     const { value: labelValue } = props;
-    return <OutboundStatusTag def={def} value={labelValue as string} />;
+    return (
+      <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+        <OutboundStatusTag def={def} value={labelValue as string} />
+      </div>
+    );
   };
 
   return (

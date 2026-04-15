@@ -17,6 +17,8 @@ interface AccountPopoverProps {
   value?: Account | null;
   /** Custom trigger element. Defaults to a link button showing account_name. */
   children?: React.ReactNode;
+  /** Override popup container, e.g. to fix z-index inside modals */
+  getPopupContainer?: (trigger: HTMLElement) => HTMLElement;
 }
 
 const COL_DEF = {
@@ -25,7 +27,7 @@ const COL_DEF = {
   phone:   { icon: "📞" },
 };
 
-export default function AccountPopover({ value, def, children }: AccountPopoverProps) {
+export default function AccountPopover({ value, def, children, getPopupContainer }: AccountPopoverProps) {
   const content = useMemo(
     () =>
       value ? (
@@ -55,7 +57,7 @@ export default function AccountPopover({ value, def, children }: AccountPopoverP
   }
 
   return (
-    <Popover content={content} trigger="hover" placement="right" mouseEnterDelay={0.15}>
+    <Popover content={content} trigger="hover" placement="right" mouseEnterDelay={0.15} getPopupContainer={getPopupContainer}>
       {children ?? (
         <Button
           type="link"

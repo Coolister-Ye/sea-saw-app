@@ -68,6 +68,7 @@ export default function PurchaseOrderCard({
             />
           ) : undefined,
         rightContent: (item, { getFieldLabel, formDefs }) => {
+          if (mode !== "standalone") return undefined;
           const pipelineDef = formDefs.find(
             (d) => d.field === "related_pipeline",
           ) as any;
@@ -79,7 +80,10 @@ export default function PurchaseOrderCard({
                   {getFieldLabel("related_pipeline")}
                 </Text>
               </View>
-              <Pressable onPress={onPipelineClick}>
+              <Pressable
+                onPress={pipelineLoading ? undefined : onPipelineClick}
+                style={{ opacity: pipelineLoading ? 0.5 : 1 }}
+              >
                 <PipelinePopover
                   value={item.related_pipeline}
                   def={pipelineDef}

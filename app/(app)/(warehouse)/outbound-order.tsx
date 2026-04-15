@@ -10,8 +10,8 @@ import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 
 import Table from "@/components/sea-saw-design/table";
 import { theme } from "@/components/sea-saw-design/table/theme";
-import OutboundOrderInput from "@/components/sea-saw-page/warehouse/outbound-order/input/nested/OutboundOrderInput";
-import StandaloneOutboundOrderDisplay from "@/components/sea-saw-page/warehouse/outbound-order/display/StandaloneOutboundOrderDisplay";
+import OutboundOrderInput from "@/components/sea-saw-page/warehouse/outbound-order/input/OutboundOrderInput";
+import OutboundOrderDisplay from "@/components/sea-saw-page/warehouse/outbound-order/display/OutboundOrderDisplay";
 
 export default function OutboundOrderScreen() {
   const {
@@ -24,6 +24,7 @@ export default function OutboundOrderScreen() {
     viewRow,
     editData,
     openCreate,
+    openCopy,
     closeView,
     closeEdit,
     handleCreateSuccess,
@@ -33,6 +34,7 @@ export default function OutboundOrderScreen() {
   } = useEntityPage({
     entity: "outboundOrder",
     nameField: "outbound_code",
+    excludeFromCopy: ["related_pipeline", "attachments"],
   });
 
   const baseDefs = useMemo(
@@ -48,9 +50,12 @@ export default function OutboundOrderScreen() {
           <Button onPress={openCreate}>
             <Text>{i18n.t("create")}</Text>
           </Button>
+          <Button onPress={openCopy}>
+            <Text>{i18n.t("copy")}</Text>
+          </Button>
         </View>
 
-        {/* Create Drawer */}
+        {/* Create / Copy Drawer */}
         <OutboundOrderInput
           mode="standalone"
           isOpen={isEditOpen}
@@ -62,7 +67,7 @@ export default function OutboundOrderScreen() {
         />
 
         {/* View Drawer */}
-        <StandaloneOutboundOrderDisplay
+        <OutboundOrderDisplay
           isOpen={isViewOpen}
           def={baseDefs}
           data={viewRow}

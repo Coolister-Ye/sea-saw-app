@@ -8,7 +8,7 @@ import { canCreateSubEntity } from "@/constants/PipelineStatus";
 import OutboundOrderCard from "@/components/sea-saw-page/warehouse/outbound-order/display/OutboundOrderCard";
 import OutboundAddDivider from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundAddDivider";
 import OutboundOrderEmptySlot from "@/components/sea-saw-page/warehouse/outbound-order/display/shared/OutboundOrderEmptySlot";
-import OutboundOrderInput from "@/components/sea-saw-page/warehouse/outbound-order/input/nested/OutboundOrderInput";
+import OutboundOrderInput from "@/components/sea-saw-page/warehouse/outbound-order/input/OutboundOrderInput";
 
 export default function OutboundOrdersSection({
   pipeline,
@@ -102,6 +102,7 @@ export default function OutboundOrdersSection({
       </View>
 
       <OutboundOrderInput
+        mode="nested"
         isOpen={Boolean(editingOb)}
         def={def}
         data={editingOb ?? {}}

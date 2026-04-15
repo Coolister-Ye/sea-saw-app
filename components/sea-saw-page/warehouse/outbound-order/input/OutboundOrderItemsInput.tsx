@@ -6,7 +6,7 @@ import { FormDef } from "@/hooks/useFormDefs";
 import { useOrderItemsManager } from "@/hooks/useOrderItemsManager";
 import InputForm from "@/components/sea-saw-design/form/InputForm";
 import ActionDropdown from "@/components/sea-saw-design/action-dropdown";
-import OutboundItemsViewToggle from "../../../display/items/OutboundItemsViewToggle";
+import OutboundItemsViewToggle from "../display/items/OutboundItemsViewToggle";
 import { Drawer, InputFooter } from "@/components/sea-saw-page/base";
 
 interface OutboundOrderItemsInputProps {

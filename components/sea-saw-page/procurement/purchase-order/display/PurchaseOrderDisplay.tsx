@@ -12,6 +12,7 @@ import PurchaseOrderCard from "./PurchaseOrderCard";
 import PurchaseOrderInput from "../input/PurchaseOrderInput";
 import PipelineDisplay from "@/components/sea-saw-page/pipeline/display/PipelineDisplay";
 import { pickFormDef, filterFormDefs } from "@/utils/formDefUtils";
+import { PipelineStatus, SubEntityStatus } from "@/constants/PipelineStatus";
 import type { PipelineDefs } from "@/components/sea-saw-page/pipeline/display/types";
 
 const EXCLUDED_FIELDS = ["allowed_actions"];
@@ -36,6 +37,13 @@ export default function PurchaseOrderDisplay({
 
   const purchaseOrder = data ?? {};
   const hasPipeline = Boolean(purchaseOrder.related_pipeline?.id);
+  const pipelineStatus = purchaseOrder.related_pipeline?.status as string | undefined;
+
+  const canEdit = hasPipeline
+    ? pipelineStatus === PipelineStatus.IN_PURCHASE ||
+      pipelineStatus === PipelineStatus.IN_PURCHASE_AND_PRODUCTION
+    : purchaseOrder.status !== SubEntityStatus.COMPLETED &&
+      purchaseOrder.status !== SubEntityStatus.CANCELLED;
 
   // Pipeline display state
   const [isPipelineOpen, setIsPipelineOpen] = useState(false);
@@ -139,7 +147,7 @@ export default function PurchaseOrderDisplay({
           <PurchaseOrderCard
             def={baseDef}
             value={[purchaseOrder]}
-            canEdit={purchaseOrder.status === "draft" || !hasPipeline}
+            canEdit={canEdit}
             onItemClick={() => setEditingPurchaseOrder(purchaseOrder)}
             onPipelineClick={handleOpenPipeline}
             pipelineLoading={loadingPipeline}

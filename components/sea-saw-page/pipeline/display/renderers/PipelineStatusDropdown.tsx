@@ -7,15 +7,26 @@ import {
   TRANSITION_ENTITY_CHECK,
 } from "@/constants/PipelineStatus";
 
+interface SubEntityItem {
+  id: string | number;
+  status: string;
+}
+
 interface Props {
   pipelineId: string | number;
   stateActions: string[];
   statusDef?: { choices?: Array<{ value: string; label: string }> };
-  purchaseOrders?: Array<{ status: string }>;
-  productionOrders?: Array<{ status: string }>;
-  outboundOrders?: Array<{ status: string }>;
+  purchaseOrders?: SubEntityItem[];
+  productionOrders?: SubEntityItem[];
+  outboundOrders?: SubEntityItem[];
   onSuccess?: (data: any) => void;
 }
+
+const ENTITY_KEY_TO_URI: Record<string, string> = {
+  purchase_orders: "purchaseOrder",
+  production_orders: "productionOrder",
+  outbound_orders: "outboundOrder",
+};
 
 export default function PipelineStatusDropdown({
   pipelineId,
@@ -76,6 +87,31 @@ export default function PipelineStatusDropdown({
     }
   }, [pipelineId, request, messageApi, onSuccess]);
 
+  const closeOpenOrders = useCallback(async (action: string) => {
+    const entityKeys = TRANSITION_ENTITY_CHECK[action];
+    if (!entityKeys) return;
+
+    const entityDataMap: Record<string, SubEntityItem[]> = {
+      purchase_orders: purchaseOrders ?? [],
+      production_orders: productionOrders ?? [],
+      outbound_orders: outboundOrders ?? [],
+    };
+
+    const patches: Promise<any>[] = [];
+    for (const key of entityKeys) {
+      const uri = ENTITY_KEY_TO_URI[key];
+      if (!uri) continue;
+      const openOrders = (entityDataMap[key] ?? []).filter(
+        (o) => !CLOSED_SUB_ENTITY_STATUSES.includes(o.status),
+      );
+      for (const order of openOrders) {
+        patches.push(request({ uri, method: "PATCH", id: order.id, body: { status: "completed" } }));
+      }
+    }
+
+    await Promise.all(patches);
+  }, [purchaseOrders, productionOrders, outboundOrders, request]);
+
   const getOpenEntityWarning = useCallback((action: string): string | null => {
     const entityKeys = TRANSITION_ENTITY_CHECK[action];
     if (!entityKeys) return null;
@@ -104,15 +140,18 @@ export default function PipelineStatusDropdown({
     if (warning) {
       Modal.confirm({
         title: i18n.t("Some orders are not yet closed"),
-        content: `${warning}. ${i18n.t("Are you sure you want to proceed?")}`,
+        content: `${warning}. ${i18n.t("Proceeding will automatically mark them as completed. Are you sure you want to proceed?")}`,
         okText: i18n.t("Proceed"),
         cancelText: i18n.t("Cancel"),
-        onOk: () => doTransition(action),
+        onOk: async () => {
+          await closeOpenOrders(action);
+          await doTransition(action);
+        },
       });
     } else {
       doTransition(action);
     }
-  }, [getOpenEntityWarning, doTransition]);
+  }, [getOpenEntityWarning, closeOpenOrders, doTransition]);
 
   const menuProps: MenuProps = useMemo(
     () => ({

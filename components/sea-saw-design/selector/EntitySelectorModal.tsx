@@ -124,10 +124,10 @@ export function EntitySelectorModal<T extends EntityItem>({
           {/* Footer */}
           <View className="flex-row max-sm:flex-col max-sm:gap-3 items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
             {/* Selection Info */}
-            <View className="flex-row items-center">
+            <View className="flex-row items-center min-w-0 flex-1">
               {multiple && selected.length > 0 && (
                 <>
-                  <View className="w-6 h-6 rounded bg-blue-500 items-center justify-center mr-2">
+                  <View className="w-6 h-6 rounded bg-blue-500 items-center justify-center mr-2 shrink-0">
                     <Text className="text-white text-xs font-bold">
                       {selected.length}
                     </Text>
@@ -138,9 +138,9 @@ export function EntitySelectorModal<T extends EntityItem>({
                 </>
               )}
               {!multiple && selected.length > 0 && (
-                <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded">
-                  <CheckIcon size={14} className="text-blue-500 mr-1.5" />
-                  <Text className="text-sm text-blue-700 font-medium">
+                <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded max-w-[180px] min-w-0">
+                  <CheckIcon size={14} className="text-blue-500 mr-1.5 shrink-0" />
+                  <Text className="text-sm text-blue-700 font-medium shrink" numberOfLines={1} ellipsizeMode="tail">
                     {selected[0]?.[displayField]}
                   </Text>
                 </View>
@@ -148,12 +148,14 @@ export function EntitySelectorModal<T extends EntityItem>({
             </View>
 
             {/* Actions */}
-            <View className="flex-row items-center gap-1">
-              <Button onPress={onClear}>
-                <Text className="text-blue-500 underline">
-                  {i18n.t("Clear")}
-                </Text>
-              </Button>
+            <View className="flex-row items-center gap-1 shrink-0">
+              {selected.length > 0 && (
+                <Button onPress={onClear}>
+                  <Text className="text-blue-500 underline">
+                    {i18n.t("Clear")}
+                  </Text>
+                </Button>
+              )}
               <Button onPress={closeModal}>
                 <Text>{i18n.t("Cancel")}</Text>
               </Button>
