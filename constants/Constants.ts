@@ -39,10 +39,10 @@ export const constants = {
     listOrdersByMonth: "/api/sales/orders-stats/s2/",
     listContractsStats: "/api/sea-saw-crm/contracts-stats/",
 
-    orderExportPi: "/api/sales/orders/{id}/export-pi/",
-    orderExportPiBulk: "/api/sales/orders/export-pi-bulk/",
-    purchaseOrderExportPo: "/api/procurement/purchase-orders/{id}/export-po/",
-    purchaseOrderExportPoBulk: "/api/procurement/purchase-orders/export-po-bulk/",
+    orderExportSc: "/api/sales/orders/{id}/export-sales-contract/",
+    orderExportScBulk: "/api/sales/orders/export-sales-contract-bulk/",
+    purchaseOrderExportPc: "/api/procurement/purchase-orders/{id}/export-purchase-contract/",
+    purchaseOrderExportPcBulk: "/api/procurement/purchase-orders/export-purchase-contract-bulk/",
 
     createProductionOrder: "/api/pipeline/pipelines/{id}/create_production/",
     createOutboundOrder: "/api/pipeline/pipelines/{id}/create_outbound/",
@@ -53,6 +53,7 @@ export const constants = {
     login: "/api/token/",
     tokenVerify: "/api/token/verify/",
     tokenRefresh: "/api/token/refresh/",
+    tokenBlacklist: "/api/token/blacklist/",
     userProfile: "/api/auth/user-detail/",
     setPasswd: "/auth/users/set_password/",
     register: "/api/auth/register/",

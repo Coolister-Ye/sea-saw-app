@@ -273,21 +273,21 @@ export default function PurchaseOrderScreen() {
     [],
   );
 
-  // Export PO
-  const exportPoFn = useCallback(async () => {
+  // Export Purchase Contract
+  const exportPcFn = useCallback(async () => {
     if (selectedRows.length === 0) return;
     const token = await AuthService.getJwtToken();
     if (selectedRows.length === 1) {
       const row = selectedRows[0];
-      const url = getUrl("purchaseOrderExportPo").replace(
+      const url = getUrl("purchaseOrderExportPc").replace(
         "{id}",
         String(row.id),
       );
-      await downloadFileWithAuth(url, `PO-${row.purchase_code}.xlsx`, token);
+      await downloadFileWithAuth(url, `PC-${row.purchase_code}.xlsx`, token);
     } else {
-      const url = getUrl("purchaseOrderExportPoBulk");
+      const url = getUrl("purchaseOrderExportPcBulk");
       const ids = selectedRows.map((r) => r.id);
-      const filename = `PO-bulk-${ids.length}-orders.xlsx`;
+      const filename = `PC-bulk-${ids.length}-orders.xlsx`;
       await downloadFileWithAuth(url, filename, token, {
         method: "POST",
         body: JSON.stringify({ ids }),
@@ -295,9 +295,9 @@ export default function PurchaseOrderScreen() {
       });
     }
   }, [selectedRows]);
-  const { loading: exportingPo, execute: handleExportPo } = useAsyncAction(
-    exportPoFn,
-    { errorMessage: i18n.t("Failed to export PO") },
+  const { loading: exportingPc, execute: handleExportPc } = useAsyncAction(
+    exportPcFn,
+    { errorMessage: i18n.t("Failed to export purchase contract") },
   );
 
   // Download
@@ -360,8 +360,8 @@ export default function PurchaseOrderScreen() {
                 />
                 <Button
                   icon={<FileExcelOutlined />}
-                  onClick={() => handleExportPo()}
-                  loading={exportingPo}
+                  onClick={() => handleExportPc()}
+                  loading={exportingPc}
                   disabled={selectedRows.length === 0}
                 />
               </>

@@ -291,18 +291,18 @@ export default function OrderScreen() {
     },
   );
 
-  // Export PI
-  const exportPiFn = useCallback(async () => {
+  // Export Sales Contract
+  const exportScFn = useCallback(async () => {
     if (selectedRows.length === 0) return;
     const token = await AuthService.getJwtToken();
     if (selectedRows.length === 1) {
       const row = selectedRows[0];
-      const url = getUrl("orderExportPi").replace("{id}", String(row.id));
-      await downloadFileWithAuth(url, `PI-${row.order_code}.xlsx`, token);
+      const url = getUrl("orderExportSc").replace("{id}", String(row.id));
+      await downloadFileWithAuth(url, `SC-${row.order_code}.xlsx`, token);
     } else {
-      const url = getUrl("orderExportPiBulk");
+      const url = getUrl("orderExportScBulk");
       const ids = selectedRows.map((r) => r.id);
-      const filename = `PI-bulk-${ids.length}-orders.xlsx`;
+      const filename = `SC-bulk-${ids.length}-orders.xlsx`;
       await downloadFileWithAuth(url, filename, token, {
         method: "POST",
         body: JSON.stringify({ ids }),
@@ -310,9 +310,9 @@ export default function OrderScreen() {
       });
     }
   }, [selectedRows]);
-  const { loading: exportingPi, execute: handleExportPi } = useAsyncAction(
-    exportPiFn,
-    { errorMessage: i18n.t("Failed to export PI") },
+  const { loading: exportingSc, execute: handleExportSc } = useAsyncAction(
+    exportScFn,
+    { errorMessage: i18n.t("Failed to export sales contract") },
   );
 
   return (
@@ -357,8 +357,8 @@ export default function OrderScreen() {
                 />
                 <Button
                   icon={<FileExcelOutlined />}
-                  onClick={() => handleExportPi()}
-                  loading={exportingPi}
+                  onClick={() => handleExportSc()}
+                  loading={exportingSc}
                   disabled={selectedRows.length === 0}
                 />
               </>

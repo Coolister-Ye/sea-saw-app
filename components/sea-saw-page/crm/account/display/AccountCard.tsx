@@ -34,16 +34,20 @@ export default function AccountCard({ def, data, onEdit }: AccountCardProps) {
       sections={[
         {
           title: i18n.t("basic information"),
-          fields: ["phone", "email", "address"],
+          fields: ["phone", "mobile", "email", "address"],
           className: "bg-slate-50/70",
         },
         {
           title: i18n.t("business information"),
-          fields: ["industry", "website"],
+          fields: ["industry", "website", "description"],
         },
         {
           fields: ["contacts"],
           hidden: (item) => !item.contacts?.length,
+        },
+        {
+          fields: ["bank_accounts"],
+          hidden: (item) => !item.bank_accounts?.length,
         },
       ]}
       fieldConfig={{
@@ -56,6 +60,17 @@ export default function AccountCard({ def, data, onEdit }: AccountCardProps) {
                 def={(fieldDef as any)?.child?.children}
                 value={item.contacts}
                 excludeFields={["id", "pk", "account"]}
+              />
+            ) : undefined,
+        },
+        bank_accounts: {
+          fullWidth: true,
+          render: (_v, item, fieldDef) =>
+            item.bank_accounts?.length > 0 ? (
+              <ItemsTable
+                def={(fieldDef as any)?.child?.children}
+                value={item.bank_accounts}
+                excludeFields={["id", "pk", "account_holder"]}
               />
             ) : undefined,
         },
