@@ -120,7 +120,7 @@ export function DrawerHeader({ title = "Sea-Saw" }: DrawerHeaderProps) {
 
   return (
     <View className="h-14 bg-background border-b border-border px-4">
-      <View className="flex-row items-center justify-between h-full max-w-screen-2xl mx-auto w-full">
+      <View className="flex-row items-center justify-between h-full mx-auto w-full">
         {/* Logo Section */}
         <Pressable
           onPress={handleNavigateHome}

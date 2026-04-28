@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "@/*": [
         "./*"
@@ -14,6 +15,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
-, "components/sea-saw-page/crm/account/display/AccountPopover.tsx.bak"  ]
+    "nativewind-env.d.ts",
+    "assets.d.ts",
+    "components/sea-saw-page/crm/account/display/AccountPopover.tsx.bak"
+  ]
 }

@@ -10,7 +10,7 @@
  * This service is framework-agnostic and can be used outside of React context.
  */
 
-import { fetchJson, getUrl, getLocalData, setLocalData, removeLocalData } from "@/utils";
+import { fetchJson, getUrl, getLocalData, setLocalData, removeLocalData, FetchError } from "@/utils";
 import { devLog, devWarn, devError } from "@/utils/logger";
 import { AuthError } from "@/types/auth";
 import type {
@@ -51,6 +51,9 @@ export class AuthService {
       devLog("Login successful for user:", username);
     } catch (error) {
       devError("Login failed:", error);
+      if (error instanceof FetchError && error.status === 429) {
+        throw new AuthError("Too many login attempts, please try again later");
+      }
       throw this.createAuthError("Login failed", error);
     }
   }
@@ -61,6 +64,17 @@ export class AuthService {
    */
   static async logout(): Promise<void> {
     try {
+      const tokenData = await getLocalData<UserToken>(this.TOKEN_STORAGE_KEY);
+      if (tokenData?.refresh) {
+        // Server-side revocation — fire-and-forget, never blocks logout
+        fetchJson({
+          url: getUrl("tokenBlacklist"),
+          method: "POST",
+          body: { refresh: tokenData.refresh },
+          autoRefresh: false,
+          isUseToken: false,
+        }).catch((err) => devWarn("Token blacklist call failed (non-blocking):", err));
+      }
       await removeLocalData(this.TOKEN_STORAGE_KEY);
       devLog("Logout successful");
     } catch (error) {
