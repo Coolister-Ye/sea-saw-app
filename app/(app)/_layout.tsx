@@ -27,6 +27,7 @@ const SCREEN_CONFIGS: ScreenConfig[] = [
   { name: "(crm)/account", label: "account", groups: ["Sale"] },
   { name: "(crm)/bank-account", label: "bank_account", groups: ["Sale", "Purchase"] },
   { name: "(sales)/order", label: "order", groups: ["Sale"] },
+  { name: "(sales)/order-integration", label: "order_integration", groups: ["Sale"] },
   {
     name: "(procurement)/purchase-order",
     label: "purchase_order",

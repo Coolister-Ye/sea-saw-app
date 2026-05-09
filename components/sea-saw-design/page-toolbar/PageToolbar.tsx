@@ -13,8 +13,8 @@ export interface PageToolbarProps {
   isSearchOpen: boolean;
   /** 切换搜索侧边栏 */
   onToggleSearch: () => void;
-  /** ActionDropdown 的 props，直接透传 */
-  actionDropdownProps: ActionDropdownProps;
+  /** ActionDropdown 的 props，直接透传；不传则不渲染 ActionDropdown */
+  actionDropdownProps?: ActionDropdownProps;
   /** 额外操作按钮，插入在 Filter 按钮和 ActionDropdown 之间 */
   extra?: React.ReactNode;
   /** 工具栏左侧内容（如 QuickFilter） */
@@ -41,7 +41,7 @@ export function PageToolbar({
           />
         </Badge>
         {extra}
-        <ActionDropdown {...actionDropdownProps} />
+        {actionDropdownProps && <ActionDropdown {...actionDropdownProps} />}
       </View>
     </View>
   );

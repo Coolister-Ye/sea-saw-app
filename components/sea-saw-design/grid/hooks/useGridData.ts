@@ -10,7 +10,7 @@
  * mapping filterModel keys to actual API params.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { PaginationState, SortingState } from "@tanstack/react-table";
 import { devError } from "@/utils/logger";
 import type { IGridDatasource } from "../types";
@@ -45,14 +45,6 @@ export function useGridData({
   const [error, setError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
   const refresh = useCallback(() => setRefreshTick((n) => n + 1), []);
 
   useEffect(() => {
@@ -77,13 +69,13 @@ export function useGridData({
       sortModel,
       filterModel,
       success({ rowData, rowCount }) {
-        if (cancelled || !mountedRef.current) return;
+        if (cancelled) return;
         setRows(rowData);
         setTotal(rowCount);
         setIsLoading(false);
       },
       fail() {
-        if (cancelled || !mountedRef.current) return;
+        if (cancelled) return;
         devError("Grid useGridData: datasource.getRows failed");
         setError("Failed to load data");
         setIsLoading(false);

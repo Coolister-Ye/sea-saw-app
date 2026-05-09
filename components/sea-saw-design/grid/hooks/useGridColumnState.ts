@@ -64,7 +64,6 @@ type UseGridColumnStateParams = {
 
 export type UseGridColumnStateResult = {
   /* ── Column sections ── */
-  allMetaCols: ComputedColumn[];
   orderedColumns: ComputedColumn[];
   leftCols: ComputedColumn[];
   centerCols: ComputedColumn[];
@@ -97,7 +96,7 @@ export function useGridColumnState({
 }: UseGridColumnStateParams): UseGridColumnStateResult {
   /* ── State ──────────────────────────────────────────────────────────── */
   const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(() => ({
-    left: showCheckboxColumn ? [SELECTION_COLUMN_FIELD] : [],
+    left: showCheckboxColumn ? [GRID_SELECTION_FIELD] : [],
     right: [],
   }));
 
@@ -147,19 +146,18 @@ export function useGridColumnState({
     return ordered;
   }, [visibleColumns, columnOrder]);
 
-  // 5. Split into pinned sections
-  const leftCols = useMemo(
-    () => orderedColumns.filter((c) => c.pinned === "left"),
-    [orderedColumns],
-  );
-  const centerCols = useMemo(
-    () => orderedColumns.filter((c) => !c.pinned),
-    [orderedColumns],
-  );
-  const rightCols = useMemo(
-    () => orderedColumns.filter((c) => c.pinned === "right"),
-    [orderedColumns],
-  );
+  // 5. Split into pinned sections (single pass)
+  const { leftCols, centerCols, rightCols } = useMemo(() => {
+    const left: ComputedColumn[] = [];
+    const center: ComputedColumn[] = [];
+    const right: ComputedColumn[] = [];
+    for (const c of orderedColumns) {
+      if (c.pinned === "left") left.push(c);
+      else if (c.pinned === "right") right.push(c);
+      else center.push(c);
+    }
+    return { leftCols: left, centerCols: center, rightCols: right };
+  }, [orderedColumns]);
 
   /* ── Mutations ──────────────────────────────────────────────────────── */
 
@@ -240,7 +238,6 @@ export function useGridColumnState({
   );
 
   return {
-    allMetaCols,
     orderedColumns,
     leftCols,
     centerCols,

@@ -7,7 +7,7 @@
  *   3. valueFormatter → Text  (default)
  */
 import React, { memo } from "react";
-import { View, Text } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { resolveValue, formatCellValue } from "./utils";
 import { GRID_ROW_HEIGHT } from "../../constants";
 import type { ComputedColumn, CellRendererProps } from "../../types";
@@ -18,32 +18,27 @@ type GridCellProps = {
   col: ComputedColumn;
   width: number;
   row: Record<string, any>;
-  isSelected: boolean;
   context?: Record<string, any>;
 };
+
+const cellStyle = StyleSheet.create({
+  row: { height: GRID_ROW_HEIGHT },
+});
 
 export const GridCell = memo(function GridCell({
   col,
   width,
   row,
-  isSelected,
   context,
 }: GridCellProps) {
   const value = resolveValue(col, row, context);
 
   return (
     <View
-      style={{ width, height: GRID_ROW_HEIGHT }}
-      className={[
-        "justify-center overflow-hidden border-r border-[#e5e7eb]",
-        isSelected ? "bg-[#eff6ff]" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      style={[cellStyle.row, { width }]}
+      className="flex-row items-center overflow-hidden border-r border-gray-200 px-3"
     >
-      <View className="px-3">
-        {renderCellContent(col, value, row, context)}
-      </View>
+      {renderCellContent(col, value, row, context)}
     </View>
   );
 });
@@ -55,14 +50,14 @@ function renderCellContent(
   context?: Record<string, any>,
 ) {
   if (col.cellRenderer) {
-    const props: CellRendererProps = { value, data: row, context };
-    return col.cellRenderer(props);
+    const Renderer = col.cellRenderer as React.ComponentType<CellRendererProps>;
+    return <Renderer value={value} data={row} context={context} />;
   }
   if (col.renderCell) {
     return col.renderCell(value, row, col.fieldMeta);
   }
   return (
-    <Text className="text-[13px] text-[#1f2937]" numberOfLines={1}>
+    <Text className="flex-1 text-[13px] text-gray-800" numberOfLines={1}>
       {formatCellValue(col, value, row, context)}
     </Text>
   );

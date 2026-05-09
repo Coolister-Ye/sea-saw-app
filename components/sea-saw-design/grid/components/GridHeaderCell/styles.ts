@@ -17,6 +17,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     overflow: "hidden",
   },
+  checkboxContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRightWidth: 1,
+    borderRightColor: QUARTZ.border,
+  },
   labelContainerActive: {
     backgroundColor: QUARTZ.headerActive,
   },

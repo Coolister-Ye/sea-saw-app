@@ -1,5 +1,3 @@
-import { create } from "lodash";
-
 export const constants = {
   localhost: {
     // apiDomain: "http://192.168.0.88:8000",
@@ -17,6 +15,7 @@ export const constants = {
     contact: "/api/sea-saw-crm/contacts/",
     bankAccount: "/api/sea-saw-crm/bank-accounts/",
     order: "/api/sales/orders/",
+    orderIntegration: "/api/sales/orders-integration/",
     nestedOrder: "/api/sales/nested-orders/",
     pipeline: "/api/pipeline/pipelines/",
     account: "/api/sea-saw-crm/accounts/",
@@ -47,7 +46,6 @@ export const constants = {
     createProductionOrder: "/api/pipeline/pipelines/{id}/create_production/",
     createOutboundOrder: "/api/pipeline/pipelines/{id}/create_outbound/",
     createPurchaseOrder: "/api/pipeline/pipelines/{id}/create_purchase/",
-    orderStatusTransition: "/api/pipeline/pipelines/{id}/transition/",
     pipelineStatusTransition: "/api/pipeline/pipelines/{id}/transition/",
 
     login: "/api/token/",

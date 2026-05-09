@@ -15,6 +15,7 @@ type UseTableMetaParams = {
 
 type UseTableMetaResult = {
   columns: ComputedColumn[];
+  headerMetaData: Record<string, HeaderMetaProps>;
   isLoading: boolean;
   error: string | null;
 };
@@ -27,6 +28,7 @@ export function useTableMeta({
   columnOrder,
 }: UseTableMetaParams): UseTableMetaResult {
   const [columns, setColumns] = useState<ComputedColumn[]>([]);
+  const [headerMetaData, setHeaderMetaData] = useState<Record<string, HeaderMetaProps>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,14 +63,8 @@ export function useTableMeta({
         }
 
         if (mounted) {
-          setColumns(
-            buildColumns(
-              meta,
-              colDefinitions,
-              hideWriteOnly,
-              columnOrder,
-            ),
-          );
+          setHeaderMetaData(meta);
+          setColumns(buildColumns(meta, colDefinitions, hideWriteOnly, columnOrder));
         }
       } catch (err) {
         devError("NativeTable useTableMeta: failed", err);
@@ -84,5 +80,5 @@ export function useTableMeta({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialHeaderMeta, viewSet, colDefsStr, hideWriteOnly, columnOrderStr]);
 
-  return { columns, isLoading, error };
+  return { columns, headerMetaData, isLoading, error };
 }

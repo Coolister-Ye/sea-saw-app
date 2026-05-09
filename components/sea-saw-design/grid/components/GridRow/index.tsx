@@ -2,7 +2,7 @@
  * GridRow — memoized data row for Grid.
  *
  * Quartz theme: height 30px, rowBorder #f3f4f6,
- *   hover #f3f4f6, selected #eff6ff, accent stripe #3b82f6
+ *   hover #f3f4f6, selected #eff6ff
  */
 import React, { memo, useCallback, useState } from "react";
 import { View, TouchableOpacity, Platform } from "react-native";
@@ -59,27 +59,14 @@ export const GridRow = memo(function GridRow({
         borderBottomWidth: 1,
         borderBottomColor: "#f3f4f6",
         backgroundColor: bgColor,
-        position: "relative",
       }}
     >
-      {isSelected && (
-        <View
-          style={{
-            position: "absolute",
-            left: 0, top: 0, bottom: 0,
-            width: 3,
-            backgroundColor: "#3b82f6",
-            zIndex: 1,
-          }}
-        />
-      )}
       {columns.map((col) => (
         <GridCell
           key={col.field}
           col={col}
           width={getWidth(col.field)}
           row={row}
-          isSelected={isSelected}
           context={context}
         />
       ))}

@@ -45,7 +45,6 @@ export default function PipelineDisplay({
   // Convert single order to array for OrdersSection compatibility
   const orders = useMemo(() => (order ? [order] : []), [order]);
 
-  // Visibility checks
   const visibility = useMemo(
     () => ({
       hasOrders: Boolean(defs.orders),
@@ -57,7 +56,6 @@ export default function PipelineDisplay({
     [defs],
   );
 
-  // Get status def from base defs
   const statusDef = useMemo(
     () => defs.base.find((d) => d.field === "status"),
     [defs.base],
@@ -82,7 +80,6 @@ export default function PipelineDisplay({
 
   const { pipeline: editingPipeline, order: editingOrder, prod: editingProd, purchase: editingPurchase, ob: editingOb, payment: editingPayment } = editing;
 
-  // Auto-advance pipeline status after sub-entity creation
   const autoAdvance = useCallback(async (targetStatus: string) => {
     try {
       await request({
@@ -153,7 +150,6 @@ export default function PipelineDisplay({
       }
     >
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* Pipeline Information */}
         <PipelineSection
           pipeline={pipeline}
           def={defs.base}
@@ -164,7 +160,6 @@ export default function PipelineDisplay({
           onUpdate={onUpdate}
         />
 
-        {/* Orders */}
         {visibility.hasOrders && (
           <OrdersSection
             pipeline={pipeline}
@@ -178,7 +173,6 @@ export default function PipelineDisplay({
           />
         )}
 
-        {/* Purchase Orders */}
         {visibility.hasPurchaseOrders && (
           <PurchaseOrdersSection
             order={pipeline}
@@ -194,7 +188,6 @@ export default function PipelineDisplay({
           />
         )}
 
-        {/* Production Orders */}
         {visibility.hasProductionOrders && (
           <ProductionOrdersSection
             order={pipeline}
@@ -210,7 +203,6 @@ export default function PipelineDisplay({
           />
         )}
 
-        {/* Outbound Orders */}
         {visibility.hasOutboundOrders && (
           <OutboundOrdersSection
             pipeline={pipeline}
@@ -226,7 +218,6 @@ export default function PipelineDisplay({
           />
         )}
 
-        {/* Payments */}
         {visibility.hasPayments && (
           <PaymentsSection
             order={pipeline}

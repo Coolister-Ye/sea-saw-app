@@ -133,8 +133,6 @@ function getValueFormatter(
   displayFields: string[] = ["id"],
   choices?: { value: string; label: string }[]
 ): (params: ValueFormatterParams) => string {
-  const objectTypes = ["nested object", "field"];
-
   // Handle choice type: map value to label
   if (type === "choice" && choices && choices.length > 0) {
     return ({ value }: ValueFormatterParams) => {
@@ -144,11 +142,24 @@ function getValueFormatter(
     };
   }
 
-  if (objectTypes.includes(type)) {
+  if (type === "nested object") {
     return ({ value }: ValueFormatterParams) => {
       if (!value || typeof value !== "object") return "";
       return displayFields
         .map((key) => value[key])
+        .filter((v) => v !== undefined && v !== null)
+        .join(", ");
+    };
+  }
+
+  // "field" type is a DRF catch-all (e.g. SerializerMethodField) — the value
+  // could be a primitive (string, number, date) or an object; handle both.
+  if (type === "field") {
+    return ({ value }: ValueFormatterParams) => {
+      if (value === undefined || value === null) return "";
+      if (typeof value !== "object") return String(value);
+      return displayFields
+        .map((key) => (value as Record<string, unknown>)[key])
         .filter((v) => v !== undefined && v !== null)
         .join(", ");
     };

@@ -5,6 +5,7 @@ import { HeaderMetaProps } from "@/components/sea-saw-design/table/interface";
 import { FormDef } from "@/hooks/useFormDefs";
 import useDataService from "@/hooks/useDataService";
 import { normalizeBoolean } from "@/utils";
+import { devError } from "@/utils/logger";
 
 export interface UseEntityMetaOptions {
   /** 需要从 headerMeta 中过滤掉的字段 */
@@ -50,7 +51,7 @@ export function useEntityMeta(
     setMetaError(null);
     try {
       const res = await viewSet.options();
-      let meta = res?.actions?.POST ?? {};
+      let meta = res?.actions?.POST ?? res?.actions?.GET ?? {};
 
       const fieldsToFilter = filterMetaFieldsRef.current;
       if (fieldsToFilter.length > 0) {
@@ -63,7 +64,7 @@ export function useEntityMeta(
 
       setHeaderMeta(meta);
     } catch (err: any) {
-      console.error(`Failed to load ${entity} Meta:`, err);
+      devError(`Failed to load ${entity} Meta:`, err);
       setMetaError(err?.message || i18n.t("Failed to load metadata"));
     } finally {
       setLoadingMeta(false);

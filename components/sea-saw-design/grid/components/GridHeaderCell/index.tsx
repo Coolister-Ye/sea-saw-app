@@ -15,6 +15,8 @@ import { GridCheckboxHeaderCell } from "../GridCheckboxCell";
 import type { ComputedColumn } from "../../types";
 import { styles, textStyles } from "./styles";
 
+const NOOP = () => {};
+
 type GridHeaderCellProps = {
   col: ComputedColumn;
   width: number;
@@ -93,10 +95,10 @@ export const GridHeaderCell = memo(function GridHeaderCell({
   return (
     <View style={[styles.cell, { width, height: GRID_HEADER_HEIGHT }]}>
       {isCheckboxCol ? (
-        <View style={styles.labelContainer}>
+        <View style={styles.checkboxContainer}>
           <GridCheckboxHeaderCell
             state={checkboxHeaderState}
-            onPress={onCheckboxHeaderPress ?? (() => {})}
+            onPress={onCheckboxHeaderPress ?? NOOP}
           />
         </View>
       ) : (
@@ -121,11 +123,9 @@ export const GridHeaderCell = memo(function GridHeaderCell({
             >
               {col.headerName}
             </Text>
-            {col.sortable && isSorted && direction ? (
+            {col.sortable && direction && (
               <SortIndicator direction={direction} priority={priority} hasMultiSort={hasMultiSort} />
-            ) : col.sortable ? (
-              <Ionicons name="chevron-expand-outline" size={11} color={QUARTZ.sortNone} />
-            ) : null}
+            )}
           </View>
         </Pressable>
       )}
@@ -142,15 +142,17 @@ export const GridHeaderCell = memo(function GridHeaderCell({
         </View>
       )}
 
-      <View
-        style={styles.resizeTouchTarget}
-        {...(col.resizable !== false ? panResponder.panHandlers : {})}
-        {...(Platform.OS === "web" && col.resizable !== false
-          ? { onMouseEnter: () => setIsHoveringResize(true), onMouseLeave: () => setIsHoveringResize(false) }
-          : {})}
-      >
-        <View style={[styles.resizeHandle, (isHoveringResize || isResizing) && styles.resizeHandleActive]} />
-      </View>
+      {!isCheckboxCol && (
+        <View
+          style={styles.resizeTouchTarget}
+          {...(col.resizable !== false ? panResponder.panHandlers : {})}
+          {...(Platform.OS === "web" && col.resizable !== false
+            ? { onMouseEnter: () => setIsHoveringResize(true), onMouseLeave: () => setIsHoveringResize(false) }
+            : {})}
+        >
+          <View style={[styles.resizeHandle, (isHoveringResize || isResizing) && styles.resizeHandleActive]} />
+        </View>
+      )}
     </View>
   );
 });

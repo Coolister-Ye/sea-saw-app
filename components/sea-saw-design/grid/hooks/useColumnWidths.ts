@@ -10,7 +10,7 @@
  *   • Re-distributes when the column list changes (pinning / visibility mutations)
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { applyFlexWidths } from "../utils";
 import type { ComputedColumn } from "../types";
@@ -39,6 +39,16 @@ export function useColumnWidths(
   const [widthOverrides, setWidthOverrides] = useState<Map<string, number>>(new Map());
   const containerWidthRef = useRef(0);
 
+  // Refs keep getWidth stable (empty dep array) across column list changes
+  const widthOverridesRef = useRef(widthOverrides);
+  widthOverridesRef.current = widthOverrides;
+  const leftColsRef = useRef(leftCols);
+  leftColsRef.current = leftCols;
+  const centerColsRef = useRef(centerCols);
+  centerColsRef.current = centerCols;
+  const rightColsRef = useRef(rightCols);
+  rightColsRef.current = rightCols;
+
   /** Apply flex distribution to center columns given a container width */
   const computeFlexWidths = useCallback(
     (containerWidth: number, overrides: Map<string, number>) => {
@@ -59,10 +69,14 @@ export function useColumnWidths(
       });
 
       const flexed = applyFlexWidths(centerWithOverrides, available);
+
+      // Build a Set of flex-eligible fields once (O(n)) to avoid O(n²) find inside forEach
+      const flexFields = new Set(
+        centerCols.filter((c) => c.flex != null).map((c) => c.field),
+      );
       const newOverrides = new Map(overrides);
       flexed.forEach((c) => {
-        // Only update override if flex was active for this column
-        if (centerCols.find((cc) => cc.field === c.field)?.flex != null) {
+        if (flexFields.has(c.field)) {
           newOverrides.set(c.field, c.width);
         }
       });
@@ -89,32 +103,29 @@ export function useColumnWidths(
     });
   }, [computeFlexWidths]);
 
-  const getWidth = useCallback(
-    (field: string) => {
-      const ow = widthOverrides.get(field);
-      if (ow != null) return ow;
-      const col =
-        leftCols.find((c) => c.field === field) ??
-        centerCols.find((c) => c.field === field) ??
-        rightCols.find((c) => c.field === field);
-      return col?.width ?? 120;
-    },
-    [widthOverrides, leftCols, centerCols, rightCols],
-  );
+  // Stable identity — reads from refs so column list changes don't invalidate GridRow memos
+  const getWidth = useCallback((field: string) => {
+    const ow = widthOverridesRef.current.get(field);
+    if (ow != null) return ow;
+    const col =
+      leftColsRef.current.find((c) => c.field === field) ??
+      centerColsRef.current.find((c) => c.field === field) ??
+      rightColsRef.current.find((c) => c.field === field);
+    return col?.width ?? 120;
+  }, []);
 
-  const leftSectionWidth = leftCols.reduce(
-    (s, c) => s + getWidth(c.field),
-    0,
+  const leftSectionWidth = useMemo(
+    () => leftCols.reduce((s, c) => s + getWidth(c.field), 0),
+    [leftCols, widthOverrides],
   );
-  const rightSectionWidth = rightCols.reduce(
-    (s, c) => s + getWidth(c.field),
-    0,
+  const rightSectionWidth = useMemo(
+    () => rightCols.reduce((s, c) => s + getWidth(c.field), 0),
+    [rightCols, widthOverrides],
   );
-  const centerContentWidth = centerCols.reduce(
-    (s, c) => s + getWidth(c.field),
-    0,
-  );
-  const scrollableWidth = Math.max(300, centerContentWidth);
+  const scrollableWidth = useMemo(() => {
+    const w = centerCols.reduce((s, c) => s + getWidth(c.field), 0);
+    return Math.max(300, w);
+  }, [centerCols, widthOverrides]);
 
   return {
     getWidth,

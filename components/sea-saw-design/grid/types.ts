@@ -157,22 +157,6 @@ export type GridColumnMeta = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COLUMN MENU STATE
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-export type GridColumnMenuState = {
-  visible: boolean;
-  field: string;
-  headerName: string;
-  x: number;
-  y: number;
-  pinned?: "left" | "right";
-  sortable?: boolean;
-  canMoveLeft?: boolean;
-  canMoveRight?: boolean;
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
    GRID PROPS
    ═══════════════════════════════════════════════════════════════════════════ */
 

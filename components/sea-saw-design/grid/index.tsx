@@ -27,8 +27,10 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -113,6 +115,15 @@ export const Grid = forwardRef<GridRef, GridProps>(function Grid(
     pageIndex: 0,
     pageSize: defaultPageSize,
   });
+
+  /* Reset to page 0 when the datasource changes (e.g. filter submitted from outside).
+     prevDatasourceRef skips the initial mount so the first load stays on page 0. */
+  const prevDatasourceRef = useRef(datasource);
+  useEffect(() => {
+    if (prevDatasourceRef.current === datasource) return;
+    prevDatasourceRef.current = datasource;
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }, [datasource]);
 
   /* ── Sorting ────────────────────────────────────────────────────────── */
   const { sorting, handleSort, setColumnSort } = useGridSorting({ setPagination });
@@ -218,20 +229,24 @@ export const Grid = forwardRef<GridRef, GridProps>(function Grid(
   const rowPressHandler =
     isSelectable || onRowPress || onRowClicked ? handleRowPress : undefined;
 
+  /* ── Row keys — shared by selection state and context ──────────────── */
+  const allRowKeys = useMemo(
+    () => rows.map((r, i) => getRowKey(r, i)),
+    [rows],
+  );
+
   /* ── Checkbox header state ──────────────────────────────────────────── */
   const checkboxHeaderState = useMemo<"none" | "some" | "all">(() => {
     if (!showCheckboxColumn || rows.length === 0) return "none";
-    const allKeys = rows.map((r, i) => getRowKey(r, i));
     if (selectedCount === 0) return "none";
-    if (selectedCount >= allKeys.length) return "all";
+    if (selectedCount >= rows.length) return "all";
     return "some";
-  }, [showCheckboxColumn, rows, selectedCount]);
+  }, [showCheckboxColumn, rows.length, selectedCount]);
 
   const handleCheckboxHeaderPress = useCallback(() => {
     if (!enableSelectAll) return;
-    const allKeys = rows.map((r, i) => getRowKey(r, i));
-    toggleAll(allKeys);
-  }, [enableSelectAll, rows, toggleAll]);
+    toggleAll(allRowKeys);
+  }, [enableSelectAll, allRowKeys, toggleAll]);
 
   /* ── Effective context (injects __rowSelection) ─────────────────────── */
   const effectiveContext = useMemo(
@@ -243,13 +258,12 @@ export const Grid = forwardRef<GridRef, GridProps>(function Grid(
               isRowSelected,
               toggleRow,
               toggleAll,
-              allKeys: rows.map((r, i) => getRowKey(r, i)),
+              allKeys: allRowKeys,
             },
           }
         : {}),
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, showCheckboxColumn, isRowSelected, toggleRow, toggleAll, rows],
+    [context, showCheckboxColumn, isRowSelected, toggleRow, toggleAll, allRowKeys],
   );
 
   /* ── Imperative handle ──────────────────────────────────────────────── */
@@ -296,7 +310,6 @@ export const Grid = forwardRef<GridRef, GridProps>(function Grid(
   const handleMenuPinLeft = useCallback((f: string) => setColumnPinned(f, "left"), [setColumnPinned]);
   const handleMenuPinRight = useCallback((f: string) => setColumnPinned(f, "right"), [setColumnPinned]);
   const handleMenuUnpin = useCallback((f: string) => setColumnPinned(f, null), [setColumnPinned]);
-  const handleMenuHide = useCallback((f: string) => hideColumn(f), [hideColumn]);
   const handleMenuMoveLeft = useCallback((f: string) => moveColumn(f, -1), [moveColumn]);
   const handleMenuMoveRight = useCallback((f: string) => moveColumn(f, 1), [moveColumn]);
 
@@ -580,7 +593,7 @@ export const Grid = forwardRef<GridRef, GridProps>(function Grid(
         onPinLeft={handleMenuPinLeft}
         onPinRight={handleMenuPinRight}
         onUnpin={handleMenuUnpin}
-        onHide={handleMenuHide}
+        onHide={hideColumn}
         onMoveLeft={handleMenuMoveLeft}
         onMoveRight={handleMenuMoveRight}
         onAutosizeColumn={autosizeColumn}
