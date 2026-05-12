@@ -89,15 +89,10 @@ export function useTable({
     dispatch,
   });
 
-  /* ── 用户列偏好加载（传给 useTableData） ── */
+  /* ── 列偏好已迁移到 CustomView，此处返回空偏好 ── */
   const loadUserPreference = useCallback(
-    () =>
-      request({
-        uri: "getUserColPreference",
-        method: "GET",
-        suffix: `${table}/`,
-      }),
-    [request, table],
+    () => Promise.resolve({ data: { column_pref: [] } }),
+    [],
   );
 
   /* ── 子 hook：数据加载 ── */

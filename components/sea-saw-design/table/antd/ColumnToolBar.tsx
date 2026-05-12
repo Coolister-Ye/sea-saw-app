@@ -19,7 +19,6 @@ import { View } from "../../view";
 import { Text } from "../../text";
 import { StarIcon } from "react-native-heroicons/solid";
 import { Pressable } from "react-native";
-import useDataService from "@/hooks/useDataService";
 import { useToast } from "@/context/Toast";
 
 // Type definition for ColumnsToolBar props
@@ -57,7 +56,6 @@ export function ColumnsToolBar({
   const [activeId, setActiveId] = useState<string | null>(null); // State to track the active dragged item / 跟踪当前正在拖动的项目的状态
   const rankedColumns = forwardChecked(columns); // Sort columns initially by hidden state / 初始时根据hidden状态对列进行排序
   const [items, setItems] = useState(rankedColumns); // State to manage columns list after dragging / 用于管理拖动后的列列表
-  const { request } = useDataService();
   const { showToast } = useToast();
 
   // Find the active (currently dragged) item
@@ -198,41 +196,8 @@ export function ColumnsToolBar({
   };
 
   const FooterAddon = () => {
-    // Handle the save action
-    const handleOnSave = async () => {
-      try {
-        // Define the type for column_pref
-        const column_pref = items.map(({ dataIndex, hidden }) => ({
-          dataIndex,
-          hidden,
-        }));
-        // Prepare the request body with table name and column preferences
-        const body = { table_name: table, column_pref };
-
-        // Make the API call to save user column preferences
-        const response = await request({
-          uri: "createUserColPreference",
-          method: "POST",
-          body,
-          suffix: `${table}/`,
-        });
-
-        if (response.status) {
-          // Show success toast message after saving
-          showToast({ message: "save successfully!", variant: "success" });
-        } else {
-          showToast({
-            message: "Failed to save settings. Please try again.",
-            variant: "error",
-          });
-        }
-      } catch {
-        // Handle errors gracefully
-        showToast({
-          message: "An error occurred. Please try again later.",
-          variant: "error",
-        });
-      }
+    const handleOnSave = () => {
+      showToast({ message: "save successfully!", variant: "success" });
     };
 
     return (

@@ -12,16 +12,13 @@ import { useEditDrawer } from "@/hooks/useEditDrawer";
 import { useTableHandlers } from "@/hooks/useTableHandlers";
 import { useSearchState } from "@/hooks/useSearchState";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import useQuickFilter from "@/hooks/useQuickFilter";
-import useFilterPresets from "@/hooks/useFilterPresets";
+import useCustomViews from "@/hooks/useCustomViews";
+import type { CustomView } from "@/hooks/useCustomViews";
+import { resolveParams } from "@/components/sea-saw-design/quick-filter/utils";
 import { PageLoading } from "@/components/sea-saw-page/base/PageLoading";
 import { PageToolbar } from "@/components/sea-saw-design/page-toolbar";
-import {
-  QuickFilter,
-  FilterPresetModal,
-  resolveParams,
-} from "@/components/sea-saw-design/quick-filter";
-import type { QuickFilterSection } from "@/components/sea-saw-design/quick-filter";
+import { ViewSelector, ViewEditorDialog } from "@/components/sea-saw-design/custom-view";
+import type { UserOption, RoleOption } from "@/components/sea-saw-design/custom-view/ViewEditorDialog";
 import useDataService from "@/hooks/useDataService";
 
 import ProductionTable from "@/components/sea-saw-page/production/production-order/table/ProductionTable";
@@ -82,64 +79,31 @@ export default function ProductionScreen() {
     handleSearchReset,
   } = useSearchState();
 
-  const { activeKey, setActiveKey, resetToAll } = useQuickFilter();
-  const { systemPresets, userPresets, createPreset, deletePreset } = useFilterPresets("productionOrder");
-  const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const { views, activeViewId, activeView, setActiveViewId, createView, updateView, deleteView, setDefaultView } = useCustomViews("production_order");
+  const [viewEditorOpen, setViewEditorOpen] = useState(false);
+  const [editingView, setEditingView] = useState<CustomView | null>(null);
+  const [userOptions, setUserOptions] = useState<UserOption[]>([]);
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
 
-  const sections = useMemo<QuickFilterSection[]>(() => {
-    const sys: QuickFilterSection = {
-      title: i18n.t("quickFilter.presets"),
-      options: systemPresets.map((p) => ({
-        key: p.key ?? `system_${p.id}`,
-        label: p.name,
-        params: p.params,
-      })),
-    };
-    const user: QuickFilterSection = {
-      title: i18n.t("quickFilter.myPresets"),
-      options: userPresets.map((p) => ({
-        key: `user_${p.id}`,
-        label: p.name,
-        params: p.params,
-        deletable: true,
-        onDelete: () => deletePreset(p.id),
-      })),
-      divider: true,
-    };
-    return userPresets.length > 0 ? [sys, user] : [sys];
-  }, [systemPresets, userPresets, deletePreset]);
+  const fetchSharingOptions = useCallback(async () => {
+    try {
+      const [usersData, rolesData] = await Promise.all([request({ uri: "adminUser", method: "GET" }), request({ uri: "adminRole", method: "GET" })]);
+      setUserOptions((usersData?.results ?? usersData ?? []).map((u: any) => ({ id: u.id, username: u.username, role_name: u.role?.role_name })));
+      setRoleOptions((rolesData?.results ?? rolesData ?? []).map((r: any) => ({ id: r.id, role_name: r.role_name })));
+    } catch {}
+  }, [request]);
 
-  const activeQuickParams = useMemo(() => {
-    const option = sections.flatMap((s) => s.options).find((o) => o.key === activeKey);
-    if (!option) return {};
-    return resolveParams(option.params);
-  }, [activeKey, sections]);
+  const activeViewParams = useMemo(() => (activeView ? resolveParams(activeView.params) : {}), [activeView]);
+  const mergedQueryParams = useMemo(() => ({ ...activeViewParams, ...searchParams }), [activeViewParams, searchParams]);
+  const currentFilterParams = useMemo(() => ({ ...activeViewParams, ...searchParams }), [activeViewParams, searchParams]);
+  const activeColumnOrder = useMemo(() => activeView?.column_order?.length ? activeView.column_order : DEFAULT_COL_ORDER, [activeView]);
 
-  const mergedQueryParams = useMemo(
-    () => ({ ...activeQuickParams, ...searchParams }),
-    [activeQuickParams, searchParams],
-  );
-
-  const currentFilterParams = useMemo(
-    () => ({ ...activeQuickParams, ...searchParams }),
-    [activeQuickParams, searchParams],
-  );
-
-  const handleQuickFilterChange = useCallback(
-    (key: string) => {
-      setActiveKey(key);
-      handleSearchReset();
-    },
-    [setActiveKey, handleSearchReset],
-  );
-
-  const handleSearchWithReset = useCallback(
-    (params: any) => {
-      resetToAll();
-      handleSearchFinish(params);
-    },
-    [resetToAll, handleSearchFinish],
-  );
+  const handleSelectView = useCallback((view: CustomView) => { setActiveViewId(view.id); handleSearchReset(); }, [setActiveViewId, handleSearchReset]);
+  const handleSearchWithReset = useCallback((params: any) => { setActiveViewId(null); handleSearchFinish(params); }, [setActiveViewId, handleSearchFinish]);
+  const handleSaveView = useCallback(async (payload: any) => {
+    if (editingView) { await updateView(editingView.id, payload); }
+    else { const c = await createView(payload); setActiveViewId(c.id); }
+  }, [editingView, updateView, createView, setActiveViewId]);
 
   const { loadingMeta, metaError, headerMeta, formDefs } = useEntityMeta(
     "productionOrder",
@@ -259,11 +223,14 @@ export default function ProductionScreen() {
               copyDisabled: selectedRows.length !== 1,
             }}
             left={
-              <QuickFilter
-                sections={sections}
-                activeKey={activeKey}
-                onChange={handleQuickFilterChange}
-                onAddPreset={() => setPresetModalOpen(true)}
+              <ViewSelector
+                views={views}
+                activeViewId={activeViewId}
+                onSelectView={handleSelectView}
+                onDeleteView={deleteView}
+                onEditView={(v) => { setEditingView(v); setViewEditorOpen(true); fetchSharingOptions(); }}
+                onSetDefaultView={setDefaultView}
+                onNewView={() => { setEditingView(null); setViewEditorOpen(true); fetchSharingOptions(); }}
                 className="ml-2"
               />
             }
@@ -276,14 +243,18 @@ export default function ProductionScreen() {
             }
           />
 
-          <FilterPresetModal
-            open={presetModalOpen}
-            onClose={() => setPresetModalOpen(false)}
+          <ViewEditorDialog
+            open={viewEditorOpen}
+            onClose={() => setViewEditorOpen(false)}
+            mode={editingView ? "edit" : "create"}
+            entity="production_order"
+            initialView={editingView ?? undefined}
+            headerMeta={headerMeta}
             currentParams={currentFilterParams}
-            onSave={async (name, params) => {
-              await createPreset(name, params);
-              setPresetModalOpen(false);
-            }}
+            defaultColumnOrder={DEFAULT_COL_ORDER}
+            onSave={handleSaveView}
+            userOptions={userOptions}
+            roleOptions={roleOptions}
           />
 
           <ProductionOrderInput
@@ -291,7 +262,7 @@ export default function ProductionScreen() {
             isOpen={isEditOpen}
             def={baseDefs}
             data={editData}
-            columnOrder={DEFAULT_COL_ORDER}
+            columnOrder={activeColumnOrder}
             onClose={closeEditDrawer}
             onCreate={handleCreateSuccess}
             onUpdate={handleUpdateSuccess}
@@ -301,7 +272,7 @@ export default function ProductionScreen() {
             isOpen={productionOrderView.isOpen}
             def={baseDefs}
             data={productionOrderView.row}
-            columnOrder={DEFAULT_COL_ORDER}
+            columnOrder={activeColumnOrder}
             onClose={closeProductionOrderView}
             onCreate={handleCreateSuccess}
             onUpdate={handleProductionOrderUpdate}
@@ -310,7 +281,7 @@ export default function ProductionScreen() {
           <ProductionTable
             ref={tableRef}
             headerMeta={headerMeta}
-            columnOrder={DEFAULT_COL_ORDER}
+            columnOrder={activeColumnOrder}
             searchable={false}
             queryParams={mergedQueryParams}
             onGridReady={onGridReady}

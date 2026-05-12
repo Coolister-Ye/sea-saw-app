@@ -21,6 +21,7 @@ interface OrderCardProps {
   onPipelineClick?: () => void;
   pipelineStatus?: string;
   hideEmptyFields?: boolean;
+  showIntegrationFields?: boolean;
 }
 
 export default function OrderCard({
@@ -30,6 +31,7 @@ export default function OrderCard({
   onPipelineClick,
   pipelineStatus,
   hideEmptyFields = false,
+  showIntegrationFields = false,
 }: OrderCardProps) {
   return (
     <DisplayCard
@@ -91,12 +93,16 @@ export default function OrderCard({
             "deposit",
             "balance",
             "total_amount",
-            "total_purchase_amount",
-            "total_outbound_amount",
-            "total_received_amount",
-            "total_paid_amount",
-            "payment_terms",
-            "bank_account",
+            ...(showIntegrationFields
+              ? [
+                  "total_purchase_amount",
+                  "total_outbound_amount",
+                  "total_received_amount",
+                  "total_paid_amount",
+                  "payment_terms",
+                  "bank_account",
+                ]
+              : []),
           ],
           className: "bg-white-50/30",
         },

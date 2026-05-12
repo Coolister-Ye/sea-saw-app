@@ -69,6 +69,7 @@ export default function OrdersSection({
           value={orders}
           onItemClick={(index: number) => setEditingOrder(orders[index])}
           pipelineStatus={pipeline?.status}
+          showIntegrationFields
         />
       </SectionContentCard>
 
